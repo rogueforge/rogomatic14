@@ -1,5 +1,5 @@
 /*
- * ltm.c: Rog-O-Matic XIV (CMU) Fri Dec 28 20:37:04 1984 - mlm
+ * ltm.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains functions for maintaining a database or "long
@@ -8,12 +8,14 @@
 
 # include <curses.h>
 # include <math.h>
+# include <sys/types.h>
 # include "types.h"
 # include "globals.h"
 # include "install.h"
 
 static int nosave = 0;		/* True ==> dont write ltm back out */
 static char ltmnam[100];	/* Long term memory file name */
+extern time_t time ();
 
 /* 
  * mapcharacter: Read a character help message
@@ -22,7 +24,7 @@ static char ltmnam[100];	/* Long term memory file name */
 mapcharacter (ch, str)
 char ch, *str;
 {
-  dwait (D_CONTROL, "mapcharacter called: '%c' ==> '%s'", ch, str);  
+  (void) dwait (D_CONTROL, "mapcharacter called: '%c' ==> '%s'", ch, str);  
 
   /* Ancient versions of Rogue had no wands or staves */
   if (ch == '/' && stlmatch (str, "unknown"))
@@ -52,9 +54,9 @@ char *monster;
       return (m);
 
   if (nextmon >= MAXMON)			/* Check for overflow */
-    dwait (D_FATAL, "Overflowed monster array");
+    (void) dwait (D_FATAL, "Overflowed monster array");
 
-  strcpy (monhist[nextmon].m_name, monster);	/* Copy in the name */
+  (void) strcpy (monhist[nextmon].m_name, monster);	/* Copy in the name */
   return (nextmon++);				/* Return the index */
 }
 
@@ -88,7 +90,7 @@ int score;
   
   if (nextmon < 1 || nosave) return;
 
-  dwait (D_CONTROL, "Saveltm called, writing file '%s'", ltmnam);
+  (void) dwait (D_CONTROL, "Saveltm called, writing file '%s'", ltmnam);
 
   /* Disable interrupts and open the file for writing */
   critical ();
@@ -96,7 +98,7 @@ int score;
   /* Only write out the new results if we can get write access */
   if (lock_file (LOCKFILE, MAXLOCK))
   { if ((ltmfil = wopen (ltmnam, "w")) == NULL)
-    { dwait (D_WARNING, "Can't write long term memory file '%s'...", ltmnam); }
+    { (void) dwait (D_WARNING, "Can't write long term memory file '%s'...", ltmnam); }
     else
     { /* Write the ltm file header */
       fprintf (ltmfil, "Count %d, sum %d, start %d, saved %d\n",
@@ -115,7 +117,7 @@ int score;
       }
 
       /* Close the file and unlock it */  
-      fclose (ltmfil);
+      (void) fclose (ltmfil);
     }
     unlock_file (LOCKFILE);
   }
@@ -130,8 +132,8 @@ int score;
 
 restoreltm ()
 {
-  sprintf (ltmnam, "%s/ltm%d", RGMDIR, version);
-  dwait (D_CONTROL, "Restoreltm called, reading file '%s'", ltmnam);
+  (void) sprintf (ltmnam, "%s/ltm%d", RGMDIR, version);
+  (void) dwait (D_CONTROL, "Restoreltm called, reading file '%s'", ltmnam);
 
   clearltm (monhist);			/* Clear the original sums */
   nextmon = 0;				/* Zero the list of monsters */
@@ -145,10 +147,10 @@ restoreltm ()
   { if (fexists (ltmnam))
       readltm ();
     else 
-    { dwait (D_CONTROL | D_SAY,
+    { (void) dwait (D_CONTROL | D_SAY,
              "Starting long term memory file '%s'...", ltmnam);
       ltm.gamecnt = ltm.gamesum = ltm.timeswritten = 0;
-      ltm.inittime = time (0);
+      ltm.inittime = time ((time_t *) NULL);
     }
 
     unlock_file (LOCKFILE);
@@ -172,13 +174,13 @@ readltm ()
   
   if ((ltmfil = fopen (ltmnam, "r")) == NULL)
   { nosave = 1;
-    dwait (D_WARNING | D_SAY,
+    (void) dwait (D_WARNING | D_SAY,
            "Could not read long term memory file '%s'...", ltmnam);
   }
   else
   { /* Read the ltm file header */
     if (fgets (buf, BUFSIZ, ltmfil))
-      sscanf (buf, "Count %d, sum %d, start %d, saved %d",
+      (void) sscanf (buf, "Count %d, sum %d, start %d, saved %d",
 	      &ltm.gamecnt, &ltm.gamesum, 
 	      &ltm.inittime, &ltm.timeswritten);
 
@@ -186,7 +188,7 @@ readltm ()
     while (fgets (buf, BUFSIZ, ltmfil))
       parsemonster (buf);
 
-    fclose (ltmfil);
+    (void) fclose (ltmfil);
   }
 }
 

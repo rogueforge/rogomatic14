@@ -1,5 +1,5 @@
 /*
- * mess.c: Rog-O-Matic XIV (CMU) Sat Feb 16 15:41:44 1985 - mlm
+ * mess.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * mess.c: This file contains all of the functions which parse the 
@@ -91,7 +91,7 @@ register char *mess, *mend;
 
   /* Message describes an old item already in our pack */
   else if (mess[1]==')')
-  { echoit = identifying; identifying = justreadid = 0; inventory(mess,mend); }
+  { echoit = identifying; identifying = justreadid = 0; (void) inventory(mess,mend); }
 
   /* A random message, switch of first char to save some time... */
   else switch (mess[0])
@@ -180,7 +180,7 @@ register char *mess, *mend;
       else if (MATCH("ice *")) ;
       else if (MATCH("identify what*")) echoit=0;
       else if (MATCH("illegal command*")) echoit=0;
-      else if (MATCH("i see no way*")) {unset(STAIRS); findstairs();}
+      else if (MATCH("i see no way*")) {unset(STAIRS); findstairs(NONE, NONE);}
       else if (MATCH("it appears to be cursed")) curseditem ();
       else if (MATCH("it make*")) ;
       else unknown++;
@@ -242,7 +242,7 @@ register char *mess, *mend;
       if (MATCH("range is 'a' to '*'")) 
       { echoit=0;
         if (*res1-'a'+1 != invcount)
-        { dwait (D_INFORM, "Range check failed..."); usesynch = 0; }
+        { (void) dwait (D_INFORM, "Range check failed..."); usesynch = 0; }
       }
       else if (MATCH("read what*")) echoit=0;
       else if (MATCH("rogue version *")) echoit=0;
@@ -279,7 +279,7 @@ register char *mess, *mend;
       { if (stlmatch (res1, "identify")) readident (res1); }
       else if (MATCH("that's not a valid item"))
       { echoit = justreadid < 1; if (justreadid-- == 0) sendnow (" *");
-        if (justreadid < -50) dwait (D_FATAL, "Caught in invalid item loop"); }
+        if (justreadid < -50) (void) dwait (D_FATAL, "Caught in invalid item loop"); }
       else if (MATCH("the veil of darkness lifts")) blinded=0;
       else if (MATCH("the scroll turns to dust*")) 
       { deletestuff (atrow, atcol); unset(SCAREM | STUFF); droppedscare--; }
@@ -330,7 +330,7 @@ register char *mess, *mend;
       if (MATCH("you hit*")) { echoit=0; didhit (); }
       else if (MATCH("you miss*")) { echoit=0; didmiss (); }
       else if (MATCH("you are starting to feel weak")) echoit=0;
-      else if (MATCH("you are weak from hunger")) {echoit=0; eat();}
+      else if (MATCH("you are weak from hunger")) {echoit=0; (void) eat();}
       else if (MATCH("you are being held")) beingheld=30;
       else if (MATCH("you can move again")) echoit=0;
       else if (MATCH("you are still stuck *")) nametrap (BEARTRP,HERE);
@@ -406,7 +406,7 @@ register char *mess, *mend;
       else if (MATCH("you have a * feeling for a moment, then it passes")) ;
       else if (MATCH("you are transfixed")) ;
       else if (MATCH("you are frozen")) washit ("ice monster");
-      else if (MATCH("you faint")) {echoit=0; if (version<RV36B) eat();}
+      else if (MATCH("you faint")) {echoit=0; if (version<RV36B) (void) eat();}
       else if (MATCH("you freak out")) echoit = 0;
       else if (MATCH("you fell into a trap!")) ;
       else if (MATCH("yum*")) echoit=0;
@@ -430,8 +430,8 @@ register char *mess, *mend;
   }
 
   /* Log unknown or troublesome messages */
-  if (morecount > 50)	dwait (D_WARNING, "More loop msg '%s'", mess);
-  else if (unknown)	dwait (D_WARNING, "Unknown message '%s'", mess);
+  if (morecount > 50)	(void) dwait (D_WARNING, "More loop msg '%s'", mess);
+  else if (unknown)	(void) dwait (D_WARNING, "Unknown message '%s'", mess);
 
   /* Send it to dwait; if dwait doesnt print it (and echo is on) echo it */
   if (echoit & !dwait (D_MESSAGE, mess))
@@ -486,7 +486,7 @@ char *name;
 
   if (!replaying && version < RV53A &&
       (nextid < LETTER (0) || nextid > LETTER (invcount))) 
-  { dwait (D_FATAL, "Readident: nextid %d, afterid %d, invcount %d.",
+  { (void) dwait (D_FATAL, "Readident: nextid %d, afterid %d, invcount %d.",
            nextid, afterid, invcount); }
 
   infer (name);		/* Record what kind of scroll this is */
@@ -524,7 +524,7 @@ char *name;
           (obj = have (ring)) != NONE    || (obj = have (wand)) != NONE)
         id = LETTER (obj);
     }
-    else dwait (D_FATAL, "Unknown identify scroll '%s'", name);
+    else (void) dwait (D_FATAL, "Unknown identify scroll '%s'", name);
 
     waitfor ("not a valid item"); waitfor ("--More--");
     sendnow (" %c;", id);		/* Pick an object to identify */
@@ -565,11 +565,11 @@ rampage ()
     sendnow (" %c;", monc);	/* Send the monster */
 
     /* Add to the list of 'gone' monsters */
-    sprintf (genocided, "%s%c", genocided, monc);
+    (void) sprintf (genocided, "%s%c", genocided, monc);
     genocide++;
   }
   else
-  { dwait (D_ERROR, "Out of monsters to genocide!");
+  { (void) dwait (D_ERROR, "Out of monsters to genocide!");
     sendnow (" %c;", ESC);	/* Cancel the command */
   }
 }
@@ -617,7 +617,7 @@ char *roguename;
   
     for (i=0; i<MAXINV; i++)
       if (stlmatch (inven[i].str, lastname))
-      { strcpy (inven[i].str, roguename);
+      { (void) strcpy (inven[i].str, roguename);
         remember (i, KNOWN);
       }
   }  
@@ -638,7 +638,7 @@ register char *monster;
   { monster = monhist[mh].m_name; m = monsternum (monster); }
 
   /* Tell the user what we killed */
-  dwait (D_BATTLE | D_MONSTER, "Killed '%s'", monster);
+  (void) dwait (D_BATTLE | D_MONSTER, "Killed '%s'", monster);
 
   /* If cheating against Rogue 3.6, check out our arrow */
   if (version < RV52A && cheat)
@@ -650,7 +650,7 @@ register char *monster;
 
   /* Echo the number arrows we pumped into him */
   if (mh >=0 && mhit+mmiss > 0 && mtarget == mh)
-    dwait (D_BATTLE | D_MONSTER, "%d out of %d missiles hit the %s", 
+    (void) dwait (D_BATTLE | D_MONSTER, "%d out of %d missiles hit the %s", 
            mhit, mhit+mmiss, monster);
 
   /* If we killed it by hacking, add the result to long term memory */
@@ -690,7 +690,7 @@ char *monster;
   if ((mh = getmonhist (monster, 1)) != NONE)
   { monster = monhist[mh].m_name; m = monsternum (monster); }
 
-  dwait (D_MONSTER, "was hit by a '%s'", monster);
+  (void) dwait (D_MONSTER, "was hit by a '%s'", monster);
 
   timeshit++;			/* Bump global count */
   if (m>0) wakemonster(-m);	/* Wake him up */
@@ -716,7 +716,7 @@ char *monster;
   if ((mh = getmonhist (monster, 1)) != NONE)
   { monster = monhist[mh].m_name; m = monsternum (monster); }
 
-  dwait (D_MONSTER, "was missed by a '%s'", monster);
+  (void) dwait (D_MONSTER, "was missed by a '%s'", monster);
 
   timesmissed++;		/* Bump global count */
   if (m>0) wakemonster(-m);	/* Wake him up */
@@ -826,22 +826,22 @@ char sep;
 { register int m;
   char s[1024], *monname ();
 
-  sprintf (s, "Monsters killed:%c%c", sep, sep);
+  (void) sprintf (s, "Monsters killed:%c%c", sep, sep);
 
   for (m=0; m<=26; m++)
     if (monkilled[m] > 0)
-    { sprintf (s, "%s\t%d %s%s%c", s, monkilled[m],  monname (m+'A'-1),
+    { (void) sprintf (s, "%s\t%d %s%s%c", s, monkilled[m],  monname (m+'A'-1),
                plural (monkilled[m]), sep);
     }
 
-  sprintf (s, "%s%cTotal: %d%c%c", s, sep, totalkilled, sep, sep);
+  (void) sprintf (s, "%s%cTotal: %d%c%c", s, sep, totalkilled, sep, sep);
   
-  sprintf (s, "%sHit %d out of %d times, was hit %d out of %d times.%c", s,
+  (void) sprintf (s, "%sHit %d out of %d times, was hit %d out of %d times.%c", s,
            hits, misses+hits,
            timeshit, timesmissed+timeshit, sep);
 
   if (numgold > 0)
-    sprintf (s, "%sGold %d total, %d pots, %d average.%c",  s,
+    (void) sprintf (s, "%sGold %d total, %d pots, %d average.%c",  s,
              sumgold, numgold, (sumgold*10+5) / (numgold*10), sep);
 
   if (f == NULL)

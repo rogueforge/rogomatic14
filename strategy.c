@@ -1,5 +1,5 @@
 /*
- * strategy.c: Rog-O-Matic XIV (CMU) Sat Feb 16 10:03:16 1985 - mlm
+ * strategy.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains all of the 'high level intelligence' of Rog-O-Matic. 
@@ -31,7 +31,7 @@ extern int genericinit(), sleepvalue();	/* From explore.c */
 
 int   strategize ()
 {
-  dwait (D_CONTROL, "Strategizing...");
+  (void) dwait (D_CONTROL, "Strategizing...");
 
   /* If replaying, instead of making an action, return the old one */
   if (replaying) return (replaycommand ());
@@ -56,7 +56,7 @@ int   strategize ()
     return (1);
 
   if (handleweapon ())		/* Play with the nice sword */
-  { dwait (D_BATTLE, "Switching to sword [1]"); return (1); }
+  { (void) dwait (D_BATTLE, "Switching to sword [1]"); return (1); }
 
   if (light ())			/* Fiat lux! Especially if we lost */
     return (1);			/* a monster from view.		   */
@@ -161,7 +161,7 @@ int   strategize ()
    */
   
   if (on (STAIRS) && (atrow != stairrow || atcol != staircol))
-  { dwait (D_ERROR, "Stairs moved!"); findstairs (); return (1); }
+  { (void) dwait (D_ERROR, "Stairs moved!"); unset (STAIRS); findstairs (NONE, NONE); return (1); }
 
   /* 
    * If we failed to find the stairs, explore each possible secret door
@@ -243,7 +243,7 @@ int   fightmonster ()
       { wanddir = direc (rr-atrow, cc-atcol); }
 
       /* Debugging breakpoint */
-      dwait (D_BATTLE, "%c <%d,%d>, danger %d, worst %c(%d,%d), total %d",
+      (void) dwait (D_BATTLE, "%c <%d,%d>, danger %d, worst %c(%d,%d), total %d",
              screen[rr][cc], rr-atrow, cc-atcol,
              danger, monc, mdir, mbad, adjacent);
     }
@@ -275,7 +275,7 @@ int   fightmonster ()
   
   if (!lyinginwait && !adjacent)
   { command (T_FIGHTING, "s");
-    dwait (D_BATTLE, "Lying in wait...");
+    (void) dwait (D_BATTLE, "Lying in wait...");
     lyinginwait = 1;
     foughtmonster = DIDFIGHT;
     return (1);
@@ -283,7 +283,7 @@ int   fightmonster ()
 
   /* If we are here but have no direction, there was a bug somewhere */
   if (mdir < 0)
-  { dwait (D_BATTLE, "Adjacent, but no direction known!");
+  { (void) dwait (D_BATTLE, "Adjacent, but no direction known!");
     return (0);
   }
 
@@ -291,7 +291,7 @@ int   fightmonster ()
   if (danger >= Hp) display ("In trouble...");
   
   /* Well, nothing better than to hit the beast! Tell dwait about it */
-  dwait (D_BATTLE, "Attacking %s(%d) direction %d (total danger %d)...", 
+  (void) dwait (D_BATTLE, "Attacking %s(%d) direction %d (total danger %d)...", 
          monster, mbad, mdir, danger);
 
   /* Record the monster type */
@@ -353,7 +353,7 @@ int   tomonster ()
 
       /* Or if he is meaner than another equally close monster, save him */
       else if (dist == closest && avghit(i) > avghit(which))
-      { dwait (D_BATTLE, "Chasing %c(%d) rather than %c(%d) at distance %d.",
+      { (void) dwait (D_BATTLE, "Chasing %c(%d) rather than %c(%d) at distance %d.",
                mlist[i].chr, avghit(i), mlist[which].chr,
                avghit(which), dist);
 
@@ -379,9 +379,9 @@ int   tomonster ()
     return (1);
 
   /* If he is an odd number of squares away, lie in wait for him */
-  if (closest&1 == 0 && !lyinginwait)
+  if ((closest&1) == 0 && !lyinginwait)
   { command (T_FIGHTING, "s");
-    dwait (D_BATTLE, "Waiting for monster an odd number of squares away...");
+    (void) dwait (D_BATTLE, "Waiting for monster an odd number of squares away...");
     lyinginwait = 1;
     return (1);
   }
@@ -442,7 +442,7 @@ aftermelee ()
   if (foughtmonster > 0)
   { lyinginwait = 1;  
     command (T_RESTING, "s");
-    dwait (D_BATTLE, "Aftermelee: waiting for %d rounds.", foughtmonster);
+    (void) dwait (D_BATTLE, "Aftermelee: waiting for %d rounds.", foughtmonster);
     return (1);
   }
 
@@ -489,7 +489,7 @@ int adj;		/* How many attackers are there? */
   if (on (SCAREM) && (turns > 0 || confused) && !streq(monster, "dragon"))
   { command (T_RESTING, "s");
     display ("Resting on scare monster");
-    dwait (D_BATTLE, "Battlestations: resting, on scaremonster.");
+    (void) dwait (D_BATTLE, "Battlestations: resting, on scaremonster.");
     return (1);
   }
 
@@ -501,7 +501,7 @@ int adj;		/* How many attackers are there? */
   if (beingstalked > INVPRES) { turns = 0; danger += INVDAM; }
 
   /* Debugging breakpoint */
-  dwait (D_BATTLE,
+  (void) dwait (D_BATTLE,
         "Battlestations: %s(%d), total danger %d, dir %d, %d turns, %d adj.", 
         monster, mbad, danger, mdir, turns, adj);
 
@@ -510,14 +510,14 @@ int adj;		/* How many attackers are there? */
    */
 
   if (live_for (1) && turns < 2 && wielding (thrower) && handleweapon ())  
-  { dwait (D_BATTLE, "Switching to sword [2]"); return (1); }
+  { (void) dwait (D_BATTLE, "Switching to sword [2]"); return (1); }
 
   /* 
    * Dont waste magic when on a scare monster scroll
    */
   
   if (on (SCAREM) && !streq (monster, "dragon"))
-  { dwait (D_BATTLE, "Battlestations: hitting from scaremonster.");
+  { (void) dwait (D_BATTLE, "Battlestations: hitting from scaremonster.");
     return (0);
   }
 
@@ -530,7 +530,7 @@ int adj;		/* How many attackers are there? */
   if (on(STAIRS) && ((Level>18 && Level<26) || exploredlevel) && !floating &&
       (die_in(5) ||
        ((seeawakemonster ("rattlesnake") || seeawakemonster ("giant ant")) &&
-         (have (ring, "sustain strength") < 0)) ||
+         turns < 2 && wearing ("sustain strength") == NONE) ||
        ((seeawakemonster ("aquator") || seeawakemonster ("rust monster")) &&
         turns < 2 && willrust (currentarmor) &&
 	wearing ("maintain armor") == NONE) ||
@@ -601,7 +601,7 @@ int adj;		/* How many attackers are there? */
 
   if (turns > 1 && live_for (2) && leftring != NONE && rightring != NONE &&
       (seemonster ("aquator") || seemonster ("rust monster")) &&
-      wearing ("maintain armor") < 0 &&
+      wearing ("maintain armor") == NONE &&
       findring ("maintain armor"))
     return (1);
 
@@ -612,7 +612,7 @@ int adj;		/* How many attackers are there? */
   if ((live_for (1) || turns > 0) &&
       (leftring == NONE || rightring == NONE) &&
       (seemonster ("giant ant") || seemonster ("rattlesnake")) &&
-      wearing ("sustain strength") < 0 &&
+      wearing ("sustain strength") == NONE &&
       (obj = havenamed (ring, "sustain strength")) != NONE &&
       puton (obj))
     return (1);
@@ -620,7 +620,7 @@ int adj;		/* How many attackers are there? */
   if ((live_for (2) || turns > 1) &&
       leftring != NONE && rightring != NONE &&
       (seemonster ("giant ant") || seemonster ("rattlesnake")) &&
-      wearing ("sustain strength") < 0 &&
+      wearing ("sustain strength") == NONE &&
       findring ("sustain strength"))
     return (1);
 
@@ -635,7 +635,7 @@ int adj;		/* How many attackers are there? */
       (leftring == NONE || rightring == NONE) &&
       !(turns == 0 && (streq (monster, "rattlesnake") ||
                        streq (monster, "giant ant"))) &&
-      wearing ("regeneration") < 0 &&
+      wearing ("regeneration") == NONE &&
       (obj = havenamed (ring, "regeneration")) != NONE &&
       puton (obj))
     return (1);
@@ -643,7 +643,7 @@ int adj;		/* How many attackers are there? */
   /* Have a ring and both hands are full, takes two turns */
   if (die_in (4) && (live_for (2) || turns > 1) &&
       leftring != NONE && rightring != NONE &&
-      wearing ("regeneration") < 0 &&
+      wearing ("regeneration") == NONE &&
       findring ("regeneration"))
     return (1);
 
@@ -856,7 +856,7 @@ int adj;		/* How many attackers are there? */
    
   if (!alert && !lyinginwait && turns > 0)
   { command (T_FIGHTING, "s");
-    dwait (D_BATTLE, "Waiting to see if he is awake...");
+    (void) dwait (D_BATTLE, "Waiting to see if he is awake...");
     lyinginwait = 1;
     return (1);
   }
@@ -892,7 +892,7 @@ int adj;		/* How many attackers are there? */
         return (1);
 
       /* And shoot! */
-      throw (obj, mdir);
+      (void) throw (obj, mdir);
       return (1);
     }
   }
@@ -902,7 +902,7 @@ int adj;		/* How many attackers are there? */
    */
 
   if (!cursedweapon && wielding (thrower) && handleweapon ())  
-  { dwait (D_BATTLE, "Switching to sword [3]"); return (1); }
+  { (void) dwait (D_BATTLE, "Switching to sword [3]"); return (1); }
 
   /* 
    * No bright ideas. Return and let the caller figure out what to do.
@@ -1012,7 +1012,7 @@ fightinvisible ()
   /* If we can bail out to the next level, do so */
   if (((beingstalked < INVPRES  && Hp < (INVDAM * 2)) ||
        (beingstalked >= INVPRES && Hp < (INVDAM * 3))) &&
-      godownstairs (RUNNING))
+      (goupstairs (RUNNING) || godownstairs (RUNNING)))
   { display ("Running like hell from an invisible stalker...");
     return (1); }
 
@@ -1101,10 +1101,10 @@ archery ()
         larder > 0 ||
         ((streq (monster, "leprechaun") && !hungry ()) ||
           streq (monster, "nympyh")))
-    { dwait (D_BATTLE, "Arching at %c at (%d,%d)",
+    { (void) dwait (D_BATTLE, "Arching at %c at (%d,%d)",
 	     mlist[m].chr, mlist[m].mrow, mlist[m].mcol);
       if (archmonster (m, mtk)) return (1);
-      dwait (D_BATTLE, "Archmonster failed in archery.");
+      (void) dwait (D_BATTLE, "Archmonster failed in archery.");
     }
   }
   

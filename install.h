@@ -1,5 +1,5 @@
 /*
- * install.h: Rog-O-Matic XIV (CMU) Wed Jan 30 17:39:50 1985 - mlm
+ * install.h: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains (hopefully) all system dependent defines 
@@ -10,7 +10,9 @@
  * BSD41: Defined for 4.1bsd Unix systems (Undefined means 4.2bsd)
  */
 
+/*
 # define BSD41
+*/
 
 /*
  * Rog-O-Matic's best score against Rogue 5.3  (UTexas, Feb 1984)
@@ -29,14 +31,16 @@
 /* 
  * This variable defines the version of Rogue we are assumed to be playing
  * if the getrogueversion() routine can't figure it out.  This must be
- * defined, and can be either "5.2", "3.6", or "5.3"
+ * defined, and can be either "5.2", "3.6", or "5.3". DEFRV is must be
+ * the corresponding internal version code defined in types.h.
  */
 
 # define DEFVER		"5.3"
+# define DEFRV		RV53A
 
 /* 
  * This file is created whenever the Rog-O-Matic score file is accessed to
- * prevent simulatneous accesses. This variable must be defined, but will
+ * prevent simultaneous accesses. This variable must be defined, but will
  * not be used unless RGMDIR is also defined.
  */
 

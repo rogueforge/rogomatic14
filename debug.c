@@ -1,5 +1,5 @@
 /*
- * debug.c: Rog-O-Matic XIV (CMU) Fri Dec 28 21:48:55 1984 - mlm
+ * debug.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains the code for the debugger.  Rogomatic has one of
@@ -21,6 +21,7 @@
  * debugging messages, and hit a space or a cr to continue
  */
 
+/*VARARGS2*/
 dwait (msgtype, f, a1, a2, a3, a4, a5, a6, a7, a8)
 char *f;
 int msgtype, a1, a2, a3, a4, a5, a6, a7, a8;
@@ -28,13 +29,13 @@ int msgtype, a1, a2, a3, a4, a5, a6, a7, a8;
   int r, c;
 
   /* Build the actual message */
-  sprintf (msg, f, a1, a2, a3, a4, a5, a6, a7, a8);
+  (void) sprintf (msg, f, a1, a2, a3, a4, a5, a6, a7, a8);
 
   /* Log the message if the error is severe enough */
   if (!replaying && (msgtype & (D_FATAL | D_ERROR | D_WARNING)))
   { char errfn[128]; FILE *errfil;
 
-    sprintf (errfn, "%s/error%s", RGMDIR, versionstr);
+    (void) sprintf (errfn, "%s/error%s", RGMDIR, versionstr);
     if ((errfil = wopen (errfn, "a")) != NULL)
     { fprintf (errfil, "User %s, error type %d:  %s\n\n",
                getname(), msgtype, msg);
@@ -43,7 +44,7 @@ int msgtype, a1, a2, a3, a4, a5, a6, a7, a8;
         summary (errfil, NEWLINE);
         fprintf (errfil, "\f\n");
       }
-      fclose (errfil);
+      (void) fclose (errfil);
     }
   }
 
@@ -52,7 +53,7 @@ int msgtype, a1, a2, a3, a4, a5, a6, a7, a8;
     saynow (msg);
     playing = 0;
     quitrogue ("fatal error trap", Gold, SAVED);
-    longjmp (commandtop);
+    longjmp (commandtop, 1);
   }
 
   if (! debug (msgtype | D_INFORM))		/* If debugoff */
@@ -71,7 +72,7 @@ int msgtype, a1, a2, a3, a4, a5, a6, a7, a8;
     { case '?': 
         say ("i=inv, d=debug !=stf, @=mon, #=wls, $=id, ^=flg, &=chr");
         break;
-      case 'i': at (1,0); dumpinv (NULL); at (row, col); break;
+      case 'i': at (1,0); dumpinv ((FILE *) NULL); at (row, col); break;
       case 'd': toggledebug (); 	break;
       case 't': transparent = 1;        break;
       case '!': dumpstuff ();           break;
@@ -83,7 +84,7 @@ int msgtype, a1, a2, a3, a4, a5, a6, a7, a8;
 	  saynow ("Char at %d,%d '%c'", r, c, screen[r][c]);
         break;
       case '(': dumpdatabase (); at (row, col); break;
-      case ')': markcycles (DOPRINT); at (row, col); break;
+      case ')': (void) markcycles (DOPRINT); at (row, col); break;
       case '~': saynow ("Version %d, quit at %d", version, quitat); break;
       case '/': dosnapshot (); break;
       default: at (row, col); return (1);
@@ -142,15 +143,15 @@ char sep;
 
   timespent[0].timestamp = 0;
 
-  sprintf (s, "Time Analysis: %s%c%c",
+  (void) sprintf (s, "Time Analysis: %s%c%c",
            "othr hand fght rest move expl rung grop srch door total",
            sep, sep);
 
   for (i=1; i<=MaxLevel; i++)
-  { sprintf (s, "%slevel %2d:     ", s, i);
+  { (void) sprintf (s, "%slevel %2d:     ", s, i);
     for (j = T_OTHER; j < T_LISTLEN; j++)
-      sprintf (s, "%s%5d", s, timespent[i].activity[j]);
-    sprintf (s, "%s%6d%c",
+      (void) sprintf (s, "%s%5d", s, timespent[i].activity[j]);
+    (void) sprintf (s, "%s%6d%c",
              s, timespent[i].timestamp - timespent[i-1].timestamp, sep);
   }
 
@@ -180,19 +181,19 @@ toggledebug ()
   else if (!debug (D_INFORM))     debugging = D_NORMAL | D_WARNING | D_INFORM;
   else                            debugging = D_ALL;
   
-  strcpy (debugstr, "Debugging :");
+  (void) strcpy (debugstr, "Debugging :");
 
-  if (debug(D_FATAL))     strcat (debugstr, "fatal:");
-  if (debug(D_ERROR))     strcat (debugstr, "error:");
-  if (debug(D_WARNING))   strcat (debugstr, "warn:");
-  if (debug(D_INFORM))    strcat (debugstr, "info:");
-  if (debug(D_SEARCH))    strcat (debugstr, "search:");
-  if (debug(D_BATTLE))    strcat (debugstr, "battle:");
-  if (debug(D_MESSAGE))   strcat (debugstr, "msg:");
-  if (debug(D_PACK))      strcat (debugstr, "pack:");
-  if (debug(D_CONTROL))   strcat (debugstr, "ctrl:");
-  if (debug(D_SCREEN))    strcat (debugstr, "screen:");
-  if (debug(D_MONSTER))   strcat (debugstr, "monster:");
+  if (debug(D_FATAL))     (void) strcat (debugstr, "fatal:");
+  if (debug(D_ERROR))     (void) strcat (debugstr, "error:");
+  if (debug(D_WARNING))   (void) strcat (debugstr, "warn:");
+  if (debug(D_INFORM))    (void) strcat (debugstr, "info:");
+  if (debug(D_SEARCH))    (void) strcat (debugstr, "search:");
+  if (debug(D_BATTLE))    (void) strcat (debugstr, "battle:");
+  if (debug(D_MESSAGE))   (void) strcat (debugstr, "msg:");
+  if (debug(D_PACK))      (void) strcat (debugstr, "pack:");
+  if (debug(D_CONTROL))   (void) strcat (debugstr, "ctrl:");
+  if (debug(D_SCREEN))    (void) strcat (debugstr, "screen:");
+  if (debug(D_MONSTER))   (void) strcat (debugstr, "monster:");
   
   saynow (debugstr);
 }
@@ -209,7 +210,7 @@ int *r, *c;
   saynow ("At %d,%d: enter 'row,col' for %s: ", atrow, atcol, msg);
 
   if (fgets (buf, 256, stdin))
-  { sscanf (buf, "%d,%d", r, c);
+  { (void) sscanf (buf, "%d,%d", r, c);
     if (*r>=1 && *r<23 && *c>=0 && *c<=79)
       return (1);
     else

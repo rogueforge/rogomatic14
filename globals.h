@@ -1,5 +1,5 @@
 /*
- * globals.h: Rog-O-Matic XIV (CMU) Thu Jan 31 18:12:50 1985 - mlm
+ * globals.h: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * Global variables
@@ -30,7 +30,7 @@ extern char *termination;	/* Latin verb for how we died */
 extern char versionstr[];	/* Version of Rogue we are playing */
 
 /* character and string functions */
-extern char getlogtoken(), *getname(), *itemstr();
+extern char getlogtoken(), *getname(), *itemstr(), *strcat(), *strcpy();
 extern char logchar(), *monname(), *realname();
 
 /* double precision floating point functions */

@@ -1,5 +1,5 @@
 /*
- * command.c: Rog-O-Matic XIV (CMU) Thu Jan 31 20:13:11 1985 - mlm
+ * command.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains all of the functions which send commands to
@@ -46,6 +46,7 @@ int   d, mode;
  * gather information are sent to Rogue using the 'send' function.
  */
 
+/*VARARGS2*/
 command (tmode, f, a1, a2, a3, a4)
 char *f;
 int tmode, a1, a2, a3, a4;
@@ -54,7 +55,7 @@ int tmode, a1, a2, a3, a4;
   static char lastcom[32] = "";
 
   /* Build the command */
-  sprintf (cmd, f, a1, a2, a3, a4);
+  (void) sprintf (cmd, f, a1, a2, a3, a4);
 
   /* Echo the command if in transparent mode */
   if (transparent)		showcommand (cmd);
@@ -78,11 +79,11 @@ int tmode, a1, a2, a3, a4;
   { if (streq (lastcom, cmd))
     { comcount++;
       if (streq (cmd, "i") && comcount > 3)
-        dwait (D_FATAL, "command: cannot synchronize inventory, invcount %d.",
+        (void) dwait (D_FATAL, "command: cannot synchronize inventory, invcount %d.",
                invcount);
     }
     else
-    { strcpy (lastcom, cmd);
+    { (void) strcpy (lastcom, cmd);
       comcount = 1;
     }
   }
@@ -153,8 +154,7 @@ char *cmd;
 
 adjustpack (cmd)
 char *cmd;
-{ char is1[128], is2[128], functionchar(), commandarg();
-  int newweapon, obj;
+{ int newweapon, obj;
 
   switch (functionchar (cmd))
   { case 'd':	setrc (STUFF | USELESS, atrow, atcol);
@@ -171,14 +171,14 @@ char *cmd;
 
     case 'q':	lastobj = OBJECT (commandarg (cmd, 1));
 		usemsg ("Quaffing", lastobj);
-		strcpy (lastname, inven[lastobj].str);
+		(void) strcpy (lastname, inven[lastobj].str);
 		useobj (inven[lastobj].str);
 		removeinv (lastobj);
 		break;
 
     case 'r':	lastobj = OBJECT (commandarg (cmd, 1));
 		usemsg ("Reading", lastobj);
-		strcpy (lastname, inven[lastobj].str);
+		(void) strcpy (lastname, inven[lastobj].str);
 		useobj (inven[lastobj].str);
 		removeinv (lastobj);
 		break;
@@ -211,7 +211,7 @@ char *cmd;
     case 'p': case 'z':
 		lastwand = OBJECT (commandarg (cmd, 2));
 		usemsg ("Pointing", lastwand);
-		strcpy (lastname, inven[lastwand].str);
+		(void) strcpy (lastname, inven[lastwand].str);
 		useobj (inven[lastwand].str);
 
 		/* Update number of charges */

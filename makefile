@@ -1,10 +1,10 @@
-# makefile: Rog-O-Matic XIV (CMU) Wed Feb  6 18:34:24 1985 - mlm
+# makefile: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
 # Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
 #
 BINARIES=   rogomatic player rgmplot datesub histplot gene
-BINDIR=     /usr/mlm/bin/
-PUBDIR=     /usr/mlm/rgm/src14a
-CCFLAGS=    -g
+BINDIR=     /usr/wel/bin
+PUBDIR=     /usr/wel/src/rgm14
+CCFLAGS=    -O
 LDFLAGS=    
 OBJS=	    arms.o command.o database.o debug.o explore.o io.o learn.o\
 	    ltm.o main.o mess.o monsters.o pack.o rand.o replay.o rooms.o\
@@ -130,12 +130,44 @@ anim: anim.c utility.o
 index: $(SRCS)
 	ctags -x $(SRCS) > index
 fluff: $(SRCS)
-	lint *.c	| grep -v 'variable # of args' \
-			| grep -v 'unused in function' \
-			| grep -v 'used inconsistently' \
-			| grep -v 'declared inconsistently' \
-			| grep -v 'multiply declared' \
-			> fluff
+	lint -bh *.c	| sed \
+		-e '/arms\.c.*null effect/d' \
+		-e '/but not used/d' \
+		-e '/command\.c.*null effect/d' \
+		-e '/connect.*llib-lc/d' \
+		-e '/datesub\.c.*constant in conditional context/d' \
+		-e '/datesub\.c.*yyfussy/d' \
+		-e '/environ used/d' \
+		-e '/explore\.c.*argument depth unused/d'\
+		-e '/explore\.c.*argument cont unused/d'\
+		-e '/explore\.c.*unused in function zigzagvalue/d'\
+		-e '/ioctl.*2 used inconsistently/d' \
+		-e '/learn\.c.*possible pointer alignment problem/d' \
+		-e '/longjmp,.*1 used inconsistently/d' \
+		-e '/mess\.c.*null effect/d' \
+		-e '/multiply declared/d' \
+		-e '/nametrap,.*1 used inconsistently/d' \
+		-e '/pack\.c.*null effect/d' \
+		-e '/printw/d' \
+		-e '/rand/d' \
+		-e '/redefinition hides earlier one/d' \
+		-e '/rogue value declared inconsistently.*setup\.c/d' \
+		-e '/send returns value which is always ignored/d' \
+		-e '/send.*llib-lc/d' \
+		-e '/stdscr used/d' \
+		-e '/stty/d' \
+		-e '/survival\.c.*constant in conditional context/d' \
+		-e '/utility\.c.*possible pointer alignment problem/d' \
+		-e '/yyinput/d' \
+		-e '/yyoutput/d' \
+		-e '/yyunput/d' \
+		-e '/_pfast/d' \
+		-e '/_echoit/d' \
+		-e '/_rawmode/d' \
+		-e '/_unctrl/d' \
+		-e '/_flsbuf/d' \
+		-e '/_tty/d' \
+		> fluff
 print: $(SRCS) $(HDRS)
 	@echo $? > printit
 dist: $(SRCS) $(HDRS) $(OTHERS) makefile rogomatic.6 README

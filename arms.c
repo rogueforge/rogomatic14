@@ -1,5 +1,5 @@
 /*
- * arms.c: Rog-O-Matic XIV (CMU) Sat Feb 16 09:47:34 1985 - mlm
+ * arms.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  * 
  * This file contains all utility functions which exist for armor, 
@@ -514,9 +514,9 @@ int havemissile ()
   }
 
   if (obj != NONE)
-    dwait (D_BATTLE, "Havemissile returns (%s", itemstr (obj));
+    (void) dwait (D_BATTLE, "Havemissile returns (%s", itemstr (obj));
   else
-    dwait (D_BATTLE, "Havemissile fails");
+    (void) dwait (D_BATTLE, "Havemissile fails");
 
   return (obj);
 }

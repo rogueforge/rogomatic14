@@ -1,5 +1,5 @@
 /*
- * utility.c: Rog-O-Matic XIV (CMU) Thu Jan 31 18:18:22 1985 - mlm
+ * utility.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains all of the miscellaneous system functions which
@@ -33,7 +33,7 @@ baudrate ()
   static struct sgttyb  sg;
   static short  baud_rate;
 
-  gtty (fileno (stdin), &sg);
+  (void) gtty (fileno (stdin), &sg);
   baud_rate = sg.sg_ospeed == 0 ? 1200
     : sg.sg_ospeed < sizeof baud_convert / sizeof baud_convert[0]
     ? baud_convert[sg.sg_ospeed] : 9600;
@@ -81,7 +81,7 @@ char *getname ()
 { static char name[100];
   int   i;
 
-  getpw (getuid (), name);
+  (void) getpw (getuid (), name);
   i = 0;
   while (name[i] != ':' && name[i] != ',')
     i++;
@@ -158,7 +158,7 @@ char *name, *value;
 	if (moreenv () < 0)
 	  return (-1);
       }
-      p = malloc (strlen (name) + strlen (value) + 2);
+      p = malloc ((unsigned) (strlen (name) + strlen (value) + 2));
       if (p == 0)		/* not enough core */
 	return (-1);
       environ[i + 1] = 0;	/* new end of env. */
@@ -166,11 +166,11 @@ char *name, *value;
     else
     {				/* name already in env. */
       p = realloc (environ[i],
-	  strlen (name) + strlen (value) + 2);
+	  (unsigned) (strlen (name) + strlen (value) + 2));
       if (p == 0)
 	return (-1);
     }
-    sprintf (p, "%s=%s", name, value);/* copy into env. */
+    (void) sprintf (p, "%s=%s", name, value);/* copy into env. */
     environ[i] = p;
   }
   else
@@ -208,19 +208,20 @@ char *name;
 static int  newenv ()
 { register char **env, *elem;
   register int  i, esize;
+  extern char *strcpy ();
 
   for (i = 0; environ[i]; i++);
   esize = i + EXTRASIZE + 1;
-  env = (char **) malloc (esize * sizeof (elem));
+  env = (char **) malloc ((unsigned) (esize * sizeof (elem)));
   if (env == 0)
     return (-1);
 
   for (i = 0; environ[i]; i++)
-  { elem = malloc (strlen (environ[i]) + 1);
+  { elem = malloc ((unsigned) (strlen (environ[i]) + 1));
     if (elem == 0)
       return (-1);
     env[i] = elem;
-    strcpy (elem, environ[i]);
+    (void) strcpy (elem, environ[i]);
   }
 
   env[i] = 0;
@@ -234,7 +235,7 @@ static int  moreenv ()
   register char **env;
 
   esize = envsize + EXTRASIZE;
-  env = (char **) realloc (environ, esize * sizeof (*env));
+  env = (char **) realloc ((char *) environ, (unsigned) (esize * sizeof (*env)));
   if (env == 0)
     return (-1);
   environ = env;
@@ -253,7 +254,7 @@ char *fname, *mode;
 
   oldmask = umask (0111);
   newlog = fopen (fname, mode);
-  umask (oldmask);
+  (void) umask (oldmask);
 
   return (newlog);  
 }
@@ -274,6 +275,7 @@ char *fn;
  */
 
 int filelength (f)
+char *f;
 { struct stat sbuf;
 
   if (stat (f, &sbuf) == 0)
@@ -301,9 +303,9 @@ critical ()
 
 uncritical ()
 {
-  signal (SIGHUP, hstat);
-  signal (SIGINT, istat);
-  signal (SIGQUIT, qstat);
+  (void) signal (SIGHUP, hstat);
+  (void) signal (SIGINT, istat);
+  (void) signal (SIGQUIT, qstat);
 }
 
 /*
@@ -312,9 +314,9 @@ uncritical ()
 
 reset_int ()
 {
-  signal (SIGHUP, SIG_DFL);
-  signal (SIGINT, SIG_DFL);
-  signal (SIGQUIT, SIG_DFL);
+  (void) signal (SIGHUP, SIG_DFL);
+  (void) signal (SIGINT, SIG_DFL);
+  (void) signal (SIGQUIT, SIG_DFL);
 }
 
 /*
@@ -324,9 +326,9 @@ reset_int ()
 int_exit (exitproc)
 int (*exitproc)();
 {
-  if (signal (SIGINT, SIG_IGN) != SIG_IGN)  signal (SIGINT, exitproc);
-  if (signal (SIGPIPE, SIG_IGN) != SIG_IGN) signal (SIGPIPE, exitproc);
-  if (signal (SIGQUIT, SIG_IGN) != SIG_IGN) signal (SIGQUIT, exitproc);
+  if (signal (SIGINT, SIG_IGN) != SIG_IGN)  (void) signal (SIGINT, exitproc);
+  if (signal (SIGPIPE, SIG_IGN) != SIG_IGN) (void) signal (SIGPIPE, exitproc);
+  if (signal (SIGQUIT, SIG_IGN) != SIG_IGN) (void) signal (SIGQUIT, exitproc);
 }
 
 /*
@@ -341,7 +343,7 @@ char *lokfil;
 int maxtime;
 { int try;
   struct stat statbuf;
-  time_t time ();
+  extern time_t time ();
 
   start:
   if (creat (lokfil, NOWRITE) > 0)
@@ -354,11 +356,11 @@ int maxtime;
   }
 
   if (stat (lokfil, &statbuf) < 0)
-  { creat (lokfil, NOWRITE);
+  { (void) creat (lokfil, NOWRITE);
     return TRUE;
   }
 
-  if (time (NULL) - statbuf.st_mtime > maxtime)
+  if (time ((time_t *) NULL) - statbuf.st_mtime > maxtime)
   { if (unlink (lokfil) < 0)
       return FALSE;
     goto start;
@@ -373,13 +375,14 @@ int maxtime;
 
 unlock_file (lokfil)
 char *lokfil;
-{ unlink (lokfil);
+{ (void) unlink (lokfil);
 }
 
 /*
  * quit: Defined for compatibility with Berkeley 4.2 system
  */
 
+/*VARARGS2*/
 quit (code, fmt, a1, a2, a3, a4)
 int code, a1, a2, a3, a4;
 char *fmt;

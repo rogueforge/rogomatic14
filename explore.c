@@ -1,5 +1,5 @@
 /*
- * explore.c: Rog-O-Matic XIV (CMU) Thu Jan 31 20:14:30 1985 - mlm
+ * explore.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains all of the functions which are used to search out
@@ -300,8 +300,8 @@ int r, c, depth, *val, *avd, *cont;
  */
 
 expruninit ()
-{ dwait (D_CONTROL | D_SEARCH, "expruninit called.");
-  expinit();
+{ (void) dwait (D_CONTROL | D_SEARCH, "expruninit called.");
+  (void) expinit();
   expDor = 0;
   avoidmonsters ();
   return (1);
@@ -317,8 +317,9 @@ exprunvalue (r, c, depth, val, avd, cont)
 int r, c, depth, *val, *avd, *cont;
 { if (r == atrow && c == atcol)		/* Current square useless MLM */
     *val = 0;
-  else if (onrc (MONSTER | TRAP, r, c))	/* Added TRAP useless MLM */
-    *val = 0;
+  else if (onrc (MONSTER, r, c)) *val = 0;
+  else if (onrc (TRAP, r, c))	/* TRAP useless MLM; except TEL & TRAPDOR WEL */
+  {if (onrc(TELTRAP|TRAPDOR, r, c)) *avd = 0; else *val = 0; }
   else if (!zigzagvalue (r, c, depth, val, avd, cont))
     return (0);
 
@@ -332,8 +333,8 @@ int r, c, depth, *val, *avd, *cont;
  */
 
 expunpininit ()
-{ dwait (D_CONTROL | D_SEARCH, "expunpininit called.");
-  expinit();
+{ (void) dwait (D_CONTROL | D_SEARCH, "expunpininit called.");
+  (void) expinit();
   expDor = 0;
   pinavoid ();
   return (1);
@@ -349,8 +350,9 @@ expunpinvalue (r, c, depth, val, avd, cont)
 int r, c, depth, *val, *avd, *cont;
 { if (r == atrow && c == atcol)		/* Current square useless MLM */
     *val = 0;
-  else if (onrc (MONSTER | TRAP, r, c))	/* Added TRAP useless MLM */
-    *val = 0;
+  else if (onrc (MONSTER, r, c)) *val = 0;
+  else if (onrc (TRAP, r, c))	/* TRAP useless MLM; except TEL & TRAPDOR WEL */
+  {if (onrc(TELTRAP|TRAPDOR, r, c)) *avd = 0; else *val = 0; }
   else if (!zigzagvalue (r, c, depth, val, avd, cont))
     return (0);
 
@@ -489,7 +491,7 @@ expinit ()
 }
 
 roominit ()
-{ expinit ();
+{ (void) expinit ();
   expDor = INFINITY;
   return (1);
 }
@@ -518,7 +520,7 @@ int *val, *avd, *cont;
 
   a = onrc (SAFE|DOOR|STAIRS|HALL, r, c) ? 0 :
       onrc (ARROW, r, c)   ? 50 :
-      onrc (TRAPDOR, r, c) ? 300 :
+      onrc (TRAPDOR, r, c) ? INFINITY : /* don't try to explore a trapdoor WEL*/
       onrc (TELTRAP, r, c) ? 100 :
       onrc (GASTRAP, r, c) ? 50 :
       onrc (BEARTRP, r, c) ? 50 :
@@ -595,7 +597,7 @@ int *val, *avd, *cont;
   if (v < 50)
     *cont = 4; 				     /* Look for something better */
   if (debug (D_SCREEN) && v > 0)
-  { mvaddch (r, c, 'o'); dwait (D_SCREEN, "Value %d", v); }
+  { mvaddch (r, c, 'o'); (void) dwait (D_SCREEN, "Value %d", v); }
 
   return (1);
 }
@@ -610,6 +612,7 @@ int *val, *avd, *cont;
  * without taking a hit from the monster chasing us.
  *
  * Gave GasTraps and BearTraps infinite avoidance.	MLM 10/11/83
+ * Don't avoid Trapdoors and Teleport Traps 		WEL 12/19/84
  */
 
 zigzagvalue (r, c, depth, val, avd, cont)
@@ -620,8 +623,8 @@ int *val, *avd, *cont;
 
   a = onrc (SAFE|DOOR|STAIRS|HALL, r, c) ? 0 :
       onrc (ARROW, r, c)   ? 50 :
-      onrc (TRAPDOR, r, c) ? 300 :
-      onrc (TELTRAP, r, c) ? 100 :
+      onrc (TRAPDOR, r, c) ? 0 :
+      onrc (TELTRAP, r, c) ? 0 :
       onrc (GASTRAP, r, c) ? 50 :
       onrc (BEARTRP, r, c) ? 50 :
       onrc (DARTRAP, r, c) ? 200 :
@@ -671,8 +674,8 @@ int *val, *avd, *cont;
  */
 
 secretinit ()
-{ expinit ();
-  if (setpsd ())
+{ (void) expinit ();
+  if (setpsd (NOPRINT))
     return (1);
   return (0);
 }
@@ -686,7 +689,7 @@ int *val, *avd, *cont;
   v = 0;	/* establish value of square */
   a = onrc (SAFE, r, c)    ? 0 :
       onrc (ARROW, r, c)   ? 50 :
-      onrc (TRAPDOR, r, c) ? 175 :
+      onrc (TRAPDOR, r, c) ? INFINITY :	/* WEL */
       onrc (TELTRAP, r, c) ? 50 :
       onrc (GASTRAP, r, c) ? 50 :
       onrc (BEARTRP, r, c) ? 50 :
@@ -715,7 +718,7 @@ int *val, *avd, *cont;
 
   if (v>0)
   { if (version >= RV53A &&
-        onrc (DOOR|BEEN, r, c) == DOOR|BEEN && 
+        onrc (DOOR|BEEN, r, c) == (DOOR|BEEN) && 
         (onrc (CANGO|WALL, r+1, c) == 0 || onrc (CANGO|WALL, r-1, c) == 0 ||
          onrc (CANGO|WALL, r, c+1) == 0 || onrc (CANGO|WALL, r, c-1) == 0))
     { *val = v+100; *cont = 5; }
@@ -780,7 +783,7 @@ avoidmonsters ()
   
   /* Don't avoid current position */
   avdmonsters[searchstartr][searchstartc] = 0;
-  dwait (D_SEARCH, "Avoidmonsters: avoiding the $s");
+  (void) dwait (D_SEARCH, "Avoidmonsters: avoiding the $s");
 }
 
 /* 
@@ -836,7 +839,7 @@ pinavoid ()
   
   /* Don't avoid current position */
   avdmonsters[searchstartr][searchstartc] = 0;
-  dwait (D_SEARCH, "Pinavoid: avoiding the &s");
+  (void) dwait (D_SEARCH, "Pinavoid: avoiding the &s");
 }
 
 /*
@@ -905,7 +908,7 @@ findroom ()
   }
 
   new_findroom = 0;
-  dwait (D_SEARCH, "findroom failed.");
+  (void) dwait (D_SEARCH, "findroom failed.");
   return (0);
 }
 
@@ -920,7 +923,7 @@ exploreroom ()
   if (makemove (EXPLOREROOM, roominit, expvalue, REUSE)) return (1);
   markexplored (atrow, atcol);
 
-  dwait (D_SEARCH, "exploreroom failed.");
+  (void) dwait (D_SEARCH, "exploreroom failed.");
   return (0);
 }
 
@@ -1016,32 +1019,32 @@ register int turns;	/* Minimum number of arrows to make it worthwhile */
 { int archeryinit(), archeryvalue();
   register int mr, mc;
 
-  dwait (D_CONTROL | D_BATTLE, "archmonster: m=%d, turns=%d", m, turns);
+  (void) dwait (D_CONTROL | D_BATTLE, "archmonster: m=%d, turns=%d", m, turns);
 
   if (! new_arch) return (0);
 
   /* Useless without arrows */
-  if (havemult (missile, "", turns) < 0) 
-  { dwait (D_BATTLE, "archmonster, fewer than %d missiles", turns); 
+  if (havemult (missile, "", turns) == NONE) 
+  { (void) dwait (D_BATTLE, "archmonster, fewer than %d missiles", turns); 
     return (0); }
 
   /* For now, only work for sleeping monsters */
   if (mlist[m].q != ASLEEP) 
-  { dwait (D_BATTLE, "archmonster, monster not asleep"); return (0); }
+  { (void) dwait (D_BATTLE, "archmonster, monster not asleep"); return (0); }
 
   /* Save globals */
   archrow = mlist[m].mrow; archcol = mlist[m].mcol; archturns = turns;
 
   /* Can we get to a suitable square */
   if (makemove (ARCHERYMOVE, archeryinit, archeryvalue, REUSE))
-  { dwait (D_BATTLE, "archmonster, made a move"); return (1); }
+  { (void) dwait (D_BATTLE, "archmonster, made a move"); return (1); }
 
   /* If no move made and not on target, no path to monster */
   if (!ontarget) { new_arch = 0; return (0); }
 
   /* On target: wake him up and set darkdir/turns if necessary */
   mr = mlist[m].mrow; mc = mlist[m].mcol; targetmonster = mlist[m].chr;
-  mlist[m].q = AWAKE; dwait (D_BATTLE, "archmonster, waking him up"); 
+  mlist[m].q = AWAKE; (void) dwait (D_BATTLE, "archmonster, waking him up"); 
     
   /* Set dark room archery variables, add goal of standing on square */
   if (darkroom ())
@@ -1136,17 +1139,17 @@ movetorest ()
 
   /* If we are where we want to rest, do so */
   if (restr >= 0 && atrow == restr && atcol == restc)
-  { dwait (D_SEARCH, "movetorest: already on square"); return (0); }
+  { (void) dwait (D_SEARCH, "movetorest: already on square"); return (0); }
 
   /* Try to move to a better square (remember position) */
   if (makemove (RESTMOVE, restinit, restvalue, REUSE))
-  { dwait (D_SEARCH, "movetorest wins.");
+  { (void) dwait (D_SEARCH, "movetorest wins.");
     restr = targetrow; restc = targetcol;
     return (1);
   }
 
   /* Cant move anywhere better, stay here */
-  dwait (D_SEARCH, "movetorest fails.");
+  (void) dwait (D_SEARCH, "movetorest fails.");
   restr = atrow; restc = atcol;
 
   return (0);

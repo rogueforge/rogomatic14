@@ -1,5 +1,5 @@
 /*
- * things.c: Rog-O-Matic XIV (CMU) Sat Feb 16 12:16:57 1985 - mlm
+ * things.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains much of the code to handle Rog-O-Matics inventory.
@@ -18,7 +18,7 @@ wear (obj)
 int obj;
 {
   if (currentarmor != NONE)
-  { dwait (D_FATAL, "Trying to put on a second coat of armor");
+  { (void) dwait (D_FATAL, "Trying to put on a second coat of armor");
     return (0);
   }
 
@@ -36,7 +36,7 @@ int obj;
 takeoff ()
 {
   if (currentarmor == NONE)
-  { dwait (D_ERROR, "Trying to take off armor we don't have on!");
+  { (void) dwait (D_ERROR, "Trying to take off armor we don't have on!");
     return (0);
   }
 
@@ -122,7 +122,7 @@ quaff (obj)
 int obj;
 {
   if (inven[obj].type != potion)
-  { dwait (D_ERROR, "Trying to quaff %c", LETTER (obj)); 
+  { (void) dwait (D_ERROR, "Trying to quaff %c", LETTER (obj)); 
     usesynch = 0;
     return (0); 
   }
@@ -139,7 +139,7 @@ reads (obj)
 int obj;
 {
   if (inven[obj].type != scroll)
-  { dwait (D_ERROR, "Trying to read %c", LETTER (obj)); 
+  { (void) dwait (D_ERROR, "Trying to read %c", LETTER (obj)); 
     usesynch = 0;
     return (0); 
   }
@@ -156,7 +156,7 @@ point (obj, dir)
 int obj, dir;
 {
   if (inven[obj].type != wand)
-  { dwait (D_ERROR, "Trying to point %c", LETTER (obj)); 
+  { (void) dwait (D_ERROR, "Trying to point %c", LETTER (obj)); 
     return (0); 
   }
 
@@ -174,7 +174,7 @@ throw (obj, dir)
 int obj, dir;
 {
   if (obj < 0 || obj >= invcount)
-  { dwait (D_ERROR, "Trying to throw %c", LETTER (obj)); 
+  { (void) dwait (D_ERROR, "Trying to throw %c", LETTER (obj)); 
     return (0); 
   }
 
@@ -238,7 +238,7 @@ int   row, col;
   slist[slistlen].what = translate[ch];
   slist[slistlen].srow = row;
   slist[slistlen].scol = col;
-  if (++slistlen >= MAXSTUFF) dwait (D_FATAL, "Too much stuff");
+  if (++slistlen >= MAXSTUFF) (void) dwait (D_FATAL, "Too much stuff");
   setrc (STUFF, row, col);
 }
 

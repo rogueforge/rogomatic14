@@ -1,5 +1,5 @@
 /*
- * rgmplot.c: Rog-O-Matic XIV (CMU) Tue Feb  5 15:00:59 1985 - mlm
+ * rgmplot.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  * 
  * This program takes a Rog-O-Matic score file sorted by date and score, 
@@ -24,7 +24,7 @@ char *argv[];
 { int mm, dd, yy, score = 0, lastday = -1, lastmon = -1, lastyy = -1, h;
   int sumscores = 0, numscores = 0, i;
   int sum[AVLEN], num[AVLEN], rsum, rnum, davg, ravg;
-  char player[100], plot[128], cheated;  
+  char player[100], plot[128], cheated, *strcpy();
 
   /* Clear out the rolling average statistics */
   for (i = 0; i < AVLEN; i++)
@@ -52,10 +52,10 @@ char *argv[];
 
 
   /* Build an empty plot line */
-  strcpy (plot, "|                                                 |");
+  (void) strcpy (plot, "|                                                 |");
 
   /* While more scores do action for each score */
-  while (getscore (&mm, &dd, &yy, player, &score, &cheated) != EOF)
+  while (rgetscore (&mm, &dd, &yy, player, &score, &cheated) != EOF)
   { 
     /* Change days, overprint the average for day, rolling avg */
     if ((dd != lastday || mm != lastmon || yy != lastyy) && lastday > 0)
@@ -82,12 +82,12 @@ char *argv[];
       }
           
       printf ("%3s %2d %4d\t%s\n", month[lastmon-1], lastday, lastyy, plot);
-      strcpy (plot, "|                                                 |");
+      (void) strcpy (plot, "|                                                 |");
       
     }
     
     if (score > EOF)
-    { if ((h = SCALE(score)) >= WIDTH)  sprintf (plot, "%s %d", plot, score);
+    { if ((h = SCALE(score)) >= WIDTH) (void) sprintf (plot, "%s %d", plot, score);
       else if (plot[h] == '9')          ;
       else if (isdigit(plot[h]))        plot[h]++;
       else                              plot[h] = '1';
@@ -133,19 +133,19 @@ char *s;
   
   if (ch == EOF)
   { endfile = 1;
-    strcpy (s, "-1 -1, -1 string -1 ");
+    (void) strcpy (s, "-1 -1, -1 string -1 ");
     return (20);
   }
 
   return (i);
 }
 
-getscore (mm, dd, yy, player, score, cheated)
+rgetscore (mm, dd, yy, player, score, cheated)
 int *mm, *dd, *yy, *score;
 char *player, *cheated;
 { char line[128], reason[32];
   while (getlin (line) != EOF)
-  { sscanf (line, "%d %d, %d %10s%d%c%17s",
+  { (void) sscanf (line, "%d %d, %d %10s%d%c%17s",
             mm, dd, yy, player, score, cheated, reason);
     if ((*score >= min || *score < 0) &&
 	(*cheated != '*' || cheat) &&

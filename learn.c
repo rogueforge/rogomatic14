@@ -1,10 +1,11 @@
 /*
- * learn.c: Rog-O-Matic XIV (CMU) Thu Jan 31 20:30:10 1985 - mlm
+ * learn.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * Genetic learning component.
  */
 
+# include <sys/types.h>
 # include <stdio.h>
 # include "types.h"
 
@@ -19,17 +20,20 @@ typedef struct
         statistic score, level;
 }               genotype;
 
+extern char *ctime(), *malloc();
 extern int knob[];
 extern double mean(), stdev(), sqrt();
+extern time_t time();
 extern FILE *wopen();
 
-static int inittime=0, trialno=0, lastid=0;
+static time_t inittime=0;
+static int trialno=0, lastid=0;
 static int crosses=0, shifts=0, mutations=0;
 static statistic g_score = ZEROSTAT;
 static statistic g_level = ZEROSTAT;
 static genotype *genes[MAXM];
 static int length = 0;
-static int mindiff = 10, pmutate = 4, pshift = 2, mintrials = 1;
+static int mindiff = 10, pmutate = 8, pshift = 2, mintrials = 5;
 static double step = 0.33; /* standard deviations from the mean */
 static FILE *glog=NULL;
 
@@ -40,7 +44,7 @@ static int compgene();
  */
 
 initpool (k, m)
-{ inittime = time (0);
+{ inittime = time ((time_t *) NULL);
 
   if (glog) fprintf (glog, "Gene pool initalized, k %d, m %d, %s",
                      k, m, ctime (&inittime));
@@ -56,7 +60,7 @@ analyzepool (full)
 int full;
 { register int g;
 
-  qsort (genes, length, sizeof (*genes), compgene);
+  qsort ((char *) genes, length, sizeof (*genes), compgene);
 
   printf ("Gene pool size %d, started %s", length, ctime (&inittime));
   printf ("Trials %d, births %d (crosses %d, mutations %d, shifts %d)\n",
@@ -146,7 +150,7 @@ register char *genelog;
  */
 
 closelog ()
-{ if (glog) fclose (glog);
+{ if (glog) (void) fclose (glog);
 }
 
 /*
@@ -211,7 +215,7 @@ pickgenotype ()
 
 /*
  * readgenes: Open the genepool for reading, and fill the current gene pool.
- * Returns true if the file was was, and 0 if there was no fail.  Exits
+ * Returns true if the file was read, and 0 if there was no fail.  Exits
  * if the file exists and cannot be read.
  */
 
@@ -231,8 +235,8 @@ register char *genepool;
 
   /* Read the header line */
   b = buf;
-  fgets (b, BUFSIZ, gfil);
-  sscanf (b, "%d %d %d %d %d %d",
+  if (fgets (b, BUFSIZ, gfil) == NULL) return (0);
+  (void) sscanf (b, "%d %d %d %d %d %d",
 	&inittime, &trialno, &lastid, &crosses, &shifts, &mutations);
   SKIPTO ('|', b);
   parsestat (b, &g_score);
@@ -242,14 +246,14 @@ register char *genepool;
   /* Now read in each genotype */
   while (fgets (buf, BUFSIZ, gfil) && length < MAXM-1)
   { if (g >= length)
-    { genes[g] = (genotype *) malloc (sizeof (**genes));
+    { genes[g] = (genotype *) malloc ( (unsigned) sizeof (**genes));
       length++;
     }
     initgene (genes[g]);
     parsegene (buf, genes[g++]);
   }
 
-  fclose (gfil);
+  (void) fclose (gfil);
   return (1);
 }
 
@@ -264,7 +268,7 @@ register genotype *gene;
 { register int i;
 
   /* Get genotype specific info */
-  sscanf (buf, "%d %d %d %d", &gene->id, &gene->creation,
+  (void) sscanf (buf, "%d %d %d %d", &gene->id, &gene->creation,
 	  &gene->father, &gene->mother);
 
   /* Read each DNA gene */
@@ -309,7 +313,7 @@ register char *genepool;
   for (g=0; g<length; g++)
     writegene (gfil, genes[g]);
   
-  fclose (gfil);
+  (void) fclose (gfil);
 }
 
 /*
@@ -544,7 +548,7 @@ register int m;
 
   for (g=0; g<m; g++)
   { if (g >= length)
-    { genes[g] = (genotype *) malloc (sizeof (**genes));
+    { genes[g] = (genotype *) malloc ( (unsigned) sizeof (**genes));
       length++;
     }
     initgene (genes[g]);
@@ -623,7 +627,7 @@ static untested ()
 
     newtrials = trialno - genes[g]->creation;	/* Turns since creation */
 
-    if (TRIALS (genes[g]) < newtrials / (4 * length) + mintrials)
+    if (TRIALS (genes[g]) < newtrials / (4 * mintrials * length) + mintrials)
     { y = g; trials = TRIALS (genes[g]); }
   }
 

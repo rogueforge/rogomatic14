@@ -1,5 +1,5 @@
 /*
- * rand.c: Rog-O-Matic XIV (CMU) Fri Dec 28 23:42:39 1984 - mlm
+ * rand.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * A very random generator, period approx 6.8064e16.
@@ -15,6 +15,8 @@
  *
  * Author: Michael Mauldin, June 14, 1983.
  */
+
+# include <sys/types.h>
 
 /* Rand 1, period length 444674 */
 # define MUL1 1156
@@ -48,8 +50,9 @@ static int seed1=872978, seed2=518652, seed3=226543, auxtab[AUXLEN];
 srand (seed)
 int seed;
 { register int i;
+  extern time_t time ();
 
-  if (seed == 0) seed = time();
+  if (seed == 0) seed = time((time_t *) 0);
 
   /* Set the three random number seeds */
   seed1 = (seed1+seed) % MOD1;

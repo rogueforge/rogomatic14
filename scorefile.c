@@ -1,5 +1,5 @@
 /*
- * scorefile.c: Rog-O-Matic XIV (CMU) Mon Jan  7 17:20:52 1985 - mlm
+ * scorefile.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains the functions which update the rogomatic scorefile,
@@ -37,8 +37,8 @@ int noterm;
   char  newfil[100];
   FILE *newlog;
 
-  sprintf (lokfil, "%s %s", LOCKFILE, version);
-  sprintf (newfil, "%s/rgmdelta%s", RGMDIR, version);
+  (void) sprintf (lokfil, "%s %s", LOCKFILE, version);
+  (void) sprintf (newfil, "%s/rgmdelta%s", RGMDIR, version);
 
   /* Defer interrupts while mucking with the score file */
   critical ();
@@ -64,7 +64,7 @@ int noterm;
   { printf ("\nUnable to write %s\n", newfil); }
   else
   { fprintf (newlog, "%s\n", new_line);
-    fclose (newlog);
+    (void) fclose (newlog);
   }
 
   /* Write the score to the end of the delta file */
@@ -85,11 +85,11 @@ char *version;
   FILE *scoref, *deltaf;
   int   oldmask, intrupscore ();
 
-  sprintf (lokfil, "%s %s", LOCKFILE, version);
-  sprintf (scrfil, "%s/rgmscore%s", RGMDIR, version);
-  sprintf (delfil, "%s/rgmdelta%s", RGMDIR, version);
-  sprintf (newfil, "%s/NewScore%s", RGMDIR, version);
-  sprintf (allfil, "%s/AllScore%s", RGMDIR, version);
+  (void) sprintf (lokfil, "%s %s", LOCKFILE, version);
+  (void) sprintf (scrfil, "%s/rgmscore%s", RGMDIR, version);
+  (void) sprintf (delfil, "%s/rgmdelta%s", RGMDIR, version);
+  (void) sprintf (newfil, "%s/NewScore%s", RGMDIR, version);
+  (void) sprintf (allfil, "%s/AllScore%s", RGMDIR, version);
 
   /* On interrupts we must relinquish control of the score file */
   int_exit (intrupscore);
@@ -104,7 +104,7 @@ char *version;
 
   /* If there are new scores, sort and merge them into the score file */
   if (deltaf != NULL)
-  { fclose (deltaf);
+  { (void) fclose (deltaf);
 
     /* Defer interrupts while mucking with the score file */
     critical ();
@@ -114,33 +114,33 @@ char *version;
 
     /* If we have an old file and a delta file, merge them */
     if (scoref != NULL)
-    { fclose (scoref);
-      sprintf (cmd, "sort +4nr -o %s %s; sort -m +4nr -o %s %s %s", 
+    { (void) fclose (scoref);
+      (void) sprintf (cmd, "sort +4nr -o %s %s; sort -m +4nr -o %s %s %s", 
                newfil, delfil, allfil, newfil, scrfil);
-      system (cmd);
+      (void) system (cmd);
       if (filelength (allfil) != filelength (delfil) + filelength (scrfil))
       { fprintf (stderr, "Error, new file is wrong length!\n");
-        unlink (newfil); unlink (allfil);
+        (void) unlink (newfil); (void) unlink (allfil);
         unlock_file (lokfil);
         exit (1);
       }
       else
       { /* New file is okay, unlink old files and pointer swap score file */
-        unlink (delfil); unlink (newfil);
-	unlink (scrfil); link (allfil, scrfil); unlink (allfil);
+        (void) unlink (delfil); (void) unlink (newfil);
+	(void) unlink (scrfil); (void) link (allfil, scrfil); (void) unlink (allfil);
       }      
       scoref = fopen (scrfil, "r");
     }
     else
     /* Only have delta file, sort into scorefile and unlink delta */
-    { sprintf (cmd, "sort +4nr -o %s %s", scrfil, delfil);
-      system (cmd);
-      unlink (delfil);
+    { (void) sprintf (cmd, "sort +4nr -o %s %s", scrfil, delfil);
+      (void) system (cmd);
+      (void) unlink (delfil);
       scoref = fopen (scrfil, "r");
     }
  
     /* Restore umask */
-    umask (oldmask);
+    (void) umask (oldmask);
 
     /* Restore interrupt status after score file stable */
     uncritical ();
@@ -160,7 +160,7 @@ char *version;
   while ((int) (ch = fgetc (scoref)) != EOF)
     putchar (ch);
 
-  fclose (scoref);
+  (void) fclose (scoref);
   unlock_file (lokfil);
 
   exit (0);

@@ -1,5 +1,5 @@
 /*
- * tactics.c: Rog-O-Matic XIV (CMU) Sat Feb 16 23:27:48 1985 - mlm
+ * tactics.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains all of the 'medium level intelligence' of Rog-O-Matic. 
@@ -60,7 +60,7 @@ handlearmor ()
   { newarmor = 0; return (0); }
 
   /* Debugging */
-  dwait (D_PACK, "handlearmor: obj %d, currentarmor %d", obj, currentarmor);
+  (void) dwait (D_PACK, "handlearmor: obj %d, currentarmor %d", obj, currentarmor);
 
   /* Take off the wrong armor */
   if (currentarmor != NONE && takeoff ())
@@ -225,7 +225,7 @@ readscroll ()
        (obj2 = unknown (scroll)) != NONE) ||
       ((obj = havenamed (scroll, "identify ring, wand or staff")) != NONE &&
        ((obj2 = unknown (ring)) != NONE || (obj2 = unknown (wand)) != NONE)))
-  { prepareident (obj2, obj);
+  { (void) prepareident (obj2, obj);
     return (reads (obj)); }
 
   /* In older version, have multiple uses for generic identify scrolls */
@@ -233,7 +233,7 @@ readscroll ()
       (currentweapon != NONE) &&
       (!itemis (currentweapon, KNOWN) && 
         (!usingarrow || goodarrow > 20)))
-  { prepareident (currentweapon, obj);
+  { (void) prepareident (currentweapon, obj);
     return (reads (obj)); }
 
   if ((obj = havenamed (scroll, "identify")) != NONE &&
@@ -243,8 +243,8 @@ readscroll ()
        Level > 10 && (obj2 = unknown (wand)) != NONE ||
        ((cheat || version == RV36A) &&
         ((obj2 = unknown (potion)) != NONE ||
-         (obj2 = haveother (scroll)) != NONE))))
-  { prepareident (obj2, obj);
+         (obj2 = haveother (scroll, obj)) != NONE))))
+  { (void) prepareident (obj2, obj);
     return (reads (obj)); }
 
   if ((cursedarmor || cursedweapon) &&
@@ -274,7 +274,7 @@ readscroll ()
         cursedarmor || cursedweapon) &&
        (exploredlevel || Level > 18 || know ("aggravate monsters")) &&
        (obj = unknown (scroll)) != NONE))
-  { prepareident (pickident (), obj);
+  { (void) prepareident (pickident (), obj);
 
     /* Go to a corner to read the scroll */
     if (version <= RV36B && !know ("create monster") && gotocorner ())
@@ -319,7 +319,7 @@ handlering ()
   ring1 = havering (1, NOPRINT);
   ring2 = havering (2, NOPRINT);
 
-  dwait (D_PACK, "Handlering: ring1 %d, ring2 %d, left %d, right %d", 
+  (void) dwait (D_PACK, "Handlering: ring1 %d, ring2 %d, left %d, right %d", 
 	 ring1, ring2, leftring, rightring);
 
   if ((leftring == ring1 && rightring == ring2) ||
@@ -788,7 +788,7 @@ shootindark ()
 
   /* If he is one turn away, switch back to our sword */
   if (!cursedweapon && wielding (thrower) && darkturns==0 && handleweapon ())
-  { dwait (D_BATTLE, "Switching to sword [4]"); return (1); }
+  { (void) dwait (D_BATTLE, "Switching to sword [4]"); return (1); }
 
   /* If we have room, switch to our bow */
   if (!cursedweapon && !wielding (thrower) && darkturns > 3 && 

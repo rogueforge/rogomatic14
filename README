@@ -1,5 +1,5 @@
 ************************************************************************
-* README: Rog-O-Matic XIV (CMU) Tue Feb  5 14:04:02 1985 - mlm
+* README: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
 * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
 ************************************************************************
 
@@ -39,7 +39,7 @@ variables.
 
 Edit "install.h" to set up various log files and directories, and then
 create the RGMDIR directory, making certain that it is publicly readable
-and writable.  After that, the 'make' command will build your own
+variables; you may also want to edit the "author" function in setup.c.
 personalized automatic Rogue playing system!
 
 The preprocessor variables defined are:

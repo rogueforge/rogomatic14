@@ -1,5 +1,5 @@
 /*
- * monsters.c: Rog-O-Matic XIV (CMU) Thu Jan 31 20:23:07 1985 - mlm
+ * monsters.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains all of the monster specific functions.
@@ -40,7 +40,7 @@ int   row, col, quiescence;
     mlist[mlistlen].mrow = row;
     mlist[mlistlen].mcol = col;
     mlist[mlistlen].q = quiescence;
-    if (++mlistlen >= MAXMONST) dwait (D_FATAL, "Too many monsters");
+    if (++mlistlen >= MAXMONST) (void) dwait (D_FATAL, "Too many monsters");
     setrc (MONSTER, row, col);
     lyinginwait = 0;
     new_arch = 1;
@@ -97,7 +97,7 @@ sleepmonster ()
 
   for (m = 0; m < mlistlen; ++m)
   { if (mlist[m].q == 0 && ! ADJACENT (m))
-    { dwait (D_MONSTER, "Found a sleeping %s at %d,%d",
+    { (void) dwait (D_MONSTER, "Found a sleeping %s at %d,%d",
              monname (mlist[m].chr), mlist[m].mrow, mlist[m].mcol);
       
       mlist[m].q = ASLEEP;
@@ -116,7 +116,7 @@ holdmonsters ()
   { if (mlist[m].q == 0 &&
         (max (abs (mlist[m].mrow - atrow),
               abs (mlist[m].mcol - atcol)) < 3))
-    { dwait (D_MONSTER, "Holding %s at %d,%d",
+    { (void) dwait (D_MONSTER, "Holding %s at %d,%d",
              monname (mlist[m].chr), mlist[m].mrow, mlist[m].mcol);
       
       mlist[m].q = HELD;
@@ -143,7 +143,7 @@ int dir;
 	 (dir < 0 && ADJACENT(m) && mlist[m].chr == -dir + 'A' - 1) ||
          (dir >= 0 && dir < 8 &&
           mlist[m].mrow == atdrow(dir) && mlist[m].mcol == atdcol(dir))))
-    { dwait (D_MONSTER, "Waking up %s at %d,%d",
+    { (void) dwait (D_MONSTER, "Waking up %s at %d,%d",
              monname (mlist[m].chr), mlist[m].mrow, mlist[m].mcol);
       
       mlist[m].q = AWAKE;

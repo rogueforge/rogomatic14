@@ -1,5 +1,5 @@
 /*
- * findscore.c: Rog-O-Matic XIV (CMU) Fri Dec 28 23:27:10 1984 - mlm
+ * findscore.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * Read the Rogue scoreboard to determine a goal score.
@@ -9,6 +9,7 @@
 # include "install.h"
 # define TEMPFL "/tmp/RscoreXXXXXX"
 # define ISDIGIT(c) ((c) >= '0' && (c) <= '9')
+extern char *mktemp();
 
 findscore (rogue, roguename)
 register char *rogue, *roguename;
@@ -18,8 +19,8 @@ register char *rogue, *roguename;
   FILE *tmpfil;
 
   /* Run 'rogue -s', and put the scores into a temp file */
-  sprintf (cmd, "%s -s >%s", rogue, mktemp (tmpfname)); 
-  system (cmd); 
+  (void) sprintf (cmd, "%s -s >%s", rogue, mktemp (tmpfname)); 
+  (void) system (cmd); 
 
   /* If no temp file created, return default score */
   if ((tmpfil = fopen (tmpfname, "r")) == NULL)
@@ -46,6 +47,6 @@ register char *rogue, *roguename;
     }
   }
 
-  unlink (tmpfname); 
+  (void) unlink (tmpfname); 
   return (best);
 }

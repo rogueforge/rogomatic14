@@ -1,5 +1,5 @@
 /*
- * replay.c: Rog-O-Matic XIV (CMU) Fri Dec 28 22:43:54 1984 - mlm
+ * replay.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  * 
  * Make a table of offsets to the beginning of each level of a
@@ -55,7 +55,7 @@ positionreplay ()
 
     if (!findlevel (logfile, levpos, &numlev, MAXNUMLEV))
     { saynow ("Findlevel failed! Let's try to get back to where we were...");
-      fseek (logfile, curpos, 0);
+      (void) fseek (logfile, curpos, 0);
       return;
     }
     logdigested++;
@@ -67,17 +67,17 @@ positionreplay ()
 
   /* Now clear the screen, position the log file, and return */
   switch (cmd)
-  { case 'f': fseek (logfile, levpos[0].pos, 0); break;
-    case 'p': if (curlev > 0) fseek (logfile, levpos[curlev-1].pos);
-              else            fseek (logfile, levpos[0].pos, 0); break;
+  { case 'f': (void) fseek (logfile, levpos[0].pos, 0); break;
+    case 'p': if (curlev > 0) (void) fseek (logfile, levpos[curlev-1].pos, 0);
+              else            (void) fseek (logfile, levpos[0].pos, 0);
 	      break;
-    case 'c': fseek (logfile, levpos[curlev].pos); break;
-    case 'n': if (curlev < numlev-1) fseek (logfile, levpos[curlev+1].pos);
-              else            fseek (logfile, levpos[curlev].pos, 0); break;
+    case 'c': (void) fseek (logfile, levpos[curlev].pos, 0); break;
+    case 'n': if (curlev < numlev-1) (void) fseek (logfile, levpos[curlev+1].pos, 0);
+              else            (void) fseek (logfile, levpos[curlev].pos, 0);
 	      break;
-    case 'l': fseek (logfile, levpos[numlev-1].pos);
+    case 'l': (void) fseek (logfile, levpos[numlev-1].pos, 0);
 	      break;
-    default:  fseek (logfile, 0L, 0);
+    default:  (void) fseek (logfile, 0L, 0);
   }
 
   clearscreen ();	/* Clear the screen */
@@ -113,7 +113,7 @@ int *numlev, maxnum;
   fillstruct (f, &levpos[l]);
   
   while (++l <= maxnum && findmatch (f, NEWLEVSTR))
-  { fseek (f, (long) -strlen (POSITAT), 1);
+  { (void) fseek (f, (long) -strlen (POSITAT), 1);
     levpos[l].pos = ftell (f);
     fillstruct (f, &levpos[l]);      
   }
@@ -143,22 +143,22 @@ struct levstruct *lev;
   lev->exp    = 0;
   
   if (!findmatch (f, "Level:")) return;
-  fscanf (f, "%d", &lev->level);
+  (void) fscanf (f, "%d", &lev->level);
 
   if (!findmatch (f, "Gold:")) return;
-  fscanf (f, "%d", &lev->gold);
+  (void) fscanf (f, "%d", &lev->gold);
 
   if (!findmatch (f, "Hp:")) return;
-  fscanf (f, "%d(%d)", &lev->hp, &lev->hpmax);
+  (void) fscanf (f, "%d(%d)", &lev->hp, &lev->hpmax);
 
   if (!findmatch (f, "Str:")) return;
-  fscanf (f, "%d(%d)", &lev->str, &lev->strmax);
+  (void) fscanf (f, "%d(%d)", &lev->str, &lev->strmax);
 
   if (!findmatch (f, ":")) return;		/* Armor class */
-  fscanf (f, "%d", &lev->ac);
+  (void) fscanf (f, "%d", &lev->ac);
 
   if (!findmatch (f, "Exp:")) return;
-  fscanf (f, "%d/%d", &lev->explev, &lev->exp);
+  (void) fscanf (f, "%d/%d", &lev->explev, &lev->exp);
 
   saynow ("Found level %d, has %d gold...", lev->level, lev->gold);
 }

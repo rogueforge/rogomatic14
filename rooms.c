@@ -1,5 +1,5 @@
 /*
- * rooms.c: Rog-O-Matic XIV (CMU) Thu Jan 31 20:22:14 1985 - mlm
+ * rooms.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * Contains functions which deal with the geometry of
@@ -129,7 +129,7 @@ register int r,c;
  */
 
 nametrap (ttype, standingonit)
-int ttype, standingonit;
+long ttype; int standingonit;
 { register int i, r, c, tdir = NONE, monsteradj = 0;
 
   if (standingonit)
@@ -225,10 +225,10 @@ lightroom ()
   if (blinded || !darkroom ())
     return (0);
 
-  if ((obj = havenamed (scroll, "light")) >=0 && reads (obj))
+  if ((obj = havenamed (scroll, "light")) != NONE && reads (obj))
     return (1);
 
-  if ((obj = havewand ("light")) >=0 && point (obj, 0))
+  if ((obj = havewand ("light")) != NONE && point (obj, 0))
     return (1);
 
   return (0);
@@ -430,7 +430,7 @@ updateat ()
     else
       return;
 
-    dwait (D_INFORM, "Inferring %s at %d,%d.", terrain, atrow, atcol);
+    (void) dwait (D_INFORM, "Inferring %s at %d,%d.", terrain, atrow, atcol);
   }
   else if (on (DOOR | ROOM) && !isexplored (atrow, atcol) && !darkroom ())
   { markexplored (atrow, atcol);
@@ -659,7 +659,7 @@ teleport ()
 mapinfer()
 { register r, c, inroom;
 
-  dwait (D_CONTROL, "Map read: inferring rooms.");
+  (void) dwait (D_CONTROL, "Map read: inferring rooms.");
   for (r=1; r<23; r++)
   { inroom = 0;
     for (c=0; c<80; c++)
@@ -769,7 +769,7 @@ register int r, c;
       dir = k;
   }
 
-  dwait (D_SEARCH, "Room direction %d", dir);
+  (void) dwait (D_SEARCH, "Room direction %d", dir);
 
   if (dir < 0) return;
 
@@ -831,7 +831,7 @@ register int r, c;
    * corridor.
    */
 
-  dwait (D_SEARCH | D_CONTROL, "Hall search done.");
+  (void) dwait (D_SEARCH | D_CONTROL, "Hall search done.");
 }
 
 connectdoors (r1, c1, r2, c2)
@@ -839,7 +839,7 @@ register int r1, c1, r2, c2;
 { register int r, c;
   int endr = max (r1, r2), endc = max (c1, c2);
 
-  dwait (D_INFORM, "Inferring hall (%d,%d) to (%d,%d)", r1, c1, r2, c2);
+  (void) dwait (D_INFORM, "Inferring hall (%d,%d) to (%d,%d)", r1, c1, r2, c2);
 
   for (r = min (r1, r2); r <= endr; r++)
     for (c = min (c1, c2); c <= endc; c++)

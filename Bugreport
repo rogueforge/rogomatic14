@@ -1,5 +1,5 @@
 /*
- * Bugreport: Rog-O-Matic XIV (CMU) Sat Feb 16 22:53:04 1985 - mlm
+ * Bugreport: Rog-O-Matic XIV (CMU) Sat Feb 23 20:37:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  */
 
@@ -104,3 +104,39 @@
 
 	things.c:willrust()		check for Rogue 3.6
 
+22. If it is being stalked when on the way back up, it runs DOWN stairs.
+	(reported by bellcore!wel)
+
+	strategy.c:fightinvisible()		first try going upstairs
+
+23. Modified makefile entry for 'fluff' to give more helpful messages;
+    added explicit type casts to make lint happier and permit Rogomatic
+    to run on a Pyramid as well as a VAX. (bellcore!wel)
+
+	makefile
+	*.c
+
+24. Several uses of '&' and '|' ran afoul of precedence (reported by wel)
+	
+	explore.c: secretvalue
+	search.c: followmap
+	strategy.c: tomonster
+
+25. A few function calls were missing vital arguments (wel)
+
+	explore.c: secretinit called setpsd with no argument
+	search.c: followmap called willrust with no argument
+
+26. Modified gene.c to allow non-5.3 gene files to be examined (wel)
+
+	install.h: defined default RV
+	gene.c: main used default RV instead of RV53A
+
+27. Inappropriately walked into or avoided trapdoors. (wel)
+
+	explore.c: exprunvalue, expunpinvalue, expvalue, zigzagvalue,
+		   secretvalue		better TRAPDOR checking
+
+28. If mintrials > 3, never gave up on any genotype (wel)
+
+	learn.c: untested	divide newtrials by mintrials

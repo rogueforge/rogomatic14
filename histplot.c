@@ -1,5 +1,5 @@
 /*
- * histplot.c: Rog-O-Matic XIV (CMU) Tue Feb  5 13:55:16 1985 - mlm
+ * histplot.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This program takes a Rog-O-Matic log file and produces a histogram
@@ -94,19 +94,19 @@ char *argv[];
   for (f = ((maxfreq+9)/10)*10; f; f--)
   { if (dolev)
     { if (f%10 == 0)
-        sprintf (plot, "|----+----|----+----|----+----|");
+        (void) sprintf (plot, "|----+----|----+----|----+----|");
       else if (f%5 == 0)
-        sprintf (plot, "|    +    |    +    |    +    |");
+        (void) sprintf (plot, "|    +    |    +    |    +    |");
       else
-        sprintf (plot, "|         |         |         |");
+        (void) sprintf (plot, "|         |         |         |");
     }
     else
     { if (f%10 == 0)
-        sprintf (plot, "|----+----|----+----|----+----|----+----|----+----|");
+        (void) sprintf (plot, "|----+----|----+----|----+----|----+----|----+----|");
       else if (f%5 == 0)
-        sprintf (plot, "|    +    |    +    |    +    |    +    |    +    |");
+        (void) sprintf (plot, "|    +    |    +    |    +    |    +    |    +    |");
       else
-        sprintf (plot, "|         |         |         |         |         |");
+        (void) sprintf (plot, "|         |         |         |         |         |");
     }
     
     for (i = 0; i < NUMBUK; i++)
@@ -161,7 +161,7 @@ char *killer;
   char line[128], mmstr[8], player[16], cheated=' ';
   while (fgets (line, 128, stdin))
   { dd = yy = *score = 0;
-    sscanf (line, "%s %d, %d %10s%d%c%17s",
+    (void) sscanf (line, "%s %d, %d %10s%d%c%17s",
             mmstr, &dd, &yy, player, score, &cheated, killer);
     if (strlen (line) > LEVELPOS) *level = atoi (line+LEVELPOS);
     if (yy > 0 &&

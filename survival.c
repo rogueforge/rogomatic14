@@ -1,5 +1,5 @@
 /*
- * survival.c: Rog-O-Matic XIV (CMU) Sun Feb 10 21:09:58 1985 - mlm
+ * survival.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains all of the "Run Away" code.
@@ -112,11 +112,11 @@ markcycles (print)
 int runaway ()
 {
   if (on (SCAREM)) 
-  { dwait (D_BATTLE, "Not running, on scare monster scroll!");
+  { (void) dwait (D_BATTLE, "Not running, on scare monster scroll!");
     return (0);
   }
 
-  dwait (D_BATTLE | D_SEARCH, "Run away!!!!");
+  (void) dwait (D_BATTLE | D_SEARCH, "Run away!!!!");
 
   if (on (STAIRS) && !floating)		/* Go up or down */
     return (goupstairs (RUNNING) || godownstairs (RUNNING));
@@ -160,16 +160,16 @@ int unpin ()
       exprunvalue (), expunpinvalue ();
 
   if (on (SCAREM)) 
-  { dwait (D_BATTLE, "Not unpinning, on scare monster scroll!");
+  { (void) dwait (D_BATTLE, "Not unpinning, on scare monster scroll!");
     return (0);
   }
 
   if (on (STAIRS) && !floating)
-  { if (!goupstairs (RUNNING)) godownstairs (RUNNING); 
+  { if (!goupstairs (RUNNING)) (void) godownstairs (RUNNING); 
     return (1);
   }
 
-  dwait (D_BATTLE, "Pinned!!!!");
+  (void) dwait (D_BATTLE, "Pinned!!!!");
 
   /* currentrectangle ();   // always done after each move of the rogue // */
 
@@ -210,16 +210,16 @@ int dist;
    */
 
   if (notmoving)
-    dwait (D_BATTLE, "backtodoor: monsters not moving");
+    (void) dwait (D_BATTLE, "backtodoor: monsters not moving");
   
   else if (on (SCAREM)) 
-    dwait (D_BATTLE, "Not backing up, on scare monster scroll!");
+    (void) dwait (D_BATTLE, "Not backing up, on scare monster scroll!");
 
   else if (dist > 0 && (on (DOOR) || nextto (DOOR, atrow, atcol)))
-    dwait (D_BATTLE, "backtodoor: next to door, have time");
+    (void) dwait (D_BATTLE, "backtodoor: next to door, have time");
 
   else if (makemove (RUNTODOOR, rundoorinit, rundoorvalue, REEVAL))
-  { dwait (D_BATTLE, "Back to the door..."); return (1); }
+  { (void) dwait (D_BATTLE, "Back to the door..."); return (1); }
 
   return (0);
 }

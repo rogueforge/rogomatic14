@@ -1,5 +1,5 @@
 /*
- * io.c: Rog-O-Matic XIV (CMU) Sat Feb 16 23:03:48 1985 - mlm
+ * io.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains all of the functions which deal with the real world.
@@ -7,8 +7,7 @@
 
 # include <curses.h>
 # include <ctype.h>
-
-# include "install.h"
+# include <sys/types.h>
 
 # ifdef BSD41
 #     include <time.h>
@@ -17,10 +16,13 @@
 # endif
 
 # include "types.h"
+# include "install.h"
 # include "globals.h"
 # include "termtokens.h"
 
 # define READ	0
+
+extern time_t time ();
 
 /*
  * Charonscreen returns the current character on the screen (using
@@ -101,10 +103,10 @@ int   onat;                             /* 0 ==> Wait for waitstr
     { if (*++m == 0)
       { /* More than 50 messages since last command ==> start logging */
         if (++morecount > 50 && !logging) 
-	{ toggleecho (); dwait (D_WARNING, "Started logging --More-- loop."); }
+	{ toggleecho (); (void) dwait (D_WARNING, "Started logging --More-- loop."); }
 
         /* More than 100 messages since last command ==> infinite loop */
-        if (++morecount > 100) dwait (D_FATAL, "Caught in --More-- loop.");
+        if (++morecount > 100) (void) dwait (D_FATAL, "Caught in --More-- loop.");
 
 	/* Send a space (and possibly a semicolon) to clear the message */
         if (onat == 2) sendnow (" ;");
@@ -117,7 +119,7 @@ int   onat;                             /* 0 ==> Wait for waitstr
 
         /* This code gets rid of the "Studded leather arm" bug */
 	/* But it causes other problems.		MLM   */
-        /* sprintf (&screen[0][col - 7], "--More--"); */ 
+        /* (void) sprintf (&screen[0][col - 7], "--More--"); */ 
       }
     }
     else m = "More--";
@@ -205,7 +207,7 @@ int   onat;                             /* 0 ==> Wait for waitstr
         if (!replaying || !logdigested) { playing = 0; return; }
 	saynow ("End of game log, type 'Q' to exit.");
         return;
-        break;
+        	
 
       case UP_TOK:
         row--;
@@ -256,7 +258,7 @@ int   onat;                             /* 0 ==> Wait for waitstr
 
   /* If mapping status has changed */
   if (wasmapped != didreadmap)
-  { dwait (D_CONTROL | D_SEARCH, "wasmapped: %d   didreadmap: %d",
+  { (void) dwait (D_CONTROL | D_SEARCH, "wasmapped: %d   didreadmap: %d",
            wasmapped, didreadmap);
 
     mapinfer ();
@@ -266,7 +268,7 @@ int   onat;                             /* 0 ==> Wait for waitstr
   { doors = doorlist;
     while (doors != newdoors)
     { r = *doors++; c = *doors++;
-      dwait (D_INFORM, "new door at %d, %d", r, c);
+      (void) dwait (D_INFORM, "new door at %d, %d", r, c);
       inferhall (r, c);
     }
   }
@@ -300,22 +302,22 @@ terpbot ()
 
   /* Read the bottom line, there are three versions of the status line */
   if (version < RV52A)		/* Rogue 3.6, Rogue 4.7? */
-  { sscanf (screen[23],
+  { (void) sscanf (screen[23],
             " Level: %d Gold: %d Hp: %d(%d) Str: %s Ac: %d Exp: %d/%d %s",
             &Level, &Gold, &Hp, &Hpmax, sstr, &Ac, &Explev, &Exp, Ms);
-    sscanf (sstr, "%d/%d", &Str, &Str18);
+    (void) sscanf (sstr, "%d/%d", &Str, &Str18);
     Str = Str * 100 + Str18;
     if (Str > Strmax) Strmax = Str;
   }
   else if (version < RV53A)	/* Rogue 5.2 (versions A and B) */
-  { sscanf (screen[23],
+  { (void) sscanf (screen[23],
          " Level: %d Gold: %d Hp: %d(%d) Str: %d(%d) Ac: %d Exp: %d/%d %s",
          &Level, &Gold, &Hp, &Hpmax, &Str, &Strmax, &Ac, &Explev, &Exp, Ms);
 
     Str = Str * 100; Strmax = Strmax * 100;
   }
   else				/* Rogue 5.3 (and beyond???) */
-  { sscanf (screen[23],
+  { (void) sscanf (screen[23],
          " Level: %d Gold: %d Hp: %d(%d) Str: %d(%d) Arm: %d Exp: %d/%d %s",
          &Level, &Gold, &Hp, &Hpmax, &Str, &Strmax, &Ac, &Explev, &Exp, Ms);
 
@@ -346,10 +348,10 @@ terpbot ()
        oldAc != Ac || oldExp != Explev))
   {
     /* Stuff the new values into the argument space (for ps command) */
-    sprintf (modeline, "Rgm %d: Id%d L%d %d %d(%d) s%d a%d e%d    ",
+    (void) sprintf (modeline, "Rgm %d: Id%d L%d %d %d(%d) s%d a%d e%d    ",
              rogpid, geneid, Level, Gold, Hp, Hpmax, Str / 100, 10-Ac, Explev);
     modeline[arglen-1] = '\0';
-    strcpy (parmstr, modeline);    
+    (void) strcpy (parmstr, modeline);    
 
     /* Handle Emacs and Terse mode */
     if (emacs || terse)
@@ -358,14 +360,14 @@ terpbot ()
       screen[23][++i] = '\0';
 
       if (emacs)
-      { sprintf (modeline, " %s (%%b)", screen[23]);
-        if (strlen (modeline) > 72) sprintf (modeline, " %s", screen[23]);
+      { (void) sprintf (modeline, " %s (%%b)", screen[23]);
+        if (strlen (modeline) > 72) (void) sprintf (modeline, " %s", screen[23]);
         fprintf (realstdout, "%s", modeline);
-        fflush (realstdout);
+        (void) fflush (realstdout);
       }
       else if (terse && oldlev != Level)
       { fprintf (realstdout, "%s\n", screen[23]);
-        fflush (realstdout);
+        (void) fflush (realstdout);
       }
     }
   }
@@ -417,13 +419,14 @@ dumpwalls ()
  * sendnow: Send a string to the Rogue process.
  */
 
+/*VARARGS1*/
 sendnow (f, a1, a2, a3, a4)
 char *f;
 int a1, a2, a3, a4;
 { char cmd[128];
   register char *s = cmd;
   
-  sprintf (cmd, f, a1, a2, a3, a4);
+  (void) sprintf (cmd, f, a1, a2, a3, a4);
 
   while (*s) sendcnow (*s++);
 }
@@ -452,13 +455,14 @@ char c;
 
 # define bump(p,sizeq) (p)=((p)+1)%sizeq
 
+/*VARARGS1*/
 send (f, a1, a2, a3, a4)
 char *f;
 int a1, a2, a3, a4;
 { char cmd[128];
   register char *s = cmd;
 
-  sprintf (s, f, a1, a2, a3, a4);
+  (void) sprintf (s, f, a1, a2, a3, a4);
 
   for (; *s; bump (tail, SENDQ))
     queue[tail] = *(s++);
@@ -553,7 +557,7 @@ char getroguetoken ()
       default:     fprintf (fecho, "{ERR%o}", ch);
                    ch = ER_TOK;
     }
-    fflush (fecho);
+    (void) fflush (fecho);
   }
   
   return (ch);
@@ -586,7 +590,7 @@ deadrogue ()
   printw ("\n\nOops...");
   refresh ();
 
-  sscanf (&screen[GOLDROW][TOMBCOL], "%18d", &Gold);
+  (void) sscanf (&screen[GOLDROW][TOMBCOL], "%18d", &Gold);
 
   killer = &screen[KILLROW][TOMBCOL];
   killend = killer+17;
@@ -607,12 +611,14 @@ deadrogue ()
  * the Rogue process, then wait for it to die before returning.
  */
 
+#include <sys/wait.h>
+
 quitrogue (reason, gold, terminationtype)
 char *reason;                   /* A reason string for the summary line */
 int gold;                       /* What is the final score */
 int terminationtype;            /* SAVED, FINSISHED, or DIED */
 { struct tm *localtime(), *ts;
-  long   clock;
+  time_t   clock;
   char  *k, *r;
   
   /* Save the killer and score */
@@ -629,16 +635,16 @@ int terminationtype;            /* SAVED, FINSISHED, or DIED */
   ts = localtime(&clock);
 
   /* Build a summary line */  
-  sprintf (sumline, "%3s %2d, %4d %-8.8s %7d%s%-17.17s %3d %3d ",
+  (void) sprintf (sumline, "%3s %2d, %4d %-8.8s %7d%s%-17.17s %3d %3d ",
            month[ts -> tm_mon], ts -> tm_mday, 1900 + ts -> tm_year,
            getname (), gold, cheat ? "*" : " ", reason, MaxLevel, Hpmax);
   
   if (Str % 100)
-    sprintf (sumline, "%s%2d.%2d", sumline, Str/100, Str%100);
+    (void) sprintf (sumline, "%s%2d.%2d", sumline, Str/100, Str%100);
   else
-    sprintf (sumline, "%s  %2d ", sumline, Str/100);
+    (void) sprintf (sumline, "%s  %2d ", sumline, Str/100);
   
-  sprintf (sumline, "%s %2d %2d/%-6d  %d", 
+  (void) sprintf (sumline, "%s %2d %2d/%-6d  %d", 
            sumline, Ac, Explev, Exp, ltm.gamecnt);
 
   /* Now write the summary line to the log file */
@@ -672,7 +678,7 @@ int terminationtype;            /* SAVED, FINSISHED, or DIED */
     sendnow ("Syy"); /* Must send two yesses,  R5.2 MLM */
 
   /* Wait for Rogue to die */
-  wait (0);
+  (void) wait ((union wait *) 0);
 }
 
 /*
@@ -699,13 +705,14 @@ char *mess;
  * say: Display a messsage on the top line. Restore cursor to Rogue.
  */
 
+/*VARARGS1*/
 say (s, a1, a2, a3, a4, a5, a6, a7, a8)
 char *s;
 int a1, a2, a3, a4, a5, a6, a7, a8;
 { char buf[BUFSIZ], *b;
 
   if (!emacs && !terse)
-  { sprintf (buf, s, a1, a2, a3, a4, a5, a6, a7, a8);
+  { (void) sprintf (buf, s, a1, a2, a3, a4, a5, a6, a7, a8);
     at (0,0);
     for (b=buf; *b; b++) printw ("%s", unctrl (*b));
     clrtoeol ();
@@ -717,7 +724,7 @@ int a1, a2, a3, a4, a5, a6, a7, a8;
  * saynow: Display a messsage on the top line. Restore cursor to Rogue,
  *         and refresh the screen.
  */
-
+/*VARARGS1*/
 saynow (s, a1, a2, a3, a4, a5, a6, a7, a8)
 char *s;
 int a1, a2, a3, a4, a5, a6, a7, a8;
@@ -813,7 +820,7 @@ getrogver ()
       *--vstr = '\0';
     }
     else				/* Use default version */
-    { sprintf (versionstr, DEFVER); }
+    { (void) sprintf (versionstr, DEFVER); }
 
     rewind (logfile);			/* Put log file back to start */
   }
@@ -842,7 +849,7 @@ charsavail ()
 { long n;
   int retc;
   
-  if (retc = ioctl (READ, FIONREAD, &n))
+  if (retc = ioctl (READ, FIONREAD, (char *) &n))
   { saynow ("Ioctl returns %d, n=%ld.\n", retc, n);
     n=0;
   }
@@ -894,7 +901,7 @@ toggleecho ()
       fprintf (fecho, "\n");
     else
       fprintf (fecho, "\"\n");
-    fclose (fecho);
+    (void) fclose (fecho);
 
     if (playing) saynow ("File %s closed", ROGUELOG);
   }
@@ -1019,7 +1026,7 @@ char getlogtoken()
 	    col = 0;
 	    while ((dig = GETLOGCHAR) != ')')
 	    { col = col * 10 + dig - '0'; }
-	    GETLOGCHAR;		/* Ignore '}' */
+	    (void) GETLOGCHAR;		/* Ignore '}' */
 	    break;
 	  case 'r': ch = CR_TOK;
 	}
@@ -1083,7 +1090,7 @@ dosnapshot ()
     saynow ("Cannot write file %s.", SNAPSHOT);
   else
   { printsnap (snapshot);
-    fclose (snapshot);
+    (void) fclose (snapshot);
     saynow ("Snapshot added to %s.", SNAPSHOT);
   }
 }
@@ -1119,26 +1126,26 @@ statusline ()
 { static char staticarea[256];
   register char *s=staticarea;
 
-  sprintf (s, "Status: ");
+  (void) sprintf (s, "Status: ");
 
-  if (aggravated)		strcat (s, "aggravated, ");
-  if (beingheld)		strcat (s, "being held, ");
-  if (blinded)			strcat (s, "blind, ");
-  if (confused)			strcat (s, "confused, ");
-  if (cosmic)			strcat (s, "cosmic, ");
-  if (cursedarmor)		strcat (s, "cursed armor, ");
-  if (cursedweapon)		strcat (s, "cursed weapon, ");
-  if (doublehasted)		strcat (s, "perm hasted, ");
-  if (droppedscare)		strcat (s, "dropped scare, ");
-  if (floating)			strcat (s, "floating, ");
-  if (hasted)			strcat (s, "hasted, ");
-  if (protected)		strcat (s, "protected, ");
-  if (redhands)			strcat (s, "red hands, ");
-  if (Level == didreadmap)	strcat (s, "mapped, ");
+  if (aggravated)		(void) strcat (s, "aggravated, ");
+  if (beingheld)		(void) strcat (s, "being held, ");
+  if (blinded)			(void) strcat (s, "blind, ");
+  if (confused)			(void) strcat (s, "confused, ");
+  if (cosmic)			(void) strcat (s, "cosmic, ");
+  if (cursedarmor)		(void) strcat (s, "cursed armor, ");
+  if (cursedweapon)		(void) strcat (s, "cursed weapon, ");
+  if (doublehasted)		(void) strcat (s, "perm hasted, ");
+  if (droppedscare)		(void) strcat (s, "dropped scare, ");
+  if (floating)			(void) strcat (s, "floating, ");
+  if (hasted)			(void) strcat (s, "hasted, ");
+  if (protected)		(void) strcat (s, "protected, ");
+  if (redhands)			(void) strcat (s, "red hands, ");
+  if (Level == didreadmap)	(void) strcat (s, "mapped, ");
 
-  if (*genocided) sprintf (s, "%sgenocided '%s', ", s, genocided);
+  if (*genocided) (void) sprintf (s, "%sgenocided '%s', ", s, genocided);
 
-  sprintf (s, "%s%d food%s, %d missile%s, %d turn%s, (%d,%d %d,%d) bonus",
+  (void) sprintf (s, "%s%d food%s, %d missile%s, %d turn%s, (%d,%d %d,%d) bonus",
            s, larder, plural(larder), ammo, plural(ammo), turns, 
            plural(turns), gplushit, gplusdam, wplushit, wplusdam);
 

@@ -1,5 +1,5 @@
 /*
- * main.c: Rog-O-Matic XIV (CMU) Fri Feb 15 18:27:27 1985 - mlm
+ * main.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  */
 
 /*=========================================================================
@@ -233,7 +233,8 @@ int   zonemap[9][9];		/* Map of zones connections */
 
 /* Functions */
 int (*istat)(), onintr ();
-char getroguetoken (), *getname();
+char getroguetoken (), *getname ();
+FILE *openlog ();
 
 /* Stuff list, list of objects on this level */
 stuffrec slist[MAXSTUFF]; 	int slistlen=0;
@@ -325,7 +326,7 @@ jmp_buf  commandtop;
 main (argc, argv)
 int   argc;
 char *argv[];
-{ char  ch, *s, *getenv(), *statusline(), msg[128];
+{ char  ch, *s, *getenv(), *statusline(), msg[128], *strcpy();
   int startingup = 1;
   register int  i;
 
@@ -333,11 +334,11 @@ char *argv[];
    * Initialize some storage
    */
   
-  sprintf (genocided, "");
-  sprintf (lastcmd, "i");
-  sprintf (ourkiller, "unknown");
-  sprintf (sumline, "");
-  sprintf (versionstr, "");
+  (void) sprintf (genocided, "");
+  (void) sprintf (lastcmd, "i");
+  (void) sprintf (ourkiller, "unknown");
+  (void) sprintf (sumline, "");
+  (void) sprintf (versionstr, "");
   for (i = 80 * 24; i--; ) screen[0][i] = ' ';
  
   /* 
@@ -352,26 +353,26 @@ char *argv[];
   { replaying = 1;
     gamename = "Iteratum Rog-O-Maticus";
     termination = "finis";
-    strcpy (logfilename, argv[4]);
+    (void) strcpy (logfilename, argv[4]);
     startreplay (&logfile, logfilename);
   }
   else
   { frogue = fdopen (argv[1][0] - 'a', "r");
     trogue = fdopen (argv[1][1] - 'a', "w");
-    setbuf (trogue, NULL);
+    setbuf (trogue, (char *) NULL);
   }
 
   /* The second argument to player is the process id of Rogue */
   if (argc > 2) rogpid = atoi (argv[2]);                  
 
   /* The third argument is an option list */
-  if (argc > 3) sscanf (argv[3], "%d,%d,%d,%d,%d,%d,%d,%d", 
+  if (argc > 3) (void) sscanf (argv[3], "%d,%d,%d,%d,%d,%d,%d,%d", 
 			&cheat, &noterm, &startecho, &nohalf,
 			&emacs, &terse, &transparent, &quitat);
 
   /* The fourth argument is the Rogue name */
-  if (argc > 4)	strcpy (roguename, argv[4]);
-  else		sprintf (roguename, "Rog-O-Matic %s", RGMVER);
+  if (argc > 4)	(void) strcpy (roguename, argv[4]);
+  else		(void) sprintf (roguename, "Rog-O-Matic %s", RGMVER);
 
   /* Now count argument space and assign a global pointer to it */
   arglen = 0;
@@ -385,7 +386,7 @@ char *argv[];
   /* If we are in one-line mode, then squirrel away stdout */
   if (emacs || terse)
   { realstdout = fdopen (dup (fileno (stdout)), "w");
-    freopen ("/dev/null", "w", stdout);
+    (void) freopen ("/dev/null", "w", stdout);
   }
 
   initscr (); crmode (); noecho ();	/* Initialize the Curses package */
@@ -403,16 +404,16 @@ char *argv[];
    */
 
   if (replaying)
-    sprintf (msg, " Replaying log file %s, version %s.", 
+    (void) sprintf (msg, " Replaying log file %s, version %s.", 
 	     logfilename, versionstr);
   else
-    sprintf (msg, " %s: version %s, genotype %d, quit at %d.",
+    (void) sprintf (msg, " %s: version %s, genotype %d, quit at %d.",
 	     roguename, versionstr, geneid, quitat);
   
   if (emacs)
-  { fprintf (realstdout, "%s  (%%b)", msg); fflush (realstdout); }
+  { fprintf (realstdout, "%s  (%%b)", msg); (void) fflush (realstdout); }
   else if (terse)
-  { fprintf (realstdout, "%s\n", msg); fflush (realstdout); }
+  { fprintf (realstdout, "%s\n", msg); (void) fflush (realstdout); }
   else
   { saynow (msg); }
 
@@ -457,9 +458,9 @@ char *argv[];
    */
 
   istat = signal (SIGINT, SIG_IGN); /* save original status */
-  setjmp (commandtop);              /* save stack position */
+  (void) setjmp (commandtop);              /* save stack position */
   if (istat != SIG_IGN)
-    signal (SIGINT, onintr);
+    (void) signal (SIGINT, onintr);
 
   if (interrupted)
   { saynow ("Interrupt [enter command]:");
@@ -503,7 +504,7 @@ char *argv[];
       { case '?': givehelp (); break;
       
         case '\n': if (terse) 
-	           { printsnap (realstdout); fflush (realstdout); }
+	           { printsnap (realstdout); (void) fflush (realstdout); }
 	           else
                    { singlestep = 1; transparent = 1; }
 		   break;
@@ -540,9 +541,9 @@ char *argv[];
 
         case 't': transparent = !transparent; break;
 
-        case ')': markcycles (DOPRINT); at (row, col); break;
+        case ')': (void) markcycles (DOPRINT); at (row, col); break;
 
-        case '+': setpsd (DOPRINT); at (row, col); break;
+        case '+': (void) setpsd (DOPRINT); at (row, col); break;
 
         case 'A': attempt = (attempt+1) % 5;
 		  saynow ("Attempt %d", attempt); break;
@@ -580,18 +581,18 @@ char *argv[];
                   break;
 
         case '`': clear ();
-                  summary (NULL, '\n');
+                  summary ((FILE *) NULL, '\n');
                   pauserogue ();
                   break;
 
         case '|': clear ();
-                  timehistory (NULL, '\n', 0);
+                  timehistory ((FILE *) NULL, '\n');
                   pauserogue ();
                   break;
 
         case 'r': resetinv (); say ("Inventory reset."); break;
 
-        case 'i': clear (); dumpinv (NULL); pauserogue (); break;
+        case 'i': clear (); dumpinv ((FILE *) NULL); pauserogue (); break;
 
         case '/': dosnapshot ();
                   break;
@@ -612,16 +613,16 @@ char *argv[];
 
         case '#': dumpwalls ();         break;
 
-        case '%': clear (); havearmor (1, DOPRINT, ANY); pauserogue (); break;
+        case '%': clear (); (void) havearmor (1, DOPRINT, ANY); pauserogue (); break;
 
-        case '=': clear (); havering (1, DOPRINT); pauserogue (); break;
+        case ']': clear (); (void) havearmor (1, DOPRINT, RUSTPROOF);
 
         case '$': clear (); haveweapon (1, DOPRINT); pauserogue (); break;
-
+        case '=': clear (); (void) havering (1, DOPRINT); pauserogue (); break;
         case '^': clear (); havebow (1, DOPRINT); pauserogue (); break;
-
+        case '$': clear (); (void) haveweapon (1, DOPRINT); pauserogue (); break;
         case '{': promptforflags (); break;
-
+        case '^': clear (); (void) havebow (1, DOPRINT); pauserogue (); break;
         case '&': saynow ("Object count is %d.", objcount); break;
 
         case '*': blinded = !blinded;
@@ -635,9 +636,9 @@ char *argv[];
         case 'E': dwait (D_ERROR, "Testing the ERROR trap..."); break;
 
         case 'F': dwait (D_FATAL, "Testing the FATAL trap..."); break;
-
+        case 'E': (void) dwait (D_ERROR, "Testing the ERROR trap..."); break;
         case 'R': if (replaying)
-		  { positionreplay (); getrogue (ill, 2);
+        case 'F': (void) dwait (D_FATAL, "Testing the FATAL trap..."); break;
 	            if (transparent) singlestep = 1; }
 		  else
                     saynow ("Replay position only works in replay mode.");
@@ -652,7 +653,7 @@ char *argv[];
         case ROGQUIT: dwait (D_ERROR, "Strategize failed, gave up.");
                       quitrogue ("gave up", Gold, SAVED); break;
       }
-    }
+        case ROGQUIT: (void) dwait (D_ERROR, "Strategize failed, gave up.");
     else
     { singlestep = 0;
     }
@@ -690,14 +691,14 @@ char *argv[];
     sprintf (lognam, "%0.4s.%d.%d", ourkiller, MaxLevel, ourscore);
 
     /* Close the open file */
-    toggleecho ();
+    (void) sprintf (lognam, "%0.4s.%d.%d", ourkiller, MaxLevel, ourscore);
 
     /* Rename the log file */
     if (link (ROGUELOG, lognam) == 0)
     { unlink (ROGUELOG);
       printf ("Log file left on %s\n", lognam);
     }
-    else
+    { (void) unlink (ROGUELOG);
       printf ("Log file left on %s\n", ROGUELOG);
   }
 
@@ -715,14 +716,14 @@ onintr ()
   if (logging) fflush (fecho);  /* Print out everything */
   refresh ();                   /* Clear terminal output */
   clearsendqueue ();            /* Clear command queue */
-  setnewgoal ();                /* Don't believe ex */
+  if (logging) (void) fflush (fecho);  /* Print out everything */
   transparent = 1;              /* Drop into transprent mode */
   interrupted = 1;              /* Mark as an interrupt */
   noterm = 0;                   /* Allow commands */
   longjmp (commandtop);         /* Back to command Process */
 }
 
-/*
+  longjmp (commandtop, 1);      /* Back to command Process */
  * startlesson: Genetic learning algorithm, pick a genotype to
  * test this game, and set the parameters (or "knobs") accordingly.
  */
@@ -731,9 +732,9 @@ startlesson ()
 { sprintf (genelog, "%s/GeneLog%d", RGMDIR, version);
   sprintf (genepool, "%s/GenePool%d", RGMDIR, version);
   sprintf (genelock, "%s/GeneLock%d", RGMDIR, version);
-
-  srand (0);				/* Start random number generator */
-  critical ();				/* Disable interrupts */
+{ (void) sprintf (genelog, "%s/GeneLog%d", RGMDIR, version);
+  (void) sprintf (genepool, "%s/GenePool%d", RGMDIR, version);
+  (void) sprintf (genelock, "%s/GeneLock%d", RGMDIR, version);
 
   /* Serialize access to the gene pool */
   if (lock_file (genelock, MAXLOCK))	/* Lock the gene pool */
@@ -774,7 +775,7 @@ endlesson ()
     { openlog (genelog);		/* Open the gene log file */
       if (readgenes (genepool))		/* Read the gene pool */
       { evalknobs (geneid,Gold,Level);	/* Add the trial to the pool */
-        writegenes (genepool); }	/* Write out the gene pool */
+    { (void) openlog (genelog);		/* Open the gene log file */
       closelog ();
       unlock_file (genelock);		/* Disable interrupts */
     }

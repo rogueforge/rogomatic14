@@ -1,5 +1,5 @@
 /*
- * stats.c: Rog-O-Matic XIV (CMU) Fri Dec 28 23:28:59 1984 - mlm
+ * stats.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  * 
  * A package for maintaining probabilities and statistics.
@@ -69,7 +69,7 @@ parseprob (buf, p)
 register char *buf;
 register probability *p;
 { p->win = p->fail = 0;
-  sscanf (buf, "%d %d", &p->fail, &p->win);
+  (void) sscanf (buf, "%d %d", &p->fail, &p->win);
 }
 
 /* 
@@ -142,7 +142,7 @@ register char *buf;
 register statistic *s;
 { s->count = 0;
   s->sum = s->sumsq = s->low = s->high = 0.0;
-  sscanf (buf, "%d %lf %lf %lf %lf",
+  (void) sscanf (buf, "%d %lf %lf %lf %lf",
       &s->count, &s->sum, &s->sumsq, &s->low, &s->high);
 }
 

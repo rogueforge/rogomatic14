@@ -1,5 +1,5 @@
 /*
- * search.c: Rog-O-Matic XIV (CMU) Fri Feb 15 15:08:44 1985 - mlm
+ * search.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains the very basic search mechanisms for exploration etc.
@@ -58,14 +58,14 @@ int movetype, (*evalinit)(), (*evaluate)(), reevaluate;
   /* Must rebuild the movement map */
   mvtype = 0;	/* Will become 'if (mvtype==movetype) movetype=0;' */
 
-  dwait (D_SEARCH, "Findmove: computing new search path.");
+  (void) dwait (D_SEARCH, "Findmove: computing new search path.");
 
   /* currentrectangle(); */     /* always done after each move of the rogue */
 
   searchstartr = atrow; searchstartc = atcol;
 
   if (!(*evalinit)())    /* Compute evalinit from current location */
-  { dwait (D_SEARCH, "Findmove: evalinit failed."); return (0); }
+  { (void) dwait (D_SEARCH, "Findmove: evalinit failed."); return (0); }
 
   if (!searchfrom (atrow, atcol, evaluate, mvdir, &targetrow, &targetcol))
   { return (0); }	/* move failed */
@@ -96,7 +96,7 @@ register int movetype;
   dir=mvdir[atrow][atcol]-FROM; dr=deltr[dir]; dc=deltc[dir];
 
   if (dir > 7 || dir < 0)
-  { dwait (D_ERROR, "Followmap: direction invalid!");
+  { (void) dwait (D_ERROR, "Followmap: direction invalid!");
     return (0);			      /* Something Broke */
   }
 
@@ -104,7 +104,7 @@ register int movetype;
 
   /* If exploring and are moving to a new hall square, use fmove */
   if (movetype == EXPLORE &&
-      onrc (HALL|BEEN, targetrow, targetcol) != HALL|BEEN &&
+      onrc (HALL|BEEN, targetrow, targetcol) != (HALL|BEEN) &&
       onrc (HALL,r,c) &&
       !beingstalked)			/* Feb 10, 1985 - mlm */
   { fmove (dir); return (1); }
@@ -140,7 +140,7 @@ register int movetype;
 
   /* Maybe take armor off before stepping on rust trap */
   if (timemode != T_RUNNING && onrc (WATERAP, atrow+dr, atcol+dc) &&
-      currentarmor != NONE && willrust () && takeoff ())
+      currentarmor != NONE && willrust (currentarmor) && takeoff ())
   { rmove (1, dir, timemode); return (1); }
   
   /* If we are about to step onto a scare monster scroll, use the 'm' cmd */
@@ -164,16 +164,16 @@ int movetype, (*evalinit)(), (*evaluate)();
 { register int thedir, dir, r, c;
   int val, avd, cont;
 
-  dwait (D_CONTROL | D_SEARCH, "Validatemap: type %d", movetype);
+  (void) dwait (D_CONTROL | D_SEARCH, "Validatemap: type %d", movetype);
 
   if (mvtype != movetype)
-  { dwait (D_SEARCH, "Validatemap: move type mismatch, map invalid.");
+  { (void) dwait (D_SEARCH, "Validatemap: move type mismatch, map invalid.");
     return (0);
   }
 
   thedir = mvdir[atrow][atcol] - FROM;
   if (thedir > 7 || thedir < 0)
-  { dwait (D_SEARCH, "Validatemap: direction in map invalid.");
+  { (void) dwait (D_SEARCH, "Validatemap: direction in map invalid.");
     return (0);  /* Something Broke */
   }
 
@@ -186,7 +186,7 @@ int movetype, (*evalinit)(), (*evaluate)();
    */
 
   if (!didinit && !(*evalinit)())
-  { dwait (D_SEARCH, "Validatemap: evalinit failed.");
+  { (void) dwait (D_SEARCH, "Validatemap: evalinit failed.");
     return (2);  /* evalinit failed */
   }
   didinit=1;
@@ -195,20 +195,20 @@ int movetype, (*evalinit)(), (*evaluate)();
   while (1)
   { val = avd = cont = 0;
     if (!(*evaluate)(r, c, movedepth[r][c], &val, &avd, &cont))
-    { dwait (D_SEARCH, "Validatemap: evaluate failed.");
+    { (void) dwait (D_SEARCH, "Validatemap: evaluate failed.");
       return (0);
     }
     if (!onrc (CANGO, r, c) ||
         avd!=moveavd[r][c] || val!=moveval[r][c] || cont!=movecont[r][c])
-    { dwait (D_SEARCH, "Validatemap: map invalidated.");
+    { (void) dwait (D_SEARCH, "Validatemap: map invalidated.");
       return (0);
     }
     if ((dir=mvdir[r][c]-FROM) == TARGET)
-    { dwait (D_SEARCH, "Validatemap: existing map validated.");
+    { (void) dwait (D_SEARCH, "Validatemap: existing map validated.");
       break;
     }
     if (dir < 0 || dir > 7)
-    { dwait (D_SEARCH, "Validatemap: direction in map invalid.");
+    { (void) dwait (D_SEARCH, "Validatemap: direction in map invalid.");
       return (0);
     }
     r += deltr[dir];  c += deltc[dir];
@@ -262,7 +262,7 @@ char dir[24][80];
     if (tempdir == TARGET) break;
     r += deltr[tempdir];  c += deltc[tempdir];
   }
-  dwait (D_SEARCH, "Searchfrom wins.");
+  (void) dwait (D_SEARCH, "Searchfrom wins.");
   return (1);
 }
 
@@ -324,8 +324,8 @@ char dir[24][80];
     if (r==QUEUEBREAK)
     { /* If we have completed an evaluation loop */
       if (searchcontinue <= 0 || !any)
-      { if (havetarget) dwait (D_SEARCH, "Searchto wins.");
-	else dwait (D_SEARCH, "Searchto fails.");
+      { if (havetarget) (void) dwait (D_SEARCH, "Searchto wins.");
+	else (void) dwait (D_SEARCH, "Searchto fails.");
 	
         return (havetarget);  /* have found somewhere to go */
       }
@@ -334,7 +334,7 @@ char dir[24][80];
 
       /* ----------------------------------------------------------------
       if (debug (D_SCREEN))
-        dwait (D_SEARCH, "Searchto: at queue break, cont=%d, havetarget=%d",
+        (void) dwait (D_SEARCH, "Searchto: at queue break, cont=%d, havetarget=%d",
 	       searchcontinue, havetarget);
       ---------------------------------------------------------------- */
 
@@ -366,7 +366,7 @@ char dir[24][80];
         }
       }
       else 		/* If evaluate fails, forget it for now. */
-      { dwait (D_SEARCH, "Searchto: evaluate failed.");
+      { (void) dwait (D_SEARCH, "Searchto: evaluate failed.");
 	continue;
       }
     }
@@ -385,7 +385,7 @@ char dir[24][80];
 
       if (debug (D_SCREEN | D_SEARCH | D_INFORM))
       { mvprintw (r, c, "=");
-	dwait (D_SEARCH, "Searchto: target value %d.", moveval[r][c]);
+	(void) dwait (D_SEARCH, "Searchto: target value %d.", moveval[r][c]);
       }
       searchcontinue = movecont[r][c];
       *trow = r;  *tcol = c;  havetarget = moveval[r][c];

@@ -1,5 +1,5 @@
 /*
- * setup.c: Rog-O-Matic XIV (CMU) Wed Jan 30 17:38:07 1985 - mlm
+ * setup.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This is the program which forks and execs the Rogue & the Player
@@ -26,7 +26,7 @@ char *argv[];
   int   child, score = 0, oldgame = 0;
   int   cheat = 0, noterm = 1, echo = 0, nohalf = 0, replay = 0;
   int   emacs = 0, rf = 0, terse = 0, user = 0, quitat = 2147483647;
-  char  *rfile = "", *rfilearg = "", options[32];
+  char  *rfile = "", *rfilearg = "", options[32], *getname();
   char  ropts[128], roguename[128];
 
   while (--argc > 0 && (*++argv)[0] == '-')
@@ -79,10 +79,10 @@ char *argv[];
 
   if (!replay && !score) quitat = findscore (rfile, "Rog-O-Matic");
 
-  sprintf (options, "%d,%d,%d,%d,%d,%d,%d,%d",
+  (void) sprintf (options, "%d,%d,%d,%d,%d,%d,%d,%d",
            cheat, noterm, echo, nohalf, emacs, terse, user,quitat);
-  sprintf (roguename, "Rog-O-Matic %s for %s", RGMVER, getname ());
-  sprintf (ropts, "name=%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+  (void) sprintf (roguename, "Rog-O-Matic %s for %s", RGMVER, getname ());
+  (void) sprintf (ropts, "name=%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
            roguename, "fruit=apricot", "terse", "noflush", "noask",
            "jump", "step", "nopassgo", "inven=slow", "seefloor");
 
@@ -98,13 +98,13 @@ char *argv[];
   frogue = ctp[READ];
 
   if ((child = fork ()) == 0)
-  { close (0);
-    dup (ptc[READ]);
-    close (1);
-    dup (ctp[WRITE]);
+  { (void) close (0);
+    (void) dup (ptc[READ]);
+    (void) close (1);
+    (void) dup (ctp[WRITE]);
 
-    putenv ("TERMCAP", ROGUETERM);
-    putenv ("ROGUEOPTS", ropts);
+    (void) putenv ("TERMCAP", ROGUETERM);
+    (void) putenv ("ROGUEOPTS", ropts);
 
     if (oldgame)  execl (rfile, rfile, "-r", 0);
     if (argc)     execl (rfile, rfile, argv[0], 0);
@@ -118,7 +118,7 @@ char *argv[];
     char *ft = "aa", rp[32]; ft[0] += frogue; ft[1] += trogue;
 
     /* Pass the process ID of the Rogue process as an ASCII string */
-    sprintf (rp, "%d", child);
+    (void) sprintf (rp, "%d", child);
 
     if (!author ()) nice (4);
 
@@ -127,7 +127,7 @@ char *argv[];
     execl (PLAYER, "player", ft, rp, options, roguename, 0);
 # endif
     printf ("Rogomatic not available, 'player' binary missing.\n");
-    kill (child, SIGKILL);
+    (void) kill (child, SIGKILL);
   }
 }
 

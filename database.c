@@ -1,5 +1,5 @@
 /*
- * database.c: Rog-O-Matic XIV (CMU) Fri Dec 28 23:26:25 1984 - mlm
+ * database.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  * 
  * This file contains the code which handles the database of objects which
@@ -49,8 +49,8 @@ char *string;
 useobj (oldname)
 char *oldname;
 { if (findentry (oldname) == NOTFOUND)
-  { strcpy (dbase[datalen].fakename, oldname);
-    strcpy (dbase[datalen++].roguenam, "");
+  { (void) strcpy (dbase[datalen].fakename, oldname);
+    (void) strcpy (dbase[datalen++].roguenam, "");
   }
 }
 
@@ -68,15 +68,15 @@ char *name;
   i = findentry (oldname);
 
   if (i == NOTFOUND)
-  { strcpy (dbase[datalen].fakename, oldname);
-    strcpy (dbase[datalen++].roguenam, name);
+  { (void) strcpy (dbase[datalen].fakename, oldname);
+    (void) strcpy (dbase[datalen++].roguenam, name);
   }
   else
   { if (*dbase[i].roguenam && strcmp (dbase[i].roguenam, name))
-      dwait (D_ERROR, "Inconsistent inference '%s', '%s'", 
+      (void) dwait (D_ERROR, "Inconsistent inference '%s', '%s'", 
              dbase[i].roguenam, name);
     else
-      strcpy (dbase[i].roguenam, name);
+      (void) strcpy (dbase[i].roguenam, name);
     }
 }
 

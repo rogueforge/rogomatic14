@@ -1,5 +1,5 @@
 /*
- * pack.c: Rog-O-Matic XIV (CMU) Sat Feb 16 08:58:04 1985 - mlm
+ * pack.c: Rog-O-Matic XIV (CMU) Sat Feb 23 20:35:56 1985 - wel
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  * 
  * This file contains functions which mess with Rog-O-Matics pack
@@ -25,22 +25,22 @@ register int i;
   register char *item = ispace;
 
   if (i < 0 || i >= MAXINV)
-  { sprintf (item, "%d out of bounds", i); }
+  { (void) sprintf (item, "%d out of bounds", i); }
   else if (inven[i].count < 1)
-  { sprintf (item, "%c)      nothing", LETTER(i)); }
+  { (void) sprintf (item, "%c)      nothing", LETTER(i)); }
   else
-  { sprintf (item, "%c) %4d %d*%s:", LETTER(i), worth(i),
+  { (void) sprintf (item, "%c) %4d %d*%s:", LETTER(i), worth(i),
              inven[i].count, stuffmess[(int)inven[i].type]);
 
     if (inven[i].phit != UNKNOWN && inven[i].pdam == UNKNOWN)
-      sprintf (item, "%s (%d)", item, inven[i].phit);
+      (void) sprintf (item, "%s (%d)", item, inven[i].phit);
     else if (inven[i].phit != UNKNOWN)
-      sprintf (item, "%s (%d,%d)", item, inven[i].phit, inven[i].pdam);
+      (void) sprintf (item, "%s (%d,%d)", item, inven[i].phit, inven[i].pdam);
 
     if (inven[i].charges != UNKNOWN)
-      sprintf (item, "%s [%d]", item, inven[i].charges);
+      (void) sprintf (item, "%s [%d]", item, inven[i].charges);
 
-    sprintf (item, "%s %s%s%s%s%s%s%s%s%s.",	  /* DR UTexas */
+    (void) sprintf (item, "%s %s%s%s%s%s%s%s%s%s.",	  /* DR UTexas */
             item, inven[i].str, 
              (itemis (i, KNOWN) ? "" : ", unknown"),
              (used (inven[i].str) ? ", tried" : ""),
@@ -235,7 +235,7 @@ char *msgstart, *msgend;
   char *xbeg, *xend;
 
   xbeg = xend = "";
-  dwait (D_PACK, "inventory: message %s", mess);
+  (void) dwait (D_PACK, "inventory: message %s", mess);
 
   /* Rip surrounding garbage from the message */
 
@@ -342,7 +342,7 @@ char *msgstart, *msgend;
   for (p = objname, q = xbeg; q < xend;  p++, q++) *p = *q;
   *p = '\0';
 
-  dwait (D_PACK, "inv: %s '%s', hit %d, dam %d, chg %d, knw %d",
+  (void) dwait (D_PACK, "inv: %s '%s', hit %d, dam %d, chg %d, knw %d",
          stuffmess[(int) what], objname, plushit, plusdam, charges, xknow);
 
   /* Ring bonus is printed differently in Rogue 5.3 */
@@ -355,7 +355,7 @@ char *msgstart, *msgend;
   if ((what == potion || what == scroll || what == wand) && !xknow)
   { char *dbname = realname (objname);
     if (*dbname)
-    { strcpy (objname, dbname);
+    { (void) strcpy (objname, dbname);
       xknow = KNOWN;
       if (newitem)
       { at (0,0);
@@ -418,9 +418,9 @@ char *msgstart, *msgend;
 
   /* Set the name of the object */
   if (inven[ipos].str != NULL)
-    strcpy (inven[ipos].str, objname);
+    (void) strcpy (inven[ipos].str, objname);
   else if (!replaying)
-    dwait (D_ERROR, "terpmess: null inven[%d].str, invcount %d.",
+    (void) dwait (D_ERROR, "terpmess: null inven[%d].str, invcount %d.",
            ipos, invcount);
 
   /* Set cursed attribute for weapon and armor */
