@@ -1,5 +1,5 @@
 /*
- * tactics.c: Rog-O-Matic XIV (CMU) Thu Jan 31 20:31:22 1985 - mlm
+ * tactics.c: Rog-O-Matic XIV (CMU) Sat Feb  2 13:01:25 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains all of the 'medium level intelligence' of Rog-O-Matic. 
@@ -52,11 +52,7 @@ handlearmor ()
   }
     
   /* If  the new armor is really bad, then don't bother wearing any */
-  if (obj != NONE &&
-      (armorclass (obj) > 9) ||
-      (itemis (obj, CURSED) &&
-       (havenamed(scroll, "remove curse") == NONE) &&
-       (armorclass (obj) > 6))) 
+  if (obj != NONE && armorclass (obj) > 9) 
   { obj = NONE; }
 
   /* If we are wearing the right armor, then dont bother */
