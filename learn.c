@@ -264,7 +264,7 @@ register char *genepool;
 
   /* Read the header line */
   b = buf;
-  fgets (b, BUFSIZ, gfil);
+  if (fgets (b, BUFSIZ, gfil) == NULL) return (0);
   sscanf (b, "%d %d %d %d %d %d",
 	&inittime, &trialno, &lastid, &crosses, &shifts, &mutations);
   SKIPTO ('|', b);
