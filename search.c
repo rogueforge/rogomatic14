@@ -1,5 +1,5 @@
 /*
- * search.c: Rog-O-Matic XIV (CMU) Fri Feb 15 15:08:44 1985 - mlm
+ * search.c: Rog-O-Matic XIV (CMU) Tue Mar 19 21:48:54 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains the very basic search mechanisms for exploration etc.
@@ -104,7 +104,7 @@ register int movetype;
 
   /* If exploring and are moving to a new hall square, use fmove */
   if (movetype == EXPLORE &&
-      onrc (HALL|BEEN, targetrow, targetcol) != HALL|BEEN &&
+      onrc (HALL|BEEN, targetrow, targetcol) != (HALL|BEEN) &&
       onrc (HALL,r,c) &&
       !beingstalked)			/* Feb 10, 1985 - mlm */
   { fmove (dir); return (1); }
@@ -127,9 +127,10 @@ register int movetype;
   /* Search up to k times if 2 or more foods and deeper than level 6 */
   searchit = max (0, min (k_srch/20, min (larder - 1, Level - 6)));
 
-  /* Can we move more than one square at a time? */
+  /* Can we move more than one square at a time? Dont count scare monsters! */
   if (compression)
-  { while (mvdir[r][c]-FROM==dir && (onrc (SAFE, r+=dr, c+=dc) || !searchit))
+  { while (mvdir[r][c]-FROM==dir &&
+           (onrc (SAFE|SCAREM, r+=dr, c+=dc) == SAFE || !searchit))
       count++;
   }
 
@@ -140,7 +141,7 @@ register int movetype;
 
   /* Maybe take armor off before stepping on rust trap */
   if (timemode != T_RUNNING && onrc (WATERAP, atrow+dr, atcol+dc) &&
-      currentarmor != NONE && willrust () && takeoff ())
+      currentarmor != NONE && willrust (currentarmor) && takeoff ())
   { rmove (1, dir, timemode); return (1); }
   
   /* If we are about to step onto a scare monster scroll, use the 'm' cmd */

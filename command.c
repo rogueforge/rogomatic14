@@ -1,5 +1,5 @@
 /*
- * command.c: Rog-O-Matic XIV (CMU) Thu Jan 31 20:13:11 1985 - mlm
+ * command.c: Rog-O-Matic XIV (CMU) Tue Mar 19 20:52:19 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains all of the functions which send commands to
@@ -46,6 +46,7 @@ int   d, mode;
  * gather information are sent to Rogue using the 'send' function.
  */
 
+/* VARARGS2 */
 command (tmode, f, a1, a2, a3, a4)
 char *f;
 int tmode, a1, a2, a3, a4;
@@ -153,8 +154,8 @@ char *cmd;
 
 adjustpack (cmd)
 char *cmd;
-{ char is1[128], is2[128], functionchar(), commandarg();
-  int newweapon, obj;
+{ char functionchar(), commandarg();
+  int neww, obj;
 
   switch (functionchar (cmd))
   { case 'd':	setrc (STUFF | USELESS, atrow, atcol);
@@ -190,13 +191,13 @@ char *cmd;
     case 'w':	if (currentweapon != NONE)
 		  forget (currentweapon, INUSE);
 
-		newweapon = OBJECT (commandarg (cmd, 1));
-		usemsg ("About to wield", newweapon);
+		neww = OBJECT (commandarg (cmd, 1));
+		usemsg ("About to wield", neww);
 
 		if (commandarg (cmd, 2) == 'w')
-		{ lastdrop = currentweapon = newweapon; }
+		{ lastdrop = currentweapon = neww; }
 		else
-		{ lastdrop = currentweapon; currentweapon = newweapon; }
+		{ lastdrop = currentweapon; currentweapon = neww; }
 
 		remember (currentweapon, INUSE);
 		

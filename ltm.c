@@ -1,5 +1,5 @@
 /*
- * ltm.c: Rog-O-Matic XIV (CMU) Fri Dec 28 20:37:04 1984 - mlm
+ * ltm.c: Rog-O-Matic XIV (CMU) Tue Mar 19 21:28:30 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains functions for maintaining a database or "long
@@ -220,18 +220,18 @@ char *monster;
  * clearltm: Clear a whole long term memory array.
  */
 
-clearltm (ltm)
-register ltmrec *ltm;
+clearltm (ltmarr)
+register ltmrec *ltmarr;
 { register int i;
 
   for (i=0; i<MAXMON; i++)
-  { ltm[i].m_name[0] = '\0';
-    clearprob (&ltm[i].wehit);
-    clearprob (&ltm[i].theyhit);
-    clearprob (&ltm[i].arrowhit);
-    clearstat (&ltm[i].htokill);
-    clearstat (&ltm[i].damage);
-    clearstat (&ltm[i].atokill);
+  { ltmarr[i].m_name[0] = '\0';
+    clearprob (&ltmarr[i].wehit);
+    clearprob (&ltmarr[i].theyhit);
+    clearprob (&ltmarr[i].arrowhit);
+    clearstat (&ltmarr[i].htokill);
+    clearstat (&ltmarr[i].damage);
+    clearstat (&ltmarr[i].atokill);
   }
 }
 

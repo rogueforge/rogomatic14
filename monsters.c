@@ -1,5 +1,5 @@
 /*
- * monsters.c: Rog-O-Matic XIV (CMU) Thu Jan 31 20:23:07 1985 - mlm
+ * monsters.c: Rog-O-Matic XIV (CMU) Tue Mar 19 21:39:44 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains all of the monster specific functions.
@@ -28,20 +28,20 @@ char m;
  * list which are in the same square.
  */
 
-addmonster (ch, row, col, quiescence)
+addmonster (ch, r, c, quiescence)
 char  ch;
-int   row, col, quiescence;
+int   r, c, quiescence;
 { char *monster = monname (ch);
 
-  if (row > 1 || col > 3)
+  if (r > 1 || c > 3)
   { if (isholder (monster)) quiescence = AWAKE;
-    deletemonster (row, col);
+    deletemonster (r, c);
     mlist[mlistlen].chr = ch;
-    mlist[mlistlen].mrow = row;
-    mlist[mlistlen].mcol = col;
+    mlist[mlistlen].mrow = r;
+    mlist[mlistlen].mcol = c;
     mlist[mlistlen].q = quiescence;
     if (++mlistlen >= MAXMONST) dwait (D_FATAL, "Too many monsters");
-    setrc (MONSTER, row, col);
+    setrc (MONSTER, r, c);
     lyinginwait = 0;
     new_arch = 1;
 
@@ -55,15 +55,15 @@ int   row, col, quiescence;
  * deletemonster: remove a monster from the list at location (row, col).
  */
 
-deletemonster (row, col)
-int   row, col;
+deletemonster (r, c)
+int   r, c;
 { int   i;
 
   new_arch = 1;
-  unsetrc (MONSTER, row, col);
+  unsetrc (MONSTER, r, c);
 
   for (i = 0; i < mlistlen; ++i)
-    if (mlist[i].mcol == col && mlist[i].mrow == row)
+    if (mlist[i].mcol == c && mlist[i].mrow == r)
     { mlist[i] = mlist[--mlistlen]; i--; }
 }
 
@@ -231,12 +231,3 @@ register char *monster;
 { 
   return (streq (monster, "venus flytrap") || streq (monster, "violet fungi"));
 }
-
-/* 
- * stubs for Leonards stuff.  These are to be replaced with code which
- * determines what monsters we have seen that are not now on the screen.
- */ 
-
-domonster () {}
-donemonster () {}
-killmonster () {}

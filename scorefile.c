@@ -1,5 +1,5 @@
 /*
- * scorefile.c: Rog-O-Matic XIV (CMU) Mon Jan  7 17:20:52 1985 - mlm
+ * scorefile.c: Rog-O-Matic XIV (CMU) Tue Mar 19 21:46:11 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains the functions which update the rogomatic scorefile,
@@ -28,17 +28,17 @@ static char lokfil[100];
  * score file and catching interrupts and things.
  */
 
-add_score (new_line, version, noterm)
-char *new_line, *version;
-int noterm;
+add_score (new_line, vers, ntrm)
+char *new_line, *vers;
+int ntrm;
 { 
   int   wantscore = 1;
   char  ch;
   char  newfil[100];
   FILE *newlog;
 
-  sprintf (lokfil, "%s %s", LOCKFILE, version);
-  sprintf (newfil, "%s/rgmdelta%s", RGMDIR, version);
+  sprintf (lokfil, "%s %s", LOCKFILE, vers);
+  sprintf (newfil, "%s/rgmdelta%s", RGMDIR, vers);
 
   /* Defer interrupts while mucking with the score file */
   critical ();
@@ -50,7 +50,7 @@ int noterm;
    */
   
   while (lock_file (lokfil, MAXLOCK) == 0)
-    if (--wantscore < 1 && !noterm)
+    if (--wantscore < 1 && !ntrm)
     { printf ("The score file is busy, do you wish to wait? [y/n] ");
       while ((ch = getchar ()) != 'y' && ch != 'n');
       if (ch == 'y')
@@ -78,18 +78,18 @@ int noterm;
  * dumpscore: Print out the scoreboard.
  */
 
-dumpscore (version)
-char *version;
+dumpscore (vers)
+char *vers;
 { 
   char  ch, scrfil[100], delfil[100], newfil[100], allfil[100], cmd[256];
   FILE *scoref, *deltaf;
   int   oldmask, intrupscore ();
 
-  sprintf (lokfil, "%s %s", LOCKFILE, version);
-  sprintf (scrfil, "%s/rgmscore%s", RGMDIR, version);
-  sprintf (delfil, "%s/rgmdelta%s", RGMDIR, version);
-  sprintf (newfil, "%s/NewScore%s", RGMDIR, version);
-  sprintf (allfil, "%s/AllScore%s", RGMDIR, version);
+  sprintf (lokfil, "%s %s", LOCKFILE, vers);
+  sprintf (scrfil, "%s/rgmscore%s", RGMDIR, vers);
+  sprintf (delfil, "%s/rgmdelta%s", RGMDIR, vers);
+  sprintf (newfil, "%s/NewScore%s", RGMDIR, vers);
+  sprintf (allfil, "%s/AllScore%s", RGMDIR, vers);
 
   /* On interrupts we must relinquish control of the score file */
   int_exit (intrupscore);
@@ -153,7 +153,7 @@ char *version;
     exit (1);
   }
 
-  printf ("Rog-O-Matic Scores against version %s:\n\n", version);
+  printf ("Rog-O-Matic Scores against version %s:\n\n", vers);
   printf ("%s%s", "Date         User        Gold    Killed by",
           "      Lvl  Hp  Str  Ac  Exp\n\n");
 

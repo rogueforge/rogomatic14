@@ -1,11 +1,11 @@
-# makefile: Rog-O-Matic XIV (CMU) Wed Feb  6 18:34:24 1985 - mlm
+# makefile: Rog-O-Matic XIV (CMU) Thu Jul  3 15:23:02 1986 - mlm
 # Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
 #
 BINARIES=   rogomatic player rgmplot datesub histplot gene
-BINDIR=     /usr/mlm/bin/
-PUBDIR=     /usr/mlm/rgm/src14a
+BINDIR=     /usr/mlm/bin
+PUBDIR=     /usr/mlm/src/rog/rgmpub
 CCFLAGS=    -g
-LDFLAGS=    
+LDFLAGS=    -g
 OBJS=	    arms.o command.o database.o debug.o explore.o io.o learn.o\
 	    ltm.o main.o mess.o monsters.o pack.o rand.o replay.o rooms.o\
 	    scorefile.o search.o stats.o strategy.o survival.o tactics.o\
@@ -21,7 +21,7 @@ OTHERS=     setup.c findscore.c datesub.l histplot.c rgmplot.c gene.c\
 # The following commands are declared:
 #
 all: $(BINARIES)
-	echo -n "" >/dev/tty
+	echo -n "" >/dev/tty
 #
 #
 # General makefile stuff:
@@ -129,18 +129,16 @@ anim: anim.c utility.o
 	cc -o anim anim.c utility.o -lcurses -ltermcap
 index: $(SRCS)
 	ctags -x $(SRCS) > index
+clashes: $(SRCS)
+	clash $(SRCS) > clashes
 fluff: $(SRCS)
-	lint *.c	| grep -v 'variable # of args' \
-			| grep -v 'unused in function' \
-			| grep -v 'used inconsistently' \
-			| grep -v 'declared inconsistently' \
-			| grep -v 'multiply declared' \
-			> fluff
+	lint -hc $(SRCS) > fluff
+words: $(SRCS)
+	cat $(SRCS) | decmt | freq > words
 print: $(SRCS) $(HDRS)
 	@echo $? > printit
 dist: $(SRCS) $(HDRS) $(OTHERS) makefile rogomatic.6 README
-	rm -rf $(PUBDIR)	
-	mkdir $(PUBDIR)
+	rm -f $(PUBDIR)/*
 	cp $(SRCS) $(HDRS) $(OTHERS) makefile rogomatic.6 README $(PUBDIR)
 	chmod 0444 $(PUBDIR)/*
 	du $(PUBDIR)

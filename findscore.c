@@ -1,8 +1,16 @@
 /*
- * findscore.c: Rog-O-Matic XIV (CMU) Fri Dec 28 23:27:10 1984 - mlm
+ * findscore.c: Rog-O-Matic XIV (CMU) Sun Jul  6 20:13:19 1986 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * Read the Rogue scoreboard to determine a goal score.
+ *
+ * EDITLOG
+ *	LastEditDate = Sun Jul  6 20:13:19 1986 - Michael Mauldin
+ *	LastFileName = /usre3/mlm/src/rog/ver14/findscore.c
+ *
+ * HISTORY
+ *  6-Jul-86  Michael Mauldin (mlm) at Carnegie-Mellon University
+ *	Created.
  */
 
 # include <stdio.h>
@@ -30,8 +38,7 @@ register char *rogue, *roguename;
     if (stlmatch (buffer, "Rank")) break;
 
   if (! feof (tmpfil)) 
-  { best = BOGUS;
-    while (fgets (buffer, BUFSIZ, tmpfil) != NULL)
+  { while (fgets (buffer, BUFSIZ, tmpfil) != NULL)
     { s = buffer;				/* point s at buffer */
       while (ISDIGIT (*s)) s++;			/* Skip over rank */
       while (*s == ' ' || *s == '\t') s++;	/* Skip to score */
@@ -39,13 +46,21 @@ register char *rogue, *roguename;
       while (ISDIGIT (*s)) s++;			/* Skip over score */
       while (*s == ' ' || *s == '\t') s++;	/* Skip to player */
 
-      if (score < best)				/* Save smallest score */
-        best = score;
       if (stlmatch (s, roguename))		/* Found our heros name */
-        break; 
+      { if (best < 0) best = score;		/* Rogy is on top! */
+	break;					/* 'best' is now target */
+      }
+
+      if (score < BOGUS && 
+	  (score < best || best < 0))		/* Save smallest score */
+        best = score;				/*  above Rogy's score */
     }
   }
 
   unlink (tmpfname); 
+
+  /* Don't quit for very small scores, it's not worth it */
+  if (best < 2000) best = -1;
+
   return (best);
 }

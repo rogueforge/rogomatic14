@@ -1,5 +1,5 @@
 /*
- * debug.c: Rog-O-Matic XIV (CMU) Fri Dec 28 21:48:55 1984 - mlm
+ * debug.c: Rog-O-Matic XIV (CMU) Tue Mar 19 21:00:57 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains the code for the debugger.  Rogomatic has one of
@@ -21,6 +21,7 @@
  * debugging messages, and hit a space or a cr to continue
  */
 
+/* VARARGS2 */
 dwait (msgtype, f, a1, a2, a3, a4, a5, a6, a7, a8)
 char *f;
 int msgtype, a1, a2, a3, a4, a5, a6, a7, a8;
@@ -71,7 +72,7 @@ int msgtype, a1, a2, a3, a4, a5, a6, a7, a8;
     { case '?': 
         say ("i=inv, d=debug !=stf, @=mon, #=wls, $=id, ^=flg, &=chr");
         break;
-      case 'i': at (1,0); dumpinv (NULL); at (row, col); break;
+      case 'i': at (1,0); dumpinv ((FILE *) NULL); at (row, col); break;
       case 'd': toggledebug (); 	break;
       case 't': transparent = 1;        break;
       case '!': dumpstuff ();           break;

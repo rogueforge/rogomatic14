@@ -1,5 +1,5 @@
 /*
- * tactics.c: Rog-O-Matic XIV (CMU) Sat Feb 16 23:27:48 1985 - mlm
+ * tactics.c: Rog-O-Matic XIV (CMU) Tue Mar 19 21:52:37 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains all of the 'medium level intelligence' of Rog-O-Matic. 
@@ -243,7 +243,7 @@ readscroll ()
        Level > 10 && (obj2 = unknown (wand)) != NONE ||
        ((cheat || version == RV36A) &&
         ((obj2 = unknown (potion)) != NONE ||
-         (obj2 = haveother (scroll)) != NONE))))
+         (obj2 = haveother (scroll, obj)) != NONE))))
   { prepareident (obj2, obj);
     return (reads (obj)); }
 

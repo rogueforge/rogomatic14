@@ -1,5 +1,5 @@
 /*
- * rand.c: Rog-O-Matic XIV (CMU) Fri Dec 28 23:42:39 1984 - mlm
+ * rand.c: Rog-O-Matic XIV (CMU) Tue Mar 19 21:42:34 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * A very random generator, period approx 6.8064e16.
@@ -49,7 +49,7 @@ srand (seed)
 int seed;
 { register int i;
 
-  if (seed == 0) seed = time();
+  if (seed == 0) seed = time (0);
 
   /* Set the three random number seeds */
   seed1 = (seed1+seed) % MOD1;

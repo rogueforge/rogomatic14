@@ -1,11 +1,20 @@
 /*
- * learn.c: Rog-O-Matic XIV (CMU) Thu Jan 31 20:30:10 1985 - mlm
+ * learn.c: Rog-O-Matic XIV (CMU) Sat Jul  5 23:55:06 1986 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * Genetic learning component.
+ *
+ * EDITLOG
+ *	LastEditDate = Sat Jul  5 23:55:06 1986 - Michael Mauldin
+ *	LastFileName = /usre3/mlm/src/rog/ver14/learn.c
+ *
+ * HISTORY
+ *  5-Jul-86  Michael Mauldin (mlm) at Carnegie-Mellon University
+ *	Created.
  */
 
 # include <stdio.h>
+# include <sys/types.h>
 # include "types.h"
 
 # define TRIALS(g)		((g)->score.count)
@@ -22,6 +31,7 @@ typedef struct
 extern int knob[];
 extern double mean(), stdev(), sqrt();
 extern FILE *wopen();
+extern char *malloc();
 
 static int inittime=0, trialno=0, lastid=0;
 static int crosses=0, shifts=0, mutations=0;
@@ -40,7 +50,9 @@ static int compgene();
  */
 
 initpool (k, m)
-{ inittime = time (0);
+{ char *ctime();
+
+  inittime = time (0);
 
   if (glog) fprintf (glog, "Gene pool initalized, k %d, m %d, %s",
                      k, m, ctime (&inittime));
@@ -55,6 +67,7 @@ initpool (k, m)
 analyzepool (full)
 int full;
 { register int g;
+  char *ctime();
 
   qsort (genes, length, sizeof (*genes), compgene);
 
@@ -65,16 +78,36 @@ int full;
 	  mean (&g_score), stdev (&g_score),
 	  mean (&g_level), stdev (&g_level));
 
-  for (g=0; g<length; g++)
-  { printf ("Living: "); summgene (stdout, genes[g]);
-    if (full)
-    { if (genes[g]->mother)
-        printf ("  Parents: %3d,%-3d", genes[g]->father, genes[g]->mother);
-      else
-        printf ("  Parent:  %3d,   ", genes[g]->father);
-      printf ("  best %4.0lf/%-2.0lf",
-		genes[g]->score.high, genes[g]->level.high);
-      printf ("    DNA  "); printdna (stdout, genes[g]); printf ("\n\n");
+  /* Give average of each gene */
+  if (full == 2)
+  { statistic gs;
+    register int k;
+    extern char *knob_name[];
+    
+    for (k=0; k<MAXKNOB; k++)
+    { clearstat (&gs);
+      
+      for (g=0; g<length; g++)
+      { addstat (&gs, genes[g]->dna[k]); }
+      
+      printf ("%s%5.2lf+%1.2lf\n", knob_name[k], mean (&gs), stdev (&gs));
+    }
+  }
+
+  /* List detail of gene pool */
+  else
+  {
+    for (g=0; g<length; g++)
+    { printf ("Living: "); summgene (stdout, genes[g]);
+      if (full)
+      { if (genes[g]->mother)
+	  printf ("  Parents: %3d,%-3d", genes[g]->father, genes[g]->mother);
+	else
+	  printf ("  Parent:  %3d,   ", genes[g]->father);
+	printf ("  best %4.0lf/%-2.0lf",
+		  genes[g]->score.high, genes[g]->level.high);
+	printf ("    DNA  "); printdna (stdout, genes[g]); printf ("\n\n");
+      }
     }
   }
 }
@@ -83,8 +116,8 @@ int full;
  * setknobs: Read gene pool, pick genotype, and set knobs accordingly.
  */
 
-setknobs (newid, knob, best, avg)
-int *newid, *knob, *best, *avg;
+setknobs (newid, knb, best, avg)
+int *newid, *knb, *best, *avg;
 { register int i, g;
   
   ++trialno;
@@ -93,7 +126,7 @@ int *newid, *knob, *best, *avg;
   *newid = genes[g]->id;
 
   for (i=0; i<MAXKNOB; i++)	/* Set the knobs for that genotype */
-    knob[i] = genes[g]->dna[i];
+    knb[i] = genes[g]->dna[i];
 
   *best = genes[g]->score.high;
   *avg = (int) mean (&(genes[g]->score));

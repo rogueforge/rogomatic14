@@ -1,9 +1,12 @@
 /*
- * utility.c: Rog-O-Matic XIV (CMU) Thu Jan 31 18:18:22 1985 - mlm
+ * utility.c: Rog-O-Matic XIV (CMU) Tue Mar 26 15:27:03 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains all of the miscellaneous system functions which
  * determine the baud rate, time of day, etc.
+ *
+ * If CMU is not defined, then various functions from libcmu.a are
+ * defined here (otherwise the functions from -lcmu are used).
  */
 
 # include <sgtty.h>
@@ -42,6 +45,177 @@ baudrate ()
 }
 
 /*
+ * getname: get userid of player.
+ */
+
+char *getname ()
+{ static char name[100];
+  int   i;
+
+
+  getpw (getuid (), name);
+  i = 0;
+  while (name[i] != ':' && name[i] != ',')
+    i++;
+  name[i] = '\0';
+
+  return (name);
+}
+
+/*
+ * wopen: Open a file for world access.
+ */
+
+FILE *wopen(fname, mode)
+char *fname, *mode;
+{ int oldmask;
+  FILE *newlog;
+
+  oldmask = umask (0111);
+  newlog = fopen (fname, mode);
+  umask (oldmask);
+
+  return (newlog);  
+}
+
+/*
+ * fexists: return a boolean if the named file exists
+ */
+
+fexists (fn)
+char *fn;
+{ struct stat pbuf;
+
+  return (stat (fn, &pbuf) == 0);
+}
+
+/*
+ * filelength: Do a stat and return the length of a file.
+ */
+
+int filelength (f)
+char *f;
+{ struct stat sbuf;
+
+  if (stat (f, &sbuf) == 0)
+    return (sbuf.st_size);
+  else
+    return (-1);
+}
+
+/*
+ * critical: Disable interrupts
+ */
+
+static int   (*hstat)(), (*istat)(), (*qstat)(), (*pstat)();
+
+critical ()
+{
+  hstat = signal (SIGHUP, SIG_IGN);
+  istat = signal (SIGINT, SIG_IGN);
+  pstat = signal (SIGPIPE, SIG_IGN);
+  qstat = signal (SIGQUIT, SIG_IGN);
+}
+
+/*
+ * uncritical: Enable interrupts
+ */
+
+uncritical ()
+{
+  signal (SIGHUP, hstat);
+  signal (SIGINT, istat);
+  signal (SIGPIPE, pstat);
+  signal (SIGQUIT, qstat);
+}
+
+/*
+ * reset_int: Set all interrupts to default
+ */
+
+reset_int ()
+{
+  signal (SIGHUP, SIG_DFL);
+  signal (SIGINT, SIG_DFL);
+  signal (SIGPIPE, SIG_DFL);
+  signal (SIGQUIT, SIG_DFL);
+}
+
+/*
+ * int_exit: Set up a function to call if we get an interrupt
+ */
+
+int_exit (exitproc)
+int (*exitproc)();
+{
+  if (signal (SIGHUP, SIG_IGN) != SIG_IGN)  signal (SIGHUP, exitproc);
+  if (signal (SIGINT, SIG_IGN) != SIG_IGN)  signal (SIGINT, exitproc);
+  if (signal (SIGPIPE, SIG_IGN) != SIG_IGN) signal (SIGPIPE, exitproc);
+  if (signal (SIGQUIT, SIG_IGN) != SIG_IGN) signal (SIGQUIT, exitproc);
+}
+
+/*
+ * lock_file: lock a file for a maximum number of seconds.
+ *            Based on the method used in Rogue 5.2.
+ */
+
+# define NOWRITE 0
+
+lock_file (lokfil, maxtime)
+char *lokfil;
+int maxtime;
+{ int try;
+  struct stat statbuf;
+  long time ();
+
+  start:
+  if (creat (lokfil, NOWRITE) > 0)
+    return TRUE;
+
+  for (try = 0; try < 60; try++)
+  { sleep (1);
+    if (creat (lokfil, NOWRITE) > 0)
+      return TRUE;
+  }
+
+  if (stat (lokfil, &statbuf) < 0)
+  { creat (lokfil, NOWRITE);
+    return TRUE;
+  }
+
+  if (time (0) - statbuf.st_mtime > maxtime)
+  { if (unlink (lokfil) < 0)
+      return FALSE;
+    goto start;
+  }
+  else
+    return FALSE;
+}
+
+/*
+ * unlock_file: Unlock a lock file.
+ */
+
+unlock_file (lokfil)
+char *lokfil;
+{ unlink (lokfil);
+}
+
+# ifndef CMU
+/*
+ * quit: Defined for compatibility with Berkeley 4.2 system
+ */
+
+/* VARARGS2 */
+quit (code, fmt, a1, a2, a3, a4)
+int code, a1, a2, a3, a4;
+char *fmt;
+{
+  fprintf (stderr, fmt, a1, a2, a3, a4);
+  exit (code);
+}
+
+/*
  * stlmatch  --  match leftmost part of string
  *
  *  Usage:  i = stlmatch (big,small)
@@ -60,7 +234,7 @@ baudrate ()
  *  Originally from klg (Ken Greer) on IUS/SUS UNIX
  */
 
-int   stlmatch (big, small)
+int stlmatch (big, small)
 char *small, *big;
 { register char *s, *b;
   s = small;
@@ -72,23 +246,7 @@ char *small, *big;
   while (*s++ == *b++);
   return (0);
 }
-
-/*
- * getname: get userid of player.
- */
-
-char *getname ()
-{ static char name[100];
-  int   i;
-
-  getpw (getuid (), name);
-  i = 0;
-  while (name[i] != ':' && name[i] != ',')
-    i++;
-  name[i] = '\0';
-
-  return (name);
-}
+# endif
 
 /*
  *  putenv  --  put value into environment
@@ -240,150 +398,4 @@ static int  moreenv ()
   environ = env;
   envsize = esize;
   return (0);
-}
-
-/*
- * wopen: Open a file for world access.
- */
-
-FILE *wopen(fname, mode)
-char *fname, *mode;
-{ int oldmask;
-  FILE *newlog;
-
-  oldmask = umask (0111);
-  newlog = fopen (fname, mode);
-  umask (oldmask);
-
-  return (newlog);  
-}
-
-/*
- * fexists: return a boolean if the named file exists
- */
-
-fexists (fn)
-char *fn;
-{ struct stat pbuf;
-
-  return (stat (fn, &pbuf) == 0);
-}
-
-/*
- * filelength: Do a stat and return the length of a file.
- */
-
-int filelength (f)
-{ struct stat sbuf;
-
-  if (stat (f, &sbuf) == 0)
-    return (sbuf.st_size);
-  else
-    return (-1);
-}
-
-/*
- * critical: Disable interrupts
- */
-
-static int   (*hstat)(), (*istat)(), (*qstat)();
-
-critical ()
-{
-  hstat = signal (SIGHUP, SIG_IGN);
-  istat = signal (SIGINT, SIG_IGN);
-  qstat = signal (SIGQUIT, SIG_IGN);
-}
-
-/*
- * uncritical: Enable interrupts
- */
-
-uncritical ()
-{
-  signal (SIGHUP, hstat);
-  signal (SIGINT, istat);
-  signal (SIGQUIT, qstat);
-}
-
-/*
- * reset_int: Set all interrupts to default
- */
-
-reset_int ()
-{
-  signal (SIGHUP, SIG_DFL);
-  signal (SIGINT, SIG_DFL);
-  signal (SIGQUIT, SIG_DFL);
-}
-
-/*
- * int_exit: Set up a function to call if we get an interrupt
- */
-
-int_exit (exitproc)
-int (*exitproc)();
-{
-  if (signal (SIGINT, SIG_IGN) != SIG_IGN)  signal (SIGINT, exitproc);
-  if (signal (SIGPIPE, SIG_IGN) != SIG_IGN) signal (SIGPIPE, exitproc);
-  if (signal (SIGQUIT, SIG_IGN) != SIG_IGN) signal (SIGQUIT, exitproc);
-}
-
-/*
- * lock_file: lock a file for a maximum number of seconds.
- *            Based on the method used in Rogue 5.2.
- */
-
-# define NOWRITE 0
-
-lock_file (lokfil, maxtime)
-char *lokfil;
-int maxtime;
-{ int try;
-  struct stat statbuf;
-  time_t time ();
-
-  start:
-  if (creat (lokfil, NOWRITE) > 0)
-    return TRUE;
-
-  for (try = 0; try < 60; try++)
-  { sleep (1);
-    if (creat (lokfil, NOWRITE) > 0)
-      return TRUE;
-  }
-
-  if (stat (lokfil, &statbuf) < 0)
-  { creat (lokfil, NOWRITE);
-    return TRUE;
-  }
-
-  if (time (NULL) - statbuf.st_mtime > maxtime)
-  { if (unlink (lokfil) < 0)
-      return FALSE;
-    goto start;
-  }
-  else
-    return FALSE;
-}
-
-/*
- * unlock_file: Unlock a lock file.
- */
-
-unlock_file (lokfil)
-char *lokfil;
-{ unlink (lokfil);
-}
-
-/*
- * quit: Defined for compatibility with Berkeley 4.2 system
- */
-
-quit (code, fmt, a1, a2, a3, a4)
-int code, a1, a2, a3, a4;
-char *fmt;
-{
-  fprintf (stderr, fmt, a1, a2, a3, a4);
-  exit (code);
 }

@@ -1,5 +1,5 @@
 /*
- * replay.c: Rog-O-Matic XIV (CMU) Fri Dec 28 22:43:54 1984 - mlm
+ * replay.c: Rog-O-Matic XIV (CMU) Wed Mar 20 00:13:45 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  * 
  * Make a table of offsets to the beginning of each level of a
@@ -68,14 +68,14 @@ positionreplay ()
   /* Now clear the screen, position the log file, and return */
   switch (cmd)
   { case 'f': fseek (logfile, levpos[0].pos, 0); break;
-    case 'p': if (curlev > 0) fseek (logfile, levpos[curlev-1].pos);
+    case 'p': if (curlev > 0) fseek (logfile, levpos[curlev-1].pos, 0);
               else            fseek (logfile, levpos[0].pos, 0); break;
 	      break;
-    case 'c': fseek (logfile, levpos[curlev].pos); break;
-    case 'n': if (curlev < numlev-1) fseek (logfile, levpos[curlev+1].pos);
+    case 'c': fseek (logfile, levpos[curlev].pos, 0); break;
+    case 'n': if (curlev < numlev-1) fseek (logfile, levpos[curlev+1].pos, 0);
               else            fseek (logfile, levpos[curlev].pos, 0); break;
 	      break;
-    case 'l': fseek (logfile, levpos[numlev-1].pos);
+    case 'l': fseek (logfile, levpos[numlev-1].pos, 0);
 	      break;
     default:  fseek (logfile, 0L, 0);
   }
@@ -89,36 +89,36 @@ positionreplay ()
  *             Rog-O-Matic log file.
  */
 
-findlevel (f, levpos, numlev, maxnum)
+findlevel (f, lvpos, nmlev, maxnum)
 FILE *f;
-struct levstruct *levpos;
-int *numlev, maxnum;
+struct levstruct *lvpos;
+int *nmlev, maxnum;
 { char ch;
-
   int l=0;
-  *numlev = 0;
+
+  *nmlev = 0;
 
   /* Position file after first newline */  
   rewind (f);
   while ((ch = getc (f)) != '\n' && (int) ch != EOF);
 
   /* This is that start of level one */  
-  levpos[l].pos = ftell (f);
+  lvpos[l].pos = ftell (f);
   
   if (!findmatch (f, FIRSTLEVSTR))
   { rewind (f);
     return (FAILURE);
   }
   
-  fillstruct (f, &levpos[l]);
+  fillstruct (f, &lvpos[l]);
   
   while (++l <= maxnum && findmatch (f, NEWLEVSTR))
   { fseek (f, (long) -strlen (POSITAT), 1);
-    levpos[l].pos = ftell (f);
-    fillstruct (f, &levpos[l]);      
+    lvpos[l].pos = ftell (f);
+    fillstruct (f, &lvpos[l]);      
   }
 
-  *numlev = l;
+  *nmlev = l;
   rewind (f);
   return (SUCCESS);
 }
