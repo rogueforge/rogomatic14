@@ -1,5 +1,5 @@
 /*
- * things.c: Rog-O-Matic XIV (CMU) Thu Jan 31 18:13:32 1985 - mlm
+ * things.c: Rog-O-Matic XIV (CMU) Sat Feb  2 13:02:28 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains much of the code to handle Rog-O-Matics inventory.
@@ -481,7 +481,8 @@ int haveuseless ()
 
 willrust (obj)
 int obj;
-{ return (! (armorclass (obj) > 8 || armorclass (obj) < -5 ||
+{ return (! (protected ||
+	     armorclass (obj) > 8 || armorclass (obj) < -5 ||
 	     itemis (obj, PROTECTED) ||
 	     stlmatch (inven[obj].str, "leather")));
 }
