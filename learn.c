@@ -244,7 +244,7 @@ pickgenotype ()
 
 /*
  * readgenes: Open the genepool for reading, and fill the current gene pool.
- * Returns true if the file was was, and 0 if there was no fail.  Exits
+ * Returns true if the file was read, and 0 if there was no fail.  Exits
  * if the file exists and cannot be read.
  */
 
