@@ -69,10 +69,17 @@ NULL};
 
 animate (movie)
 char *movie[];
-{ register int r, c, count = 0, delaychars = (baudrate () / 200);
+{ int baud;
+  register int r, c, count = 0, delaychars;
   register char *cbf = "";
 
   if (emacs || terse) return;		/* No screen ==> no movie */
+
+  baud = baudrate ();
+  if (baud == 0) baud = 4800;
+  if (baud > 9600) baud = 9600;
+  delaychars = baud / 200;
+
 
   clear ();				/* Clear the screen */
   while (*movie || *cbf)		/* While more animate commands */
@@ -107,10 +114,6 @@ char *movie[];
 halftimeshow (level)
 int level;
 { static int nextshow = 1;
-
-  /* If terminal is too slow, dont bother */
-  if (baudrate () < 1200)
-    return;
 
   if (!nohalf && level >= nextshow)
   { if (nextshow == 1)

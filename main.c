@@ -1,5 +1,5 @@
 /*
- * main.c: Rog-O-Matic XIV (CMU) Sun Jul  6 00:22:00 1986 - mlm
+ * main.c: Rog-O-Matic XIV (CMU) Sat Mar  7 12:48:37 1987 - mlm
  */
 
 /*=========================================================================
@@ -23,7 +23,7 @@
 
 /*****************************************************************
  * EDITLOG
- *	LastEditDate = Sun Jul  6 00:22:00 1986 - Michael Mauldin
+ *	LastEditDate = Sat Mar  7 12:48:36 1987 - Michael Mauldin
  *	LastFileName = /usre3/mlm/src/rog/ver14/main.c
  *
  * History:     I.    Andrew Appel & Guy Jacobson, 10/81 [created]
@@ -554,7 +554,7 @@ char *argv[];
 
         case 't': transparent = !transparent; break;
 
-        case ')': markcycles (DOPRINT); at (row, col); break;
+        case ')': new_mark++; markcycles (DOPRINT); at (row, col); break;
 
         case '+': setpsd (DOPRINT); at (row, col); break;
 

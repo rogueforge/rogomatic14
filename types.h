@@ -1,8 +1,16 @@
 /*
- * types.h: Rog-O-Matic XIV (CMU) Sat Feb 16 09:44:54 1985 - mlm
+ * types.h: Rog-O-Matic XIV (CMU) Sat Mar  7 12:40:14 1987 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * Miscellaneous Macros and Constants 
+ *
+ * EDITLOG
+ *	LastEditDate = Sat Mar  7 12:40:14 1987 - Michael Mauldin
+ *	LastFileName = /usre3/mlm/src/rog/ver14/types.h
+ *
+ * HISTORY
+ *  7-Mar-87  Michael Mauldin (mlm) at Carnegie-Mellon University
+ *	Created.
  */
 
 /* The unctrl macro for systems where curses doesn't define it */
@@ -51,34 +59,35 @@ extern char	*_unctrl[];
  * to change the flag names at the end of debug.c.   MLM
  */
 
-# define BEEN		(0000000001)
-# define CANGO		(0000000002)
-# define DOOR		(0000000004)
-# define HALL		(0000000010)
-# define PSD		(0000000020)
-# define ROOM		(0000000040)
-# define SAFE		(0000000100)
-# define SEEN		(0000000200)
+# define BEEN		(00000000001)
+# define CANGO		(00000000002)
+# define DOOR		(00000000004)
+# define HALL		(00000000010)
+# define PSD		(00000000020)
+# define ROOM		(00000000040)
+# define SAFE		(00000000100)
+# define SEEN		(00000000200)
 # define SEENPOS	(7)
-# define DEADEND	(0000000400)
-# define STUFF		(0000001000)
-# define TRAP		(0000002000)
-# define ARROW		(0000004000)
-# define TRAPDOR	(0000010000)
-# define TELTRAP	(0000020000)
-# define GASTRAP	(0000040000)
-# define BEARTRP	(0000100000)
-# define DARTRAP	(0000200000)
-# define WATERAP	(0000400000)
-# define MONSTER	(0001000000)
-# define WALL		(0002000000)
-# define USELESS	(0004000000)
-# define SCAREM		(0010000000)
-# define STAIRS		(0020000000)
-# define RUNOK		(0040000000)
-# define BOUNDARY	(0100000000)
-# define SLEEPER	(0200000000)
-# define EVERCLR	(0400000000)
+# define DEADEND	(00000000400)
+# define STUFF		(00000001000)
+# define TRAP		(00000002000)
+# define ARROW		(00000004000)
+# define TRAPDOR	(00000010000)
+# define TELTRAP	(00000020000)
+# define GASTRAP	(00000040000)
+# define BEARTRP	(00000100000)
+# define DARTRAP	(00000200000)
+# define WATERAP	(00000400000)
+# define MONSTER	(00001000000)
+# define WALL		(00002000000)
+# define USELESS	(00004000000)
+# define SCAREM		(00010000000)
+# define STAIRS		(00020000000)
+# define RUNOK		(00040000000)
+# define BOUNDARY	(00100000000)
+# define SLEEPER	(00200000000)
+# define EVERCLR	(00400000000)
+# define CHOKE		(01000000000)
 
 # define TOPW		(0)
 # define BOTW		(1)

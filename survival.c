@@ -1,10 +1,21 @@
 /*
- * survival.c: Rog-O-Matic XIV (CMU) Sun Feb 10 21:09:58 1985 - mlm
+ * survival.c: Rog-O-Matic XIV (CMU) Sat Mar  7 12:29:22 1987 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains all of the "Run Away" code.
  * Well, almost all of the run away code.
  * At least I think it has something to do with running away.
+ *
+ * EDITLOG
+ *	LastEditDate = Sat Mar  7 12:29:22 1987 - Michael Mauldin
+ *	LastFileName = /usre3/mlm/src/rog/ver14/survival.c
+ *
+ * HISTORY
+ *  7-Mar-87  Michael Mauldin (mlm) at Carnegie-Mellon University
+ *	Modified markcycles() to check for choke points in corridors,
+ *	as possible RUNOK squares, in addition to doors.  This fixes the
+ *	bug where a cycle through corridors was not noticed because
+ *	there was no door there.
  */
 
 # include <stdio.h>
@@ -43,6 +54,8 @@ markcycles (print)
 
   Scr=scrmap[0];
 
+  markchokepts ();
+
   { register int count=1920; register short *m=mark; while(count--) *m++=0;}
   sp=1; st[1].where=atrow*80+atcol; st[1].dirs=1; st[1].door=0;
 
@@ -52,7 +65,7 @@ markcycles (print)
       { int stop, i;
         if (mark[newsquare] < sp)
           for (stop = st[mark[newsquare]].door,
-                 i = (Scr[st[sp].where] & DOOR) ? sp : st[sp].door;
+                 i = (Scr[st[sp].where] & CHOKE) ? sp : st[sp].door;
                i !=  stop;
                i =st[i].door)
           { Scr[st[i].where] |= RUNOK; 
@@ -64,7 +77,7 @@ markcycles (print)
          highlight (newsquare, SO)
          st[sp].where=newsquare;
          st[sp].dirs=1; st[1].dirs= -1;
-         st[sp].door = (Scr[st[sp-1].where]&DOOR) ? sp-1 : st[sp-1].door;
+         st[sp].door = (Scr[st[sp-1].where]&CHOKE) ? sp-1 : st[sp-1].door;
        }
      }
 
@@ -75,20 +88,21 @@ markcycles (print)
          { if (mark[newsquare])
            { register int stop,i;
              if (mark[newsquare]<sp)
-                 for (stop=st[mark[newsquare]].door,
-                 i=(Scr[st[sp].where]&DOOR)?sp:st[sp].door;
-                 i!=stop;
-                 i=st[i].door)
-             { Scr[st[i].where] |= RUNOK;
-               highlight (st[i].where, SO)
-             }
+             { for (stop=st[mark[newsquare]].door,
+		    i=(Scr[st[sp].where]&CHOKE)?sp:st[sp].door;
+		    i!=stop;
+		    i=st[i].door)
+               { Scr[st[i].where] |= RUNOK;
+                 highlight (st[i].where, SO)
+               }
+	     }
            }
            else
            { sp++; mark[newsquare]=sp;
              highlight (newsquare, SO)
              st[sp].where=newsquare;
              st[sp].dirs=1; D += whichdir+4;
-             st[sp].door = (Scr[st[sp-1].where]&DOOR) ? sp-1 : st[sp-1].door;
+             st[sp].door = (Scr[st[sp-1].where]&CHOKE) ? sp-1 : st[sp-1].door;
            }
          }
        }
@@ -103,6 +117,41 @@ markcycles (print)
 
   new_mark = 0;
   return (1);
+}
+
+/*
+ * markchokepts: Mark places to check for cycles.  A choke point
+ * is any door or any hall with only two neighbors.
+ *
+ * Added: 3/7/87 by mlm
+ */
+
+markchokepts ()
+{ register int *Scr, *ScrEnd, loc;
+
+  for (Scr = scrmap[0], ScrEnd = &Scr[1920]; Scr<ScrEnd; Scr++) 
+  { if (*Scr & DOOR) *Scr |= CHOKE;
+    else if (*Scr & HALL)
+    { register int nbrs = 0, k;
+
+      for (k=0; k<8; k++)
+      { if (Scr[deltrc[k]] & CANGO) nbrs++; }
+
+      if (nbrs < 4 ||
+	  ! (Scr[  1] & Scr[-79] & Scr[-80] & CANGO ||
+	     Scr[-80] & Scr[-81] & Scr[ -1] & CANGO ||
+	     Scr[ -1] & Scr[ 79] & Scr[ 80] & CANGO ||
+	     Scr[ 80] & Scr[ 81] & Scr[  1] & CANGO))
+      { *Scr |= CHOKE;
+	if (debug (D_SCREEN))
+	{ register int rowcol = Scr - scrmap[0];
+	  standout ();
+	  mvprintw (rowcol/80, rowcol%80, "C");
+	  standend ();
+	}
+      }
+    }
+  }
 }
 
 /* 
