@@ -1,7 +1,7 @@
-.TH ROGOMATIC 6 02/01/85
+.TH ROGOMATIC 6 06/03/86
 .UC 4
 .SH NAME
-rogomatic \- Automatically Exploring The Dungeons of Doom
+rogomatic, rgmgene, rgmhist, rgmscatter \- Automatically Exploring The Dungeons of Doom
 .SH SYNOPSIS
 .I rogomatic
 [
@@ -100,7 +100,7 @@ to take advantage of idiosyncracies in the
 .I Rogue
 game to get a higher score. This is unfortunately necessary to allow fair
 competition with other human top ten players who take advantage of the same
-bugs. Note that this option should only be used on the Unix version
+bugs. Note that this option should only be used on the Unix 3.6 version
 of Rogue, since the VMS version does not exhibit the same bugs.
 Note too that when playing against 
 .I Rogue 5.2
@@ -129,8 +129,7 @@ Note that only the first four characters of the killer are used.
 The
 .B -p
 option will replay a saved game.  Additionally, a stop action command
-(carriage return gives a single step) has been added.  Pigs didn't fly
-first!
+(carriage return gives a single step) has been added.
 .TP
 .B i
 .I Inventory,
@@ -160,7 +159,7 @@ bottom right hand of the screen.
 .I Snapshot,
 a timestamp, the current screen, and the current inventory are appended
 to file
-.I rgm.snapshot
+.I snapshot.rgm
 in the current directory.
 .TP
 .B $
@@ -204,7 +203,9 @@ being used. It also prints the current goal score.
 .B G
 .I Genotype,
 displays the settings of the genetically learned parameters of the
-genotype playing now.
+genotype playing now.  See section
+.I Genes
+for more information about these parameters.
 .TP
 .B R
 .I Replay position,
@@ -296,6 +297,54 @@ User mode. Tells
 to start up in transparent mode, so the user can type commands before
 .I Rog-O-Matic
 starts exploring level 1.
+.SH GENES
+The
+.B G
+command lists the current settings for each
+.I Rog-O-Matic's
+``DNA'' settings. These numbers (from 0 to 99) specify some of
+.I Rog-O-Matic's
+behaviors.  A gene pool file is kept in the score directory that
+records the current population of explorers.  A variant of Holland's
+``Genetic Algorithm'' is used to manipulate this gene pool.  The result
+is that
+.I Rog-O-Matic
+learns from his past games how to play better.  The following genes are
+currently used:
+.TP
+.B Sr
+How many times to search each square for traps (0 to 4, depending on
+amount of food and how far below level 7 he is).
+.TP
+.B Dr
+How many times to search each square for secret doors (0 to 19, more for
+dead end passages not in mazes).
+.TP
+.B Re
+How much to rest up when injured (until 40% to 80% healed, based on
+experience level).
+.TP
+.B Ar
+When to shoot arrows at enemies, the higher the number, the more likely
+.I Rog-O-Matic
+is to shoot arrows at monsters (both smaller monsters, and more arrows).
+.TP
+.B Ex
+How soon to experiment with unknown potions and scrolls (between levels
+1 and 10).
+.TP
+.B Rn
+How likely he is to run from an opponent (the higher the number, the sooner
+he will run).
+.TP
+.B Wk
+How likely he is to wake a sleeping opponent (the higher the number, the
+bigger the monster he will attack, even though it is sleeping).
+.TP
+.B Fd
+How likely he is to hoard extra food.  This affects how many rings he
+wears, and how much he searches for traps.
+.PP
 .SH FILES
 There are two executable files: rogomatic and player.  Rogomatic
 is a small program which forks and execs the Rogue process and then execs the
@@ -310,8 +359,43 @@ If you are moving these files to another machine, you must either edit the
 rogomatic module to change the name of the player process, or run rogomatic 
 from a directory containing the player module.
 .PP
-The score file is kept in /usr/mlm/games/rlog/rgmscore<version>.
+The score file is kept in
+.PP
+	/usr/mlm/lib/rogomatic/rgmscore<version>
+.br
+	/usr/mlm/lib/rogomatic/rgmdelta<version>
+.PP
 If this file does not exist, it is created.
+The gene pool is kept in
+.PP
+	/usr/mlm/lib/rogomatic/GenePool<version>
+.PP
+A log of all mutations and crossovers is kept in
+.PP
+	/usr/mlm/lib/rogomatic/GeneLog<version>
+.PP
+The long term memory of monster attributes is kept in
+.PP
+	/usr/mlm/lib/rogomatic/ltm<version>
+.PP
+A log of internal errors and bugs is kept in
+.PP
+	/usr/mlm/lib/rogomatic/error<version>
+.SH OTHER PROGRAMS
+.PP
+Several programs are used to summarize and display
+.I Rog-O-Matic's
+performance.  The are in /usr/misc/.rogomatic/bin. The
+.I rgmgene
+command summarizes the current population in the gene pool.
+The
+.I rgmscatter
+command prints a scatter plot of all scores in the scorefile.
+The
+.I rgmhist
+command prints a histogram of score (or levels if the
+.B -l
+option is given).
 .SH SEE ALSO
 rogue(6)
 .SH BUGS
@@ -328,6 +412,9 @@ command to save the game, and then re-start with "rogomatic -r". Sometimes
 you will have to use transparent mode to get it down to the next level
 before turning it loose again.
 .SH HISTORY
+.TP
+03-Jul-86  Michael Mauldin (mlm) at Carnegie-Mellon University
+Installed in /usr/misc, added documentation for rgmhist and rgmscatter.
 .TP
 01-Feb-85  Michael Mauldin (mlm) at CMU
 Added genetic learning, UTexas mods, new titlepage, new version XIV.
