@@ -1,9 +1,9 @@
-# makefile: Rog-O-Matic XIV (CMU) Thu Jan 31 18:23:25 1985 - mlm
+# makefile: Rog-O-Matic XIV (CMU) Wed Feb  6 18:34:24 1985 - mlm
 # Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
 #
 BINARIES=   rogomatic player rgmplot datesub histplot gene
-BINDIR=     /usr/mlm/bin/test
-PUBDIR=     /usr/mlm/rgm/src14
+BINDIR=     /usr/mlm/bin/
+PUBDIR=     /usr/mlm/rgm/src14a
 CCFLAGS=    -g
 LDFLAGS=    
 OBJS=	    arms.o command.o database.o debug.o explore.o io.o learn.o\
@@ -52,13 +52,13 @@ histplot: histplot.o utility.o
 	cc $(LDFLAGS) -o histplot histplot.o utility.o
 histplot.o:
 	cc -c histplot.c
-io.o: types.h globals.h termtokens.h
+io.o: types.h globals.h install.h termtokens.h
 	cc -c $(CCFLAGS) io.c
 mess.o: types.h globals.h
 	cc -c $(CCFLAGS) mess.c
 learn.o: types.h  install.h
 	cc -c $(CCFLAGS) learn.c
-ltm.o: types.h globals.h
+ltm.o: types.h globals.h install.h
 	cc -c $(CCFLAGS) ltm.c
 main.o: install.h termtokens.h types.h globals.h
 	cc -c $(CCFLAGS) main.c
@@ -94,7 +94,7 @@ strategy.o: types.h globals.h install.h
 	cc -c $(CCFLAGS) strategy.c
 survival.o: types.h globals.h
 	cc -c $(CCFLAGS) survival.c
-tactics.o: types.h globals.h
+tactics.o: types.h globals.h install.h
 	cc -c $(CCFLAGS) tactics.c
 testfind: testfind.o findscore.o utility.o
 	cc $(LDFLAGS) -o testfind testfind.o findscore.o utility.o
@@ -104,7 +104,7 @@ titlepage.o: titlepage.c
 	cc -c $(CCFLAGS) titlepage.c
 titler.o: titler.c
 	cc -c titler.c
-utility.o:
+utility.o: install.h
 	cc -c $(CCFLAGS) utility.c
 worth.o: types.h globals.h
 	cc -c $(CCFLAGS) worth.c

@@ -1,5 +1,5 @@
 /*
- * io.c: Rog-O-Matic XIV (CMU) Thu Jan 31 18:19:29 1985 - mlm
+ * io.c: Rog-O-Matic XIV (CMU) Sat Feb 16 23:03:48 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains all of the functions which deal with the real world.
@@ -752,12 +752,13 @@ waitforspace ()
 char *nexthelp[] = 
 { "Rgm commands: t=toggle run mode, e=logging, i=inventory, -=status    [?]",
   "Rgm commands: <ret>=singlestep, `=summary, /=snapshot, R=replay      [?]",
+  "Rgm commands: m=long term memory display, G=display gene settings    [?]",
   "Rogue cmds: S=Save, Q=Quit, h j k l H J K L b n u y N B U Y f s < >  [?]",
   "Wizard: d=debug, !=show items, @=show monsters, #=show level flags   [?]",
-  "Wizard: ~=version, ^=bowrank, %%=armorrank, $=weaponrank, ==ringrank [?]",
+  "Wizard: ~=version, ^=bowrank, %%=armorrank, $=weaponrank, ==ringrank  [?]",
   "Wizard: (=database, )=cycles, +=possible secret doors, :=chicken     [?]",
-  "Wizard: [=weapstat, r=resetinv, &=object count, *=toggle blind       [?]",
-  "Wizard: C=toggle cosmic, M=mazedoor, m=monster, A=attempt, {=flags",
+  "Wizard: [=weapstat, ]=rustproof armor, r=resetinv, &=object count    [?]",
+  "Wizard: *=toggle blind, C=toggle cosmic, M=mazedoor, A=attempt, {=flags",
   NULL
 };
 
@@ -793,13 +794,29 @@ pauserogue ()
  *            and RV52A = 521 (5.2). Note that RV36A is 
  *            infered when we send a "//" command to identify
  *            wands.
+ *
+ * Get version from first 2000 chars of a log file	Feb 9, 1985 - mlm
  */
 
-getrogver ()
-{ char *vstr = versionstr, ch;
+# define VERMSG	"ersion "
 
-  if (replaying)			/* Use default version */
-  { sprintf (versionstr, DEFVER); }
+getrogver ()
+{ register char *vstr = versionstr, *m = VERMSG;
+  register int cnt = 2000, ch;
+ 
+  if (replaying)			/* Look for version string in log */
+  { while (cnt-- > 0 && *m)
+    { if (fgetc (logfile) == *m) m++; else m = VERMSG;}
+  
+    if (*m == '\0')			/* Found VERMSG, get version string */
+    { while ((ch = fgetc (logfile)) != ' ') *(vstr++) = ch;
+      *--vstr = '\0';
+    }
+    else				/* Use default version */
+    { sprintf (versionstr, DEFVER); }
+
+    rewind (logfile);			/* Put log file back to start */
+  }
 
   else					/* Execute the version command */
   { sendnow ("v");
@@ -869,6 +886,7 @@ toggleecho ()
     { fprintf (fecho, "Rogomatic Game Log\n\n"); 
       saynow ("Logging to file %s", ROGUELOG);
       cecho = 1;
+      if (*versionstr) command (T_OTHER, "v");
     }
   }
   else
@@ -1118,7 +1136,7 @@ statusline ()
   if (redhands)			strcat (s, "red hands, ");
   if (Level == didreadmap)	strcat (s, "mapped, ");
 
-  if (*genocided) sprintf (s, "genocided '%s', ", s, genocided);
+  if (*genocided) sprintf (s, "%sgenocided '%s', ", s, genocided);
 
   sprintf (s, "%s%d food%s, %d missile%s, %d turn%s, (%d,%d %d,%d) bonus",
            s, larder, plural(larder), ammo, plural(ammo), turns, 

@@ -1,5 +1,5 @@
 /*
- * worth.c: Rog-O-Matic XIV (CMU) Thu Jan 31 15:54:56 1985 - mlm
+ * worth.c: Rog-O-Matic XIV (CMU) Sun Feb 10 23:16:40 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains the function worth (obj) which does the impossible
@@ -48,17 +48,18 @@ int obj;
     value += 50;
 
   /* 
-   * Armor values are based on armor class, bonus for best,
-   * second best, or leather armor (leather doesnt rust)
+   * Armor values are based on armor class, bonus for best, second
+   * best, third best, or leather armor (leather doesnt rust)
    */
 
   if (inven[obj].type == armor)
-  { value = (10 - armorclass (obj)) * 90;
+  { value = (11 - armorclass (obj)) * 120;
     
     if (obj == havearmor (1, NOPRINT, ANY))		value += 2000;
     else if (obj == havearmor (2, NOPRINT, ANY))	value += 1500;
+    else if (obj == havearmor (3, NOPRINT, ANY))	value += 800;
 
-    if (!willrust (obj))				value += 150;
+    if (stlmatch (inven[obj].str, "leather"))		value += 300;
   }
 
   /* 
@@ -67,18 +68,18 @@ int obj;
    */
 
   else if (inven[obj].type == thrower)
-  { value = (bowclass (obj)) * 5;
+  { value = (bowclass (obj));
     
-    if (obj == havebow (1, NOPRINT)) value += 1000;
-    else if (obj == havebow (2, NOPRINT)) value += 500;
+    if (obj == havebow (1, NOPRINT)) value += 1500;
+    else if (obj == havebow (2, NOPRINT)) value += 300;
   }
 
   /* Weapons values are counted by hit potential, bonus for best */
   else if ((w = weaponclass (obj)) > 0)
   { value = w * 5;
     
-    if (obj == haveweapon (1, NOPRINT)) value += 1500;
-    else if (obj == haveweapon (2, NOPRINT)) value += 1000;
+    if (obj == haveweapon (1, NOPRINT)) value += 2500;
+    else if (obj == haveweapon (2, NOPRINT)) value += 1500;
   }
 
   /* Rings values are counted by bonus */
@@ -104,9 +105,13 @@ int obj;
   /* Special Values for Certain objects */
   if (stlmatch (inven[obj].str, "raise level")) value = 1200;
   else if (stlmatch (inven[obj].str, "restore strength")) value = 800;
+  else if (stlmatch (inven[obj].str, "gain strength")) value = 700;
   else if (stlmatch (inven[obj].str, "scare monster")) value = 1400;
   else if (stlmatch (inven[obj].str, "teleportation")) value = 1000;
   else if (stlmatch (inven[obj].str, "enchant")) value = 800;
+  else if (stlmatch (inven[obj].str, "extra healing")) value = 900;
+  else if (stlmatch (inven[obj].str, "healing")) value = 750;
+  else if (stlmatch (inven[obj].str, "protect") && !protected) value = 1000;
 
   /* Now return the value, assure in the range [0..5000] */
   return (value < 0 ? 0 : value > 5000 ? 5000 : value);

@@ -1,5 +1,5 @@
 /*
- * types.h: Rog-O-Matic XIV (CMU) Wed Jan 30 14:57:17 1985 - mlm
+ * types.h: Rog-O-Matic XIV (CMU) Sat Feb 16 09:44:54 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * Miscellaneous Macros and Constants 
@@ -41,7 +41,10 @@ extern char	*_unctrl[];
  * Magic numbers for Invisible stalker strategies
  */
 
+# define INVDAM		(16)
 # define INVHIT		(1000)
+# define INVPRES	(INVHIT-100)
+# define INVLURK	(INVPRES-200)
 
 /*
  * Attribute bits for the screen map: If you change this list, be sure

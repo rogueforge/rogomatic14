@@ -1,5 +1,5 @@
 /*
- * search.c: Rog-O-Matic XIV (CMU) Mon Jan 28 18:28:07 1985 - mlm
+ * search.c: Rog-O-Matic XIV (CMU) Fri Feb 15 15:08:44 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains the very basic search mechanisms for exploration etc.
@@ -105,7 +105,8 @@ register int movetype;
   /* If exploring and are moving to a new hall square, use fmove */
   if (movetype == EXPLORE &&
       onrc (HALL|BEEN, targetrow, targetcol) != HALL|BEEN &&
-      onrc (HALL,r,c))
+      onrc (HALL,r,c) &&
+      !beingstalked)			/* Feb 10, 1985 - mlm */
   { fmove (dir); return (1); }
 
   /* Timemode tells why we are moving this way, T_RUNNING ==> no search */

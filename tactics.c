@@ -1,5 +1,5 @@
 /*
- * tactics.c: Rog-O-Matic XIV (CMU) Sat Feb  2 13:01:25 1985 - mlm
+ * tactics.c: Rog-O-Matic XIV (CMU) Sat Feb 16 23:27:48 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains all of the 'medium level intelligence' of Rog-O-Matic. 
@@ -41,18 +41,18 @@ handlearmor ()
    
   obj = havearmor (1, NOPRINT, ANY);		/* Get best armor */
 
-  if (Level > 7 && Level < 19 && 
+  if (Level > (version < RV52A ? 8 : 7) && Level < 19 && 
       wearing ("maintain armor") == NONE &&
       willrust (obj) &&
       itemis (obj, KNOWN))
-  { if (Level < 13)
-      obj = havearmor (1, NOPRINT, RUSTPROOF);
-    if (Level >= 13 || obj == NONE)
-      obj = havearmor (2, NOPRINT, ANY);
+  { obj = NONE;
+    if (Level<13)		obj = havearmor (1, NOPRINT, RUSTPROOF);
+    if (Level<13 && obj==NONE)	obj = havearmor (3, NOPRINT, ANY);
+    if (obj==NONE)		obj = havearmor (2, NOPRINT, ANY);
   }
     
   /* If  the new armor is really bad, then don't bother wearing any */
-  if (obj != NONE && armorclass (obj) > 9) 
+  if (obj != NONE && armorclass (obj) > 9 && itemis (obj, KNOWN))
   { obj = NONE; }
 
   /* If we are wearing the right armor, then dont bother */
@@ -87,12 +87,12 @@ handleweapon ()
   if ((!newweapon || cursedweapon) && !wielding (thrower)) return (0);
 
   /* haveweapon (1) returns the index of the best weapon in the pack */
-  if ((obj = haveweapon (1, NOPRINT)) < 0) return (0);
+  if ((obj = haveweapon (1, NOPRINT)) == NONE) return (0);
   
   /* If we are not wielding our best weapon, do so */
-  if (obj == currentweapon) { newweapon = 0; return (0); }
-  else if (obj != NONE)        { return (wield (obj)); }
-  else                      { newweapon = 0; return (0); }
+  if (obj == currentweapon)	{ newweapon = 0; return (0); }
+  else if (obj != NONE)		{ return (wield (obj)); }
+  else				{ newweapon = 0; return (0); }
 }
 
 /*
@@ -186,7 +186,7 @@ quaffpotion ()
       (obj = unknown (potion)) != NONE)
   { if ((obj2 = wearing ("add strength")) != NONE && removering (obj2))
       return (1);
-    else if (wearing ("sustain strength") < 0 &&
+    else if (wearing ("sustain strength") == NONE &&
              (obj2 = havenamed (ring, "sustain strength")) != NONE &&
              puton (obj2))
       return (1);
@@ -272,12 +272,12 @@ readscroll ()
       ((currentweapon != NONE) &&
        (Level >= (k_exper/10) || objcount >= maxobj ||
         cursedarmor || cursedweapon) &&
-       (exploredlevel || know ("aggravate monster")) &&
+       (exploredlevel || Level > 18 || know ("aggravate monsters")) &&
        (obj = unknown (scroll)) != NONE))
   { prepareident (pickident (), obj);
 
     /* Go to a corner to read the scroll */
-    if (version <= RV36B && know ("create monster") == '\0' && gotocorner ())
+    if (version <= RV36B && !know ("create monster") && gotocorner ())
       return (1);
 
     /* Must put on our good armor first */
@@ -361,7 +361,7 @@ findring (name)
 char *name;
 { int obj;
 
-  if ((obj = havenamed (ring, name)) < 0 ||
+  if ((obj = havenamed (ring, name)) == NONE ||
       wearing (name) != NONE)
     return (0);
 
@@ -541,7 +541,9 @@ register int running; /* True ==> dont do anything fancy */
 plunge ()
 {
   /* Check for applicability of this rule */
-  if (stairrow < 0 && !foundtrapdoor) return (0);
+  if (stairrow == NONE && !foundtrapdoor) return (0);
+
+  if (have (amulet) != NONE) return (0);
 
   if (teleported > (larder+1)*5 && godownstairs (NOTRUNNING))
   { if (!on (STAIRS)) saynow ("Giving up on level, too much teleporting");
@@ -617,7 +619,7 @@ int running;
 { int obj;
 
   /* Check for applicability of this rule */
-  if (stairrow < 0 || have(amulet) < 0 ||
+  if (stairrow == NONE || have(amulet) == NONE ||
       (!running && quitat < BOGUS && Gold <= quitat))
     return (0);
       
@@ -626,8 +628,9 @@ int running;
   { 
     /* If we are about to win, dump any magic arrows or minus things */
     if (Level == 1 && 
-        ((obj = havearrow ()) != NONE || (obj = haveminus ()) != NONE))
-    { throw (obj, 0); return (1); }
+        ((obj = havearrow ()) != NONE || (obj = haveminus ()) != NONE) &&
+	throw (obj, 0))
+    { return (1); }
 
     /* No magic arrows, time to leave */
     else if (Level == 1)
@@ -793,7 +796,7 @@ shootindark ()
     return (1);
 
   /* Fail if we have run out of arrows */
-  if ((obj = havemissile ()) < 0) return (0);
+  if ((obj = havemissile ()) == NONE) return (0);
 
   /* Throw the arrow in the arching direction */
   return (throw (obj, darkdir));
@@ -825,7 +828,7 @@ trywand ()
   if (!on (ROOM) || mlistlen || darkroom ()) return (0);
 
   /* Have we a wand to identify? */
-  if ((obj = unknown (wand)) < 0)
+  if ((obj = unknown (wand)) == NONE)
     return (0);
 
   /* Look for a wall either 3 or 4 away */

@@ -1,5 +1,5 @@
 /*
- * mess.c: Rog-O-Matic XIV (CMU) Thu Jan 31 15:33:12 1985 - mlm
+ * mess.c: Rog-O-Matic XIV (CMU) Sat Feb 16 15:41:44 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * mess.c: This file contains all of the functions which parse the 
@@ -61,7 +61,7 @@ terpmes ()
   while (s<t)				      /* While more chars in msg */
   { while (*s==' ' && s<t) s++;			/* Skip leading blanks */
     for (m = mess;				/* Copy text */
-	 s<t && (version < RV53A || *s != '.');
+	 s<t && (version < RV53A || *s != '.' || s[1] != ' ');
 	 s++)	
       *m++ = isupper (*s) ? tolower (*s) : *s;	  /* Lower case the char */
     s++;					/* Skip the period, if any */
@@ -87,7 +87,7 @@ register char *mess, *mend;
 
   /* Message indicates we picked up a new item */
   else if (mend[-1]==')' && mend[-3]=='(')
-  { inventory (mess, mend); identifying = justreadid = 0; }
+  { echoit = !inventory (mess, mend); identifying = justreadid = 0; }
 
   /* Message describes an old item already in our pack */
   else if (mess[1]==')')
@@ -245,6 +245,7 @@ register char *mess, *mend;
         { dwait (D_INFORM, "Range check failed..."); usesynch = 0; }
       }
       else if (MATCH("read what*")) echoit=0;
+      else if (MATCH("rogue version *")) echoit=0;
       else unknown++;
       break;
 
@@ -272,6 +273,7 @@ register char *mess, *mend;
       else if (MATCH("the rust vanishes instantly"))
       { if (gushed) { gushed = 0; nametrap (WATERAP, HERE); } }
       else if (MATCH("the room is lit")) { setnewgoal (); infer ("light"); }
+      else if (MATCH("the corridor glows*")) { infer ("light"); }
       else if (MATCH("the * has confused you")) confused = 1;
       else if (MATCH("this scroll is an * scroll"))
       { if (stlmatch (res1, "identify")) readident (res1); }
@@ -299,7 +301,8 @@ register char *mess, *mend;
 
     case 'u':
     case 'v':
-      unknown++;
+      if (MATCH("version *")) echoit=0;
+      else unknown++;
       break;
 
     case 'w':
@@ -309,7 +312,7 @@ register char *mess, *mend;
       else if (MATCH("wear what*")) echoit=0;
       else if (MATCH("what monster*")) echoit=0;
       else if (MATCH("wait, what's going*")) {infer("confusion"); confused=1;}
-      else if (MATCH("wait!  that's a *")) ;
+      else if (MATCH("wait*that's a *")) ;
       else if (MATCH("what a*feeling*")) { infer("confusion"); confused=1; }
       else if (MATCH("what a*piece of paper")) infer ("blank paper");
       else if (MATCH("welcome to level *")) ;
@@ -334,19 +337,21 @@ register char *mess, *mend;
       else if (MATCH("you can't move")) echoit=0;
       else if (MATCH("you can't carry anything else"))
       { echoit=0; set (STUFF); maxobj=objcount; }
-      else if (MATCH("you can't *")) {echoit=0; curseditem ();}
+      else if (MATCH("you*cursed*")) {echoit=0; curseditem ();}
       else if (MATCH("you can't")) echoit=0;
+      else if (MATCH("you begin to feel greedy*")) infer ("gold detection");
       else if (MATCH("you begin to feel better")) infer ("healing");
       else if (MATCH("you begin to feel much better")) infer("extra healing");
       else if (MATCH("you begin to sense the presence of monsters"))
       { infer("monster detection"); }
       else if (MATCH("you feel a strange sense of loss")) ;
+      else if (MATCH("you feel a wrenching sensation in your gut")) ;
       else if (MATCH("you feel stronger, now*")) infer ("gain strength");
       else if (MATCH("you feel very sick now")) infer ("poison");
       else if (MATCH("you feel momentarily sick")) infer ("poison");
       else if (MATCH("you suddenly feel much more skillful"))
       { infer("raise level"); }
-      else if (MATCH("your nose tingles")) infer ("food detection");
+      else if (MATCH("your nose tingles*")) infer ("food detection");
       else if (MATCH("you start to float in the air"))
       { infer ("levitation"); floating=1; }
       else if (MATCH("you're floating off the ground!")) floating=1;
@@ -366,8 +371,10 @@ register char *mess, *mend;
       else if (MATCH("your hands stop glowing *")) redhands = 0;
       else if (MATCH("you feel as if somebody is watching over you") ||
                MATCH("you feel in touch with the universal onenes")) 
-      { infer ("remove curse"); cursedarmor = cursedweapon = 0; 
-        newarmor = newweapon = 1;}
+      { infer ("remove curse");
+	if (cursedarmor)  {forget (currentarmor, CURSED);  cursedarmor=0;}
+	if (cursedweapon) {forget (currentweapon, CURSED); cursedweapon=0;}
+        newarmor = newweapon = 1; }
       else if (MATCH("your armor weakens"))
       { inven[currentarmor].phit--; 
         if (gushed) { gushed=0; nametrap (WATERAP,HERE); } }
@@ -415,6 +422,7 @@ register char *mess, *mend;
 
     default:
       if (MATCH( "* gold pieces")) { echoit=0; countgold (res1); }
+      else if (MATCH("(mctesq was here)")) echoit=0;
       else if (MATCH("'*'*: *")) { echoit=0; mapcharacter (*res1, res3); }
       else if (*mess == '+' || *mess == '-' || ISDIGIT (*mess)) ;
       else unknown++;      
@@ -476,7 +484,7 @@ readident (name)
 char *name;
 { int obj; char id = '*';	/* Default is "* for list" */
 
-  if (!replaying && version <= RV53A &&
+  if (!replaying && version < RV53A &&
       (nextid < LETTER (0) || nextid > LETTER (invcount))) 
   { dwait (D_FATAL, "Readident: nextid %d, afterid %d, invcount %d.",
            nextid, afterid, invcount); }
@@ -520,7 +528,7 @@ char *name;
 
     waitfor ("not a valid item"); waitfor ("--More--");
     sendnow (" %c;", id);		/* Pick an object to identify */
-    usesynch = 0; justreadid=1;		/* Must resest inventory */
+    usesynch = 0; justreadid=1;		/* Must reset inventory */
   }
 
   newring = newweapon = 1; afterid = nextid = '\0';

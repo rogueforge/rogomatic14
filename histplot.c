@@ -1,9 +1,13 @@
 /*
- * histplot.c: Rog-O-Matic XIV (CMU) Fri Dec 28 22:13:21 1984 - mlm
+ * histplot.c: Rog-O-Matic XIV (CMU) Tue Feb  5 13:55:16 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This program takes a Rog-O-Matic log file and produces a histogram
  * of the scores.
+ *
+ * HISTORY
+ * 05-Feb-85  Michael Mauldin (mlm) at Carnegie-Mellon University
+ *	Added bugs fixes found by AEB (play@turing).
  */
 
 # include <stdio.h>
@@ -42,7 +46,7 @@ char *argv[];
       { case 'c': cheat++; break; /* List cheat games */
         case 'l': dolev++; break; /* Plot level instead of score */
 	case 'a': min = atoi (*argv+1); SKIPARG; break;
-        default:  printf ("Usage: histplot [-c]\n");
+        default:  printf ("Usage: histplot [-cl] [-aNNNN]\n");
                   exit (1);
       }
     }
@@ -66,20 +70,20 @@ char *argv[];
 
     bucket[h]++;
     
-    if (stlmatch (killer, "arrow"))			killnum = 1;
-    else if (stlmatch (killer, "black unicorn"))	killnum = 'u'-'a'+2;
-    else if (stlmatch (killer, "bolt"))			killnum = 1;
-    else if (stlmatch (killer, "dart"))			killnum = 1;
-    else if (stlmatch (killer, "fatal error trap"))	killnum = 0;
-    else if (stlmatch (killer, "floating eye"))		killnum = 'e'-'a'+2;
-    else if (stlmatch (killer, "gave"))			killnum = 0;
-    else if (stlmatch (killer, "giant ant"))		killnum = 'a'-'a'+2;
-    else if (stlmatch (killer, "hypothermia"))		killnum = 'i'-'a'+2;
-    else if (stlmatch (killer, "quit"))			killnum = 28;
-    else if (stlmatch (killer, "starvation"))		killnum = 'e'-'a'+2;
-    else if (stlmatch (killer, "user"))			killnum = 0;
-    else if (stlmatch (killer, "venus flytrap"))	killnum = 'f'-'a'+2;
-    else if (stlmatch (killer, "violet fungi"))		killnum = 'f'-'a'+2;
+    if (stlmatch ("arrow", killer))			killnum = 1;
+    else if (stlmatch ("black unicorn", killer))	killnum = 'u'-'a'+2;
+    else if (stlmatch ("bolt", killer))			killnum = 1;
+    else if (stlmatch ("dart", killer))			killnum = 1;
+    else if (stlmatch ("fatal error trap", killer))	killnum = 0;
+    else if (stlmatch ("floating eye", killer))		killnum = 'e'-'a'+2;
+    else if (stlmatch ("gave", killer))			killnum = 0;
+    else if (stlmatch ("giant ant", killer))		killnum = 'a'-'a'+2;
+    else if (stlmatch ("hypothermia", killer))		killnum = 'i'-'a'+2;
+    else if (stlmatch ("quit", killer))			killnum = 28;
+    else if (stlmatch ("starvation", killer))		killnum = 'e'-'a'+2;
+    else if (stlmatch ("user", killer))			killnum = 0;
+    else if (stlmatch ("venus flytrap", killer))	killnum = 'f'-'a'+2;
+    else if (stlmatch ("violet fungi", killer))		killnum = 'f'-'a'+2;
     else killnum = *killer - 'a' + 2;
 
     killed[h][killnum]++;
@@ -158,12 +162,12 @@ char *killer;
   while (fgets (line, 128, stdin))
   { dd = yy = *score = 0;
     sscanf (line, "%s %d, %d %10s%d%c%17s",
-            mmstr, &dd, &yy, player, score, cheated, killer);
+            mmstr, &dd, &yy, player, score, &cheated, killer);
     if (strlen (line) > LEVELPOS) *level = atoi (line+LEVELPOS);
     if (yy > 0 &&
         (cheated != '*' || cheat) &&
-        !stlmatch (killer, "saved") &&
-        (*score > 2000 || !stlmatch (killer, "user")))
+        !stlmatch ("saved", killer) &&
+        (*score > 2000 || !stlmatch ("user", killer)))
       return (1);
   }
   return (EOF);
