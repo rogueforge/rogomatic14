@@ -1,16 +1,16 @@
 /*
- * install.h: Rog-O-Matic XIV (CMU) Wed Jan 30 17:39:50 1985 - mlm
+ * install.h: Rog-O-Matic XIV (CMU) Thu Jul  3 15:32:49 1986 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains (hopefully) all system dependent defines 
- * This version of Rog-O-Matic runs with Rogue version 5.2. 
+ * This version of Rog-O-Matic runs with Rogue version 5.3. 
  */
 
 /*
  * BSD41: Defined for 4.1bsd Unix systems (Undefined means 4.2bsd)
  */
 
-# define BSD41
+/* # define BSD41 */
 
 /*
  * Rog-O-Matic's best score against Rogue 5.3  (UTexas, Feb 1984)
@@ -46,7 +46,7 @@
  * This variable is the level at which we always start logging the game
  */
 
-# define GOODGAME	(16)
+# define GOODGAME	(18)
 
 /* 
  * This variable is the number of seconds after which a LOCKFILE is
@@ -60,7 +60,7 @@
 
 /* 
  * This variable defines the "local" copy of Rogue, which may have only
- * intermittent access.  This is useful at CMU, since Rogue 5.2 is not
+ * intermittent access.  This was useful at CMU, since Rogue 5.3 was not
  * supported on all machines.  First Rog-O-Matic looks for "rogue" in the
  * current directory, then this file is used.  This variable need not be
  * defined.
@@ -111,11 +111,11 @@
  * directory.
  */
 
-# define RGMDIR		"/usr/mlm/src/rog/ver14/rlog"
+# define RGMDIR		"/usr/mlm/lib/rogomatic"
 
 /* 
  * This file is created in the current directory if the snapshot command
  * is typed during a Rogue game.  It must be defined.
  */
 
-# define SNAPSHOT	"rgm.snapshot"
+# define SNAPSHOT	"snapshot.rgm"

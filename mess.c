@@ -1,5 +1,5 @@
 /*
- * mess.c: Rog-O-Matic XIV (CMU) Sat Feb 16 15:41:44 1985 - mlm
+ * mess.c: Rog-O-Matic XIV (CMU) Tue Mar 19 21:31:30 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * mess.c: This file contains all of the functions which parse the 
@@ -180,7 +180,8 @@ register char *mess, *mend;
       else if (MATCH("ice *")) ;
       else if (MATCH("identify what*")) echoit=0;
       else if (MATCH("illegal command*")) echoit=0;
-      else if (MATCH("i see no way*")) {unset(STAIRS); findstairs();}
+      else if (MATCH("i see no way*"))
+      { unset (STAIRS); findstairs (atrow, atcol); }
       else if (MATCH("it appears to be cursed")) curseditem ();
       else if (MATCH("it make*")) ;
       else unknown++;
@@ -608,16 +609,16 @@ curseditem ()
  * base, and then zap that name into all of the same objects 
  */
 
-infer (roguename)
-char *roguename;
+infer (objname)
+char *objname;
 { register int i;
 
-  if (*lastname && *roguename && !stlmatch (roguename, lastname))
-  { infername (lastname, roguename);
+  if (*lastname && *objname && !stlmatch (objname, lastname))
+  { infername (lastname, objname);
   
     for (i=0; i<MAXINV; i++)
       if (stlmatch (inven[i].str, lastname))
-      { strcpy (inven[i].str, roguename);
+      { strcpy (inven[i].str, objname);
         remember (i, KNOWN);
       }
   }  
@@ -666,10 +667,9 @@ register char *monster;
   { darkturns = 0; darkdir = NONE; targetmonster = 0; }
 
   goalr = goalc = NONE;			/* Clear old movement goal */
-  killmonster (m+'A'-1);		/* Notify lost monster functions */
   monkilled[m]++; totalkilled++;	/* Bump kill count */
   hitstokill = mhit = mmiss = 0;	/* Clear indiviual monster stats */
-  mtarget = NONE;				/* Clear target */
+  mtarget = NONE;			/* Clear target */
   beingheld = cancelled = 0;		/* Clear flags */
 
   /* If we killed an invisible, assume no more invisible around */

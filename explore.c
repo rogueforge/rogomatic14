@@ -1,5 +1,5 @@
 /*
- * explore.c: Rog-O-Matic XIV (CMU) Thu Jan 31 20:14:30 1985 - mlm
+ * explore.c: Rog-O-Matic XIV (CMU) Wed Mar 20 00:12:21 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains all of the functions which are used to search out
@@ -83,11 +83,11 @@ static int secretcont[16] =  { 0, 16, 15, 14,
 
 int gotorow = NONE, gotocol = NONE;
 
-gotowards (row, col, running)
-int row, col, running;
+gotowards (r, c, running)
+int r, c, running;
 { int gotoinit(), gotovalue();
 
-  gotorow = row; gotocol = col;
+  gotorow = r; gotocol = c;
   return (makemove (running ? RUNAWAY:GOTOMOVE, gotoinit, gotovalue, REUSE));
 }
 
@@ -104,6 +104,7 @@ gotoinit ()
  * gotovalue: Only the current target square has a value.
  */
 
+/* ARGSUSED */
 gotovalue (r, c, depth, val, avd, cont)
 int r, c, depth, *val, *avd, *cont;
 { 
@@ -131,6 +132,7 @@ int r, c, depth, *val, *avd, *cont;
  *             Use genericinit.		MLM
  */
 
+/* ARGSUSED */
 sleepvalue (r, c, depth, val, avd, cont)
 int r, c, depth, *val, *avd, *cont;
 { 
@@ -224,26 +226,35 @@ setpsd (print)
       setrc(DEADEND,i,j); setrc(PSD,i,j);
     }
 
-    /* Set PSD for walls which connect to empty space */
-
-    /* Modified to allow PSD for !ROOM (including the old CANGO des.) */
-    /* since potions and scrolls of detection can cause the CANGO bit */
-    /* to be set for a square on which we have never been.            */
-    /* 							mlm 10/8/82   */
-
-    /* If attempt > 2, then relax the constraint about empty space,   */
-    /* since we might have teleported into a disconnected part of the */
-    /* level. This means after we have searched twice, we look for    */
-    /* ANY possible door, not just doors leading to empty space.      */
-    /* 							mlm 10/11/82  */
+    /*
+     * Set PSD for walls which connect to empty space
+     *
+     * Modified to allow PSD for !ROOM (including the old CANGO des.)
+     * since potions and scrolls of detection can cause the CANGO bit to
+     * be set for a square on which we have never been. 
+     * mlm 10/8/82
+     *
+     * If attempt > 2, then relax the constraint about empty space,
+     * since we might have teleported into a disconnected part of the
+     * level. This means after we have searched twice, we look for ANY
+     * possible door, not just doors leading to empty space. 
+     * mlm 10/11/82 
+     *
+     * Check return code from whichroom. 
+     * mlm 03/17/85
+     */
    
     else 
-    { if ((k = wallkind (i,j)) >= 0)
-      { /* A legit sort of wall */
-        whereto = connect[whichroom (i,j)][k];
-        if (whereto >= 0 && (attempt > 1 || room[whereto] == 0))
-	{ if (!onrc (PSD, i, j)) numberpsd++;
-	  setrc (PSD,i,j);
+    { if ((k = wallkind (i,j)) >= 0)		/* A legit sort of wall */
+      { register int rm = whichroom (i,j);
+      
+        if (rm >= 0 && rm < 9)
+	{ whereto = connect[rm][k];
+	  if (whereto >= 0 && whereto < 9 && 
+	      (attempt > 1 || room[whereto] == 0))
+	  { if (!onrc (PSD, i, j)) numberpsd++;
+	    setrc (PSD,i,j);
+	  }
 	}
       }
     }
@@ -275,6 +286,7 @@ setpsd (print)
  * downvalue: find nearest stairs or trapdoor (use genericinit for init).
  */
 
+/* ARGSUSED */
 downvalue (r, c, depth, val, avd, cont)
 int r, c, depth, *val, *avd, *cont;
 { 
@@ -455,6 +467,7 @@ rundoorinit()
  * Gave GasTraps and BearTraps infinite avoidance.	MLM 10/11/83
  */
 
+/* ARGSUSED */
 rundoorvalue (r, c, depth, val, avd, cont)
 int r, c, depth;
 int *val, *avd, *cont;
@@ -510,6 +523,7 @@ roominit ()
  *      bbbbbbbbb
  */
 
+/* ARGSUSED */
 expvalue (r, c, depth, val, avd, cont)
 int r, c, depth;
 int *val, *avd, *cont;
@@ -612,11 +626,11 @@ int *val, *avd, *cont;
  * Gave GasTraps and BearTraps infinite avoidance.	MLM 10/11/83
  */
 
+/* ARGSUSED */
 zigzagvalue (r, c, depth, val, avd, cont)
 int r, c, depth;
 int *val, *avd, *cont;
-{ register int k, nr, nc, l;
-  int a, v = 0, nunseenb = 0, nseenb = 0, nearb = 0;
+{ register int k, nr, nc, a, v = 0, nunseenb = 0;
 
   a = onrc (SAFE|DOOR|STAIRS|HALL, r, c) ? 0 :
       onrc (ARROW, r, c)   ? 50 :
@@ -672,11 +686,12 @@ int *val, *avd, *cont;
 
 secretinit ()
 { expinit ();
-  if (setpsd ())
+  if (setpsd (NOPRINT))
     return (1);
   return (0);
 }
 
+/* ARGSUSED */
 secretvalue (r, c, depth, val, avd, cont)
 int r, c, depth;
 int *val, *avd, *cont;
@@ -715,7 +730,7 @@ int *val, *avd, *cont;
 
   if (v>0)
   { if (version >= RV53A &&
-        onrc (DOOR|BEEN, r, c) == DOOR|BEEN && 
+        onrc (DOOR|BEEN, r, c) == (DOOR|BEEN) && 
         (onrc (CANGO|WALL, r+1, c) == 0 || onrc (CANGO|WALL, r-1, c) == 0 ||
          onrc (CANGO|WALL, r, c+1) == 0 || onrc (CANGO|WALL, r, c-1) == 0))
     { *val = v+100; *cont = 5; }
@@ -958,6 +973,7 @@ doorexplore()
  *   S A F E   S Q U A R E   S E A R C H 	Use genericinit.
  */
 
+/* ARGSUSED */
 safevalue (r, c, depth, val, avd, cont)
 int r, c, depth, *val, *avd, *cont;
 { register int k, v;
@@ -1010,19 +1026,19 @@ avoid ()
 
 static int archrow = NONE, archcol = NONE, archturns = NONE, archval[24][80];
 
-archmonster (m, turns)
+archmonster (m, trns)
 register int m;		/* Monster to attack */
-register int turns;	/* Minimum number of arrows to make it worthwhile */
+register int trns;	/* Minimum number of arrows to make it worthwhile */
 { int archeryinit(), archeryvalue();
   register int mr, mc;
 
-  dwait (D_CONTROL | D_BATTLE, "archmonster: m=%d, turns=%d", m, turns);
+  dwait (D_CONTROL | D_BATTLE, "archmonster: m=%d, turns=%d", m, trns);
 
   if (! new_arch) return (0);
 
   /* Useless without arrows */
-  if (havemult (missile, "", turns) < 0) 
-  { dwait (D_BATTLE, "archmonster, fewer than %d missiles", turns); 
+  if (havemult (missile, "", trns) < 0) 
+  { dwait (D_BATTLE, "archmonster, fewer than %d missiles", trns); 
     return (0); }
 
   /* For now, only work for sleeping monsters */
@@ -1030,7 +1046,7 @@ register int turns;	/* Minimum number of arrows to make it worthwhile */
   { dwait (D_BATTLE, "archmonster, monster not asleep"); return (0); }
 
   /* Save globals */
-  archrow = mlist[m].mrow; archcol = mlist[m].mcol; archturns = turns;
+  archrow = mlist[m].mrow; archcol = mlist[m].mcol; archturns = trns;
 
   /* Can we get to a suitable square */
   if (makemove (ARCHERYMOVE, archeryinit, archeryvalue, REUSE))
@@ -1090,6 +1106,7 @@ archeryinit ()
  * number of shots we can fire.
  */
 
+/* ARGSUSED */
 archeryvalue (r, c, depth, val, avd, cont)
 int r, c, depth, *val, *avd, *cont;
 { 
@@ -1159,6 +1176,7 @@ restinit ()
   return (1);
 }
 
+/* ARGSUSED */
 restvalue (r, c, depth, val, avd, cont)
 register int r, c;
 int depth, *val, *avd, *cont;

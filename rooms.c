@@ -1,5 +1,5 @@
 /*
- * rooms.c: Rog-O-Matic XIV (CMU) Thu Jan 31 20:22:14 1985 - mlm
+ * rooms.c: Rog-O-Matic XIV (CMU) Tue Mar 19 21:36:13 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * Contains functions which deal with the geometry of
@@ -128,8 +128,8 @@ register int r,c;
  * nametrap: look around for a trap and set its type.
  */
 
-nametrap (ttype, standingonit)
-int ttype, standingonit;
+nametrap (traptype, standingonit)
+int traptype, standingonit;
 { register int i, r, c, tdir = NONE, monsteradj = 0;
 
   if (standingonit)
@@ -160,7 +160,7 @@ int ttype, standingonit;
       return;
 
     /* Cant ever sit on a trap door or a teleport trap */
-    else if (ttype == TRAPDOR || ttype == TELTRAP)
+    else if (traptype == TRAPDOR || traptype == TELTRAP)
       return;
 
     /* Cant see trap anywhere else, we must be sitting on it */
@@ -169,15 +169,15 @@ int ttype, standingonit;
   }
 
   /* Record last arror trap found (for cheating against 3.6) */
-  if (ttype == ARROW) { foundarrowtrap = 1; trapr = r; trapc = c; }
-  else if (ttype == TRAPDOR) { foundtrapdoor = 1; }
+  if (traptype == ARROW) { foundarrowtrap = 1; trapr = r; trapc = c; }
+  else if (traptype == TRAPDOR) { foundtrapdoor = 1; }
 
   /* If a trapdor, reactivate rules */
-  if (ttype == TRAPDOR) foundnew ();
+  if (traptype == TRAPDOR) foundnew ();
 
   /* Set the trap type */
   unsetrc (TELTRAP|TRAPDOR|BEARTRP|GASTRAP|ARROW|DARTRAP, r, c);
-  setrc (TRAP | ttype, r, c);
+  setrc (TRAP | traptype, r, c);
 }
 
 /*
@@ -406,7 +406,7 @@ updateat ()
   /* Mark surrounding area according to what we see */
 
   if (!on (HALL | DOOR | ROOM) && !blinded)
-  { int i, rr, cc;
+  { int rr, cc;
     int halls = 0, rooms = 0, rm;
     char *terrain = "nothing";
 

@@ -1,5 +1,5 @@
 /*
- * strategy.c: Rog-O-Matic XIV (CMU) Sat Feb 16 10:03:16 1985 - mlm
+ * strategy.c: Rog-O-Matic XIV (CMU) Tue Mar 19 21:49:33 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains all of the 'high level intelligence' of Rog-O-Matic. 
@@ -161,7 +161,7 @@ int   strategize ()
    */
   
   if (on (STAIRS) && (atrow != stairrow || atcol != staircol))
-  { dwait (D_ERROR, "Stairs moved!"); findstairs (); return (1); }
+  { dwait (D_ERROR, "Stairs moved!"); findstairs (NONE, NONE); return (1); }
 
   /* 
    * If we failed to find the stairs, explore each possible secret door
@@ -379,7 +379,7 @@ int   tomonster ()
     return (1);
 
   /* If he is an odd number of squares away, lie in wait for him */
-  if (closest&1 == 0 && !lyinginwait)
+  if ((closest&1) == 0 && !lyinginwait)
   { command (T_FIGHTING, "s");
     dwait (D_BATTLE, "Waiting for monster an odd number of squares away...");
     lyinginwait = 1;
@@ -530,7 +530,7 @@ int adj;		/* How many attackers are there? */
   if (on(STAIRS) && ((Level>18 && Level<26) || exploredlevel) && !floating &&
       (die_in(5) ||
        ((seeawakemonster ("rattlesnake") || seeawakemonster ("giant ant")) &&
-         (have (ring, "sustain strength") < 0)) ||
+         (havenamed (ring, "sustain strength") < 0)) ||
        ((seeawakemonster ("aquator") || seeawakemonster ("rust monster")) &&
         turns < 2 && willrust (currentarmor) &&
 	wearing ("maintain armor") == NONE) ||
@@ -1100,7 +1100,7 @@ archery ()
         ammo >= (mtk = monatt[mlist[m].chr-'A'].mtokill - gplushit) &&
         larder > 0 ||
         ((streq (monster, "leprechaun") && !hungry ()) ||
-          streq (monster, "nympyh")))
+          streq (monster, "nymph")))
     { dwait (D_BATTLE, "Arching at %c at (%d,%d)",
 	     mlist[m].chr, mlist[m].mrow, mlist[m].mcol);
       if (archmonster (m, mtk)) return (1);

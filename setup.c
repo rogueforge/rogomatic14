@@ -104,6 +104,7 @@ char *argv[];
     dup (ctp[WRITE]);
 
     putenv ("TERMCAP", ROGUETERM);
+    putenv ("TERM", "rg");
     putenv ("ROGUEOPTS", ropts);
 
     if (oldgame)  execl (rfile, rfile, "-r", 0);

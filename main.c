@@ -1,5 +1,5 @@
 /*
- * main.c: Rog-O-Matic XIV (CMU) Fri Feb 15 18:27:27 1985 - mlm
+ * main.c: Rog-O-Matic XIV (CMU) Sun Jul  6 00:22:00 1986 - mlm
  */
 
 /*=========================================================================
@@ -22,6 +22,10 @@
  *========================================================================/
 
 /*****************************************************************
+ * EDITLOG
+ *	LastEditDate = Sun Jul  6 00:22:00 1986 - Michael Mauldin
+ *	LastFileName = /usre3/mlm/src/rog/ver14/main.c
+ *
  * History:     I.    Andrew Appel & Guy Jacobson, 10/81 [created]
  *              II.   Andrew Appel & Guy Jacobson, 1/82  [added search]
  *              III.  Michael Mauldin, 3/82              [added termcap]
@@ -234,6 +238,7 @@ int   zonemap[9][9];		/* Map of zones connections */
 /* Functions */
 int (*istat)(), onintr ();
 char getroguetoken (), *getname();
+FILE *openlog();
 
 /* Stuff list, list of objects on this level */
 stuffrec slist[MAXSTUFF]; 	int slistlen=0;
@@ -263,7 +268,16 @@ int k_run =	50;	/* Propensity for retreating */
 int k_wake =	50;	/* Propensity for waking things up */
 int k_food =	50;	/* Propensity for hoarding food (affects rings) */
 int knob[MAXKNOB] = {50, 50, 50, 50, 50, 50, 50, 50};
-
+char *knob_name[MAXKNOB] = {
+	"trap searching:   ",
+	"door searching:   ",
+	"resting:          ",
+	"using arrows:     ",
+	"experimenting:    ",
+	"retreating:       ",
+	"waking monsters:  ",
+	"hoarding food:    "
+};
 /* Door search map */
 char timessearched[24][80], timestosearch;
 int  searchstartr = NONE, searchstartc = NONE, reusepsd=0;
@@ -358,7 +372,7 @@ char *argv[];
   else
   { frogue = fdopen (argv[1][0] - 'a', "r");
     trogue = fdopen (argv[1][1] - 'a', "w");
-    setbuf (trogue, NULL);
+    setbuf (trogue, (char *) NULL);
   }
 
   /* The second argument to player is the process id of Rogue */
@@ -580,18 +594,18 @@ char *argv[];
                   break;
 
         case '`': clear ();
-                  summary (NULL, '\n');
+                  summary ((FILE *) NULL, '\n');
                   pauserogue ();
                   break;
 
         case '|': clear ();
-                  timehistory (NULL, '\n', 0);
+                  timehistory ((FILE *) NULL, '\n');
                   pauserogue ();
                   break;
 
         case 'r': resetinv (); say ("Inventory reset."); break;
 
-        case 'i': clear (); dumpinv (NULL); pauserogue (); break;
+        case 'i': clear (); dumpinv ((FILE *) NULL); pauserogue (); break;
 
         case '/': dosnapshot ();
                   break;
@@ -613,6 +627,9 @@ char *argv[];
         case '#': dumpwalls ();         break;
 
         case '%': clear (); havearmor (1, DOPRINT, ANY); pauserogue (); break;
+
+        case ']': clear (); havearmor (1, DOPRINT, RUSTPROOF);
+		  pauserogue (); break;
 
         case '=': clear (); havering (1, DOPRINT); pauserogue (); break;
 

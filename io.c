@@ -1,5 +1,5 @@
 /*
- * io.c: Rog-O-Matic XIV (CMU) Sat Feb 16 23:03:48 1985 - mlm
+ * io.c: Rog-O-Matic XIV (CMU) Tue Mar 19 21:00:11 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains all of the functions which deal with the real world.
@@ -61,11 +61,9 @@ int   onat;                             /* 0 ==> Wait for waitstr
                                            we eat a --More-- message */
 { int   botprinted = 0, wasmapped = didreadmap, r, c, pending ();
   register int i, j;
-  char  ch, *s, *m, *q, *d, *call, getroguetoken();
-  int *doors;
+  char  *s, *m, *q, *d, *call;
+  int *doors, ch, getroguetoken();
   static moved = 0;
-
-  domonster();  /* LGCH */
 
   newdoors = doorlist;			/* no new doors found yet */
   atrow0 = atrow; atcol0 = atcol;	/* Save our current posistion */
@@ -252,8 +250,6 @@ int   onat;                             /* 0 ==> Wait for waitstr
   if (version < RV53A && checkrange && !pending ())
   { command (T_OTHER, "Iz"); checkrange = 0; }
  
-  donemonster (); /* LGCH */
-
   /* If mapping status has changed */
   if (wasmapped != didreadmap)
   { dwait (D_CONTROL | D_SEARCH, "wasmapped: %d   didreadmap: %d",
@@ -417,6 +413,7 @@ dumpwalls ()
  * sendnow: Send a string to the Rogue process.
  */
 
+/* VARARGS1 */
 sendnow (f, a1, a2, a3, a4)
 char *f;
 int a1, a2, a3, a4;
@@ -434,7 +431,7 @@ int a1, a2, a3, a4;
  */
 
 sendcnow (c)
-char c;
+int c;
 { if (replaying) return;
   if (logging)
   { if (cecho)
@@ -452,6 +449,7 @@ char c;
 
 # define bump(p,sizeq) (p)=((p)+1)%sizeq
 
+/* VARARGS1 */
 send (f, a1, a2, a3, a4)
 char *f;
 int a1, a2, a3, a4;
@@ -501,9 +499,9 @@ pending ()
  * cursor motion sequence).
  */
 
-char getroguetoken ()
-{ char ch;
-  char getlogtoken();
+int getroguetoken ()
+{ int ch;
+  int getlogtoken();
 
   if (replaying)
     return (getlogtoken());
@@ -607,18 +605,18 @@ deadrogue ()
  * the Rogue process, then wait for it to die before returning.
  */
 
-quitrogue (reason, gold, terminationtype)
+quitrogue (reason, gld, terminationtype)
 char *reason;                   /* A reason string for the summary line */
-int gold;                       /* What is the final score */
+int gld;                       /* What is the final score */
 int terminationtype;            /* SAVED, FINSISHED, or DIED */
 { struct tm *localtime(), *ts;
-  long   clock;
+  long clock;
   char  *k, *r;
   
   /* Save the killer and score */
   for (k=ourkiller, r=reason; *r && *r != ' '; ++k, ++r) *k = *r;
   *k = '\0';
-  ourscore = gold;
+  ourscore = gld;
 
   /* Dont need to make up any more commands */
   if (!replaying || !logdigested)
@@ -631,7 +629,7 @@ int terminationtype;            /* SAVED, FINSISHED, or DIED */
   /* Build a summary line */  
   sprintf (sumline, "%3s %2d, %4d %-8.8s %7d%s%-17.17s %3d %3d ",
            month[ts -> tm_mon], ts -> tm_mday, 1900 + ts -> tm_year,
-           getname (), gold, cheat ? "*" : " ", reason, MaxLevel, Hpmax);
+           getname (), gld, cheat ? "*" : " ", reason, MaxLevel, Hpmax);
   
   if (Str % 100)
     sprintf (sumline, "%s%2d.%2d", sumline, Str/100, Str%100);
@@ -672,7 +670,7 @@ int terminationtype;            /* SAVED, FINSISHED, or DIED */
     sendnow ("Syy"); /* Must send two yesses,  R5.2 MLM */
 
   /* Wait for Rogue to die */
-  wait (0);
+  wait ((int *) NULL);
 }
 
 /*
@@ -699,13 +697,14 @@ char *mess;
  * say: Display a messsage on the top line. Restore cursor to Rogue.
  */
 
-say (s, a1, a2, a3, a4, a5, a6, a7, a8)
-char *s;
+/* VARARGS1 */
+say (f, a1, a2, a3, a4, a5, a6, a7, a8)
+char *f;
 int a1, a2, a3, a4, a5, a6, a7, a8;
 { char buf[BUFSIZ], *b;
 
   if (!emacs && !terse)
-  { sprintf (buf, s, a1, a2, a3, a4, a5, a6, a7, a8);
+  { sprintf (buf, f, a1, a2, a3, a4, a5, a6, a7, a8);
     at (0,0);
     for (b=buf; *b; b++) printw ("%s", unctrl (*b));
     clrtoeol ();
@@ -718,11 +717,12 @@ int a1, a2, a3, a4, a5, a6, a7, a8;
  *         and refresh the screen.
  */
 
-saynow (s, a1, a2, a3, a4, a5, a6, a7, a8)
-char *s;
+/* VARARGS1 */
+saynow (f, a1, a2, a3, a4, a5, a6, a7, a8)
+char *f;
 int a1, a2, a3, a4, a5, a6, a7, a8;
 { if (!emacs && !terse)
-  { say (s, a1, a2, a3, a4, a5, a6, a7, a8);
+  { say (f, a1, a2, a3, a4, a5, a6, a7, a8);
     refresh ();
   }
 }
@@ -914,11 +914,11 @@ clearsendqueue ()
  * startreplay: Open the log file to replay.
  */
 
-startreplay (logfile, logfilename)
-FILE **logfile;
-char *logfilename;
-{ if ((*logfile = fopen (logfilename, "r")) == NULL)
-  { fprintf (stderr, "Can't open '%s'.\n", logfilename);
+startreplay (logf, logfname)
+FILE **logf;
+char *logfname;
+{ if ((*logf = fopen (logfname, "r")) == NULL)
+  { fprintf (stderr, "Can't open '%s'.\n", logfname);
     exit(1);
   }
 }
@@ -945,7 +945,7 @@ FILE *f;
 { register int i, j, length;
   struct tm *localtime(), *ts;
   char *statusline();
-  long   clock;
+  long clock;
 
   /* Now get the current time, so we can date the snapshot */    
   clock = time(&clock);
@@ -983,10 +983,10 @@ FILE *f;
  * Rog-O-Matic at our disposal.					LGCH.
  */
 
-char getlogtoken()
+int getlogtoken()
 { int acceptline;
-  char ch = GETLOGCHAR;
-  char ch1, ch2, dig;
+  int ch = GETLOGCHAR;
+  int ch1, ch2, dig;
 
   while (ch == NEWLINE)
   { acceptline = 0;
