@@ -30,7 +30,8 @@ extern char *termination;	/* Latin verb for how we died */
 extern char versionstr[];	/* Version of Rogue we are playing */
 
 /* character and string functions */
-extern char getlogtoken(), *getname(), *itemstr();
+extern int getlogtoken();
+extern char *getname(), *itemstr();
 extern char logchar(), *monname(), *realname();
 
 /* double precision floating point functions */

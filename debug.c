@@ -1,11 +1,19 @@
 /*
- * debug.c: Rog-O-Matic XIV (CMU) Tue Mar 19 21:00:57 1985 - mlm
+ * debug.c: Rog-O-Matic XIV (CMU) Sat Mar  7 13:13:53 1987 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains the code for the debugger.  Rogomatic has one of
  * the tensest internal debuggers around, because in the early days it
  * had an incredible number of bugs, with no way to repeat an error
  * (because Rogue uses a different dungeon each time).
+ *
+ * EDITLOG
+ *	LastEditDate = Sat Mar  7 13:13:52 1987 - Michael Mauldin
+ *	LastFileName = /usre3/mlm/src/rog/ver14/debug.c
+ *
+ * HISTORY
+ *  7-Mar-87  Michael Mauldin (mlm) at Carnegie-Mellon University
+ *	Created.
  */
 
 # include <curses.h>
@@ -84,7 +92,7 @@ int msgtype, a1, a2, a3, a4, a5, a6, a7, a8;
 	  saynow ("Char at %d,%d '%c'", r, c, screen[r][c]);
         break;
       case '(': dumpdatabase (); at (row, col); break;
-      case ')': markcycles (DOPRINT); at (row, col); break;
+      case ')': new_mark++; markcycles (DOPRINT); at (row, col); break;
       case '~': saynow ("Version %d, quit at %d", version, quitat); break;
       case '/': dosnapshot (); break;
       default: at (row, col); return (1);

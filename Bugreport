@@ -1,5 +1,5 @@
 /*
- * Bugreport: Rog-O-Matic XIV (CMU) Sat Feb 16 22:53:04 1985 - mlm
+ * Bugreport: Rog-O-Matic XIV (CMU) Wed Mar 20 10:04:14 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  */
 
@@ -38,10 +38,13 @@
 	worth.c:worth()			values armor more highly.
 
 8. Peter Wan reports problems with screen handling on terminals with
-   no tabs.  Problem unknown.
+   no tabs.  Jeff Anton at Berkeley replies that putting "GT=0"
+   after the call to initscr() in main.c will force curses to use
+   spaces or cursor positioning, so this hack will make the program
+   work on terminals without tabs.
 
 9. Fixed reply command to understand version messages at start of
-   log files. Modifiekd to send version command when starting a
+   log files. Modified to send version command when starting a
    log in the middle of the game.
 
 	io.c:getrogver()		look for version string in log
@@ -103,4 +106,28 @@
 21. Remember that leather armor rusts in Rogue 3.6.
 
 	things.c:willrust()		check for Rogue 3.6
+
+22. Fails to work on Pyramids
+
+	Pyramids will not assume that missing arguments are zero.
+	Delinted the whole program to check for missing arguments
+	to various functions.
+
+23. Core dumps when searching for secret doors on 3.6
+
+	Failed to check the return code form whichroom() in explore.c
+
+24. Several local variable definitions obscure global variables.
+
+	Modified the local variables not to clash with the globals.
+
+25. Runs over scare monster scolls on low levels.
+
+	When moving more than one square at a time, check for
+	running over scare monster scrolls along the way.
+
+26. Nymph misspelled in strategy.c
+
+27. Added SIGPIPE to list of interrupts which are held when modifying
+    the score file.
 
