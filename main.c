@@ -1,5 +1,5 @@
 /*
- * main.c: Rog-O-Matic XIV (CMU) Sun Feb  3 17:00:25 1985 - mlm
+ * main.c: Rog-O-Matic XIV (CMU) Fri Feb 15 18:27:27 1985 - mlm
  */
 
 /*=========================================================================
@@ -110,7 +110,7 @@ FILE  *snapshot=NULL;		/* File for snapshot command */
 FILE  *trogue=NULL;		/* Pipe to Rogue process */
 
 /* Characters */
-char  *logfilename = "";	/* Name of log file */
+char  logfilename[100];		/* Name of log file */
 char  afterid = '\0';           /* Letter of obj after identify */
 char  genelock[100];		/* Gene pool lock file */
 char  genelog[100];		/* Genetic learning log file */
@@ -337,6 +337,7 @@ char *argv[];
   sprintf (lastcmd, "i");
   sprintf (ourkiller, "unknown");
   sprintf (sumline, "");
+  sprintf (versionstr, "");
   for (i = 80 * 24; i--; ) screen[0][i] = ' ';
  
   /* 
@@ -351,7 +352,7 @@ char *argv[];
   { replaying = 1;
     gamename = "Iteratum Rog-O-Maticus";
     termination = "finis";
-    logfilename = argv[4];
+    strcpy (logfilename, argv[4]);
     startreplay (&logfile, logfilename);
   }
   else
@@ -401,8 +402,12 @@ char *argv[];
    * Give a hello message
    */
 
-  sprintf (msg, " %s: version %s, genotype %d, quit at %d.",
-           roguename, versionstr, geneid, quitat);
+  if (replaying)
+    sprintf (msg, " Replaying log file %s, version %s.", 
+	     logfilename, versionstr);
+  else
+    sprintf (msg, " %s: version %s, genotype %d, quit at %d.",
+	     roguename, versionstr, geneid, quitat);
   
   if (emacs)
   { fprintf (realstdout, "%s  (%%b)", msg); fflush (realstdout); }
@@ -552,9 +557,12 @@ char *argv[];
                   say (chicken ? "chicken" : "aggressive");
                   break;
 
-        case '~': saynow
-                  ("Rogomatic version %s, Rogue version %s (%d), quit at %d",
-                     RGMVER, versionstr, version, quitat);
+        case '~': if (replaying)
+		    saynow ("Replaying log file %s, version %s.", 
+			    logfilename, versionstr);
+		  else
+		    saynow (" %s: version %s, genotype %d, quit at %d.",
+			    roguename, versionstr, geneid, quitat);
                   break;
 
         case '[': at (0,0);

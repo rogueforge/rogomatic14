@@ -1,5 +1,5 @@
 /*
- * pack.c: Rog-O-Matic XIV (CMU) Thu Jan 31 15:04:23 1985 - mlm
+ * pack.c: Rog-O-Matic XIV (CMU) Sat Feb 16 08:58:04 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  * 
  * This file contains functions which mess with Rog-O-Matics pack
@@ -229,7 +229,7 @@ inventory (msgstart, msgend)
 char *msgstart, *msgend;
 { register char *p, *q, *mess = msgstart, *mend = msgend;
   char objname[100], *realname();
-  int  n, ipos, xknow = 0, newitem = 0, inuse = 0;
+  int  n, ipos, xknow = 0, newitem = 0, inuse = 0, printed = 0;
   int  plushit = UNKNOWN, plusdam = UNKNOWN, charges = UNKNOWN;
   stuff what; 
   char *xbeg, *xend;
@@ -375,9 +375,8 @@ char *msgstart, *msgend;
         clrtoeol ();
         at (row, col);
         refresh ();
+	printed++;
       }
-      else
-        say (msgstart);
     }
   }
 
@@ -404,20 +403,6 @@ char *msgstart, *msgend;
   /* New item, in older Rogues, open up a spot in the pack */
   else
   { if (version < RV53A) rollpackdown (ipos);		
-
-    /*
-     * Use retained info to determine cursed attributes when identifying
-     * or protected status for armor.  DR UTexas 01/05/84
-     */
-
-    if (inven[ipos].type == what && stlmatch (objname, inven[ipos].str))
-    { if (xknow != itemis (ipos, KNOWN) &&
-	  !itemis (ipos, (UNCURSED | ENCHANTED)) &&
-	  ((plushit != UNKNOWN && plushit < 0) ||
-	   (plusdam != UNKNOWN && plusdam < 0)))
-        remember (ipos, CURSED);
-      if (newitem || what != armor ) forget (ipos, PROTECTED);
-    }
 
     inven[ipos].type = what;
     inven[ipos].count = n;
@@ -452,6 +437,8 @@ char *msgstart, *msgend;
   else if (newitem)		forget (ipos, WORTHLESS);
 
   checkrange = 1;
+  
+  return (printed);
 }
 
 /* 

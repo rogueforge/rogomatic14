@@ -1,5 +1,5 @@
 /*
- * things.c: Rog-O-Matic XIV (CMU) Sat Feb  2 13:02:28 1985 - mlm
+ * things.c: Rog-O-Matic XIV (CMU) Sat Feb 16 12:16:57 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains much of the code to handle Rog-O-Matics inventory.
@@ -24,7 +24,8 @@ int obj;
 
   if (cursedarmor) return (0);
 
-  command (T_HANDLING, "W%cI%c", LETTER (obj), LETTER (obj));
+  command (T_HANDLING, "W%c", LETTER (obj));
+  usesynch = 0;
   return (1);
 }
 
@@ -42,6 +43,7 @@ takeoff ()
   if (cursedarmor) return (0);
 
   command (T_HANDLING, "T");
+  usesynch = 0;
   return (1);
 }
 
@@ -72,21 +74,41 @@ int obj;
 drop (obj)
 int obj;
 {
-  /* Cant if there is not something there */
-  if (inven[obj].count < 1) return (0);
-
-  /* read unknown scrolls rather than dropping them */
-  if (inven[obj].type == scroll && !itemis (obj, KNOWN) && reads (obj))
-  { prepareident (pickident (), obj);
-    return (1);
-  }
-  
-  /* quaff unknown potions rather than dropping them */
-  if (inven[obj].type == potion && !itemis (obj, KNOWN) && quaff (obj))
-    return (1);
-
-  if (itemis (obj, INUSE) || on (STUFF | TRAP | STAIRS | DOOR))
+  /* Cant if not there, in use, or on something else */
+  if (inven[obj].count < 1 ||
+      itemis (obj, INUSE) ||
+      on (STUFF | TRAP | STAIRS | DOOR))
     return (0);
+
+  /* read unknown scrolls or good scrolls rather than dropping them */
+  if (inven[obj].type == scroll &&
+      (!itemis (obj, KNOWN) ||
+       stlmatch (inven[obj].str, "identify") &&
+	   prepareident (pickident (), obj) ||
+       stlmatch (inven[obj].str, "enchant") ||
+       stlmatch (inven[obj].str, "genocide") ||
+       stlmatch (inven[obj].str, "gold detection") ||
+       stlmatch (inven[obj].str, "hold monster") ||
+       stlmatch (inven[obj].str, "light") ||
+       stlmatch (inven[obj].str, "magic mapping") ||
+       stlmatch (inven[obj].str, "monster confusion") ||
+       stlmatch (inven[obj].str, "remove curse")) &&
+      reads (obj))
+  { return (1); }
+  
+  /* quaff unknown potions or good potions rather than dropping them */
+  if (inven[obj].type == potion &&
+      (!itemis (obj, KNOWN) ||
+       stlmatch (inven[obj].str, "extra healing") ||
+       stlmatch (inven[obj].str, "gain strength") ||
+       stlmatch (inven[obj].str, "haste self") && !hasted ||
+       stlmatch (inven[obj].str, "healing") ||
+       stlmatch (inven[obj].str, "magic detection") ||
+       stlmatch (inven[obj].str, "monster detection") ||
+       stlmatch (inven[obj].str, "raise level") ||
+       stlmatch (inven[obj].str, "restore strength")) &&
+      quaff (obj))
+  { return (1); }
 
   command (T_HANDLING, "d%c", LETTER (obj));
   return (1);
@@ -268,6 +290,7 @@ prepareident (obj, iscroll)
 int obj, iscroll;
 { nextid = LETTER (obj);
   afterid = (iscroll > obj || inven[iscroll].count > 1) ? nextid : nextid-1;
+  return (nextid >= 'a' && afterid >= 'a');
 }
 
 /*
@@ -484,7 +507,7 @@ int obj;
 { return (! (protected ||
 	     armorclass (obj) > 8 || armorclass (obj) < -5 ||
 	     itemis (obj, PROTECTED) ||
-	     stlmatch (inven[obj].str, "leather")));
+	     stlmatch (inven[obj].str, "leather") && version > RV36B));
 }
 
 /*

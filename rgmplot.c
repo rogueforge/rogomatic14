@@ -1,5 +1,5 @@
 /*
- * rgmplot.c: Rog-O-Matic XIV (CMU) Thu Jan 31 20:04:11 1985 - mlm
+ * rgmplot.c: Rog-O-Matic XIV (CMU) Tue Feb  5 15:00:59 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  * 
  * This program takes a Rog-O-Matic score file sorted by date and score, 
@@ -21,7 +21,7 @@ int doavg = 0, cheat = 0, min = -1;
 main (argc, argv)
 int argc;
 char *argv[];
-{ int mm, dd, yy, score = 0, lastday = -1, lastmon = -1, h;
+{ int mm, dd, yy, score = 0, lastday = -1, lastmon = -1, lastyy = -1, h;
   int sumscores = 0, numscores = 0, i;
   int sum[AVLEN], num[AVLEN], rsum, rnum, davg, ravg;
   char player[100], plot[128], cheated;  
@@ -44,11 +44,11 @@ char *argv[];
   if (argc > 0) min = atoi (argv[0]);
 
   /*  Print out the header */
-  printf ("           Scatter Plot of Rog-O-Matic Scores versus time\n\n");
+  printf ("\t\t   Scatter Plot of Rog-O-Matic Scores versus time\n\n");
   if (min > 0) 
-    printf ("                      Scores greater than %d\n\n", min);
-  printf ("         0      2000      4000      6000      8000     10000\n");
-  printf ("         |----+----|----+----|----+----|----+----|----+----|\n");
+    printf ("\t\t              Scores greater than %d\n\n", min);
+  printf ("\t\t0      2000      4000      6000      8000     10000\n");
+  printf ("\t\t|----+----|----+----|----+----|----+----|----+----|\n");
 
 
   /* Build an empty plot line */
@@ -58,7 +58,7 @@ char *argv[];
   while (getscore (&mm, &dd, &yy, player, &score, &cheated) != EOF)
   { 
     /* Change days, overprint the average for day, rolling avg */
-    if ((dd != lastday || mm != lastmon) && lastday > 0)
+    if ((dd != lastday || mm != lastmon || yy != lastyy) && lastday > 0)
     { if (doavg)
       { rsum = *sum; rnum = *num;
         for (i = 1; i < AVLEN; i++)
@@ -81,7 +81,7 @@ char *argv[];
 	  plot[ravg-1] = plot[ravg] = plot[ravg+1] = '#';
       }
           
-      printf ("%3s %2d   %s\n", month[lastmon-1], lastday, plot);
+      printf ("%3s %2d %4d\t%s\n", month[lastmon-1], lastday, lastyy, plot);
       strcpy (plot, "|                                                 |");
       
     }
@@ -98,12 +98,12 @@ char *argv[];
       sumscores += score;
       ++numscores;
 
-      lastday = dd; lastmon = mm;
+      lastday = dd; lastmon = mm; lastyy = yy;
     }
   }
 
-  printf ("         |----+----|----+----|----+----|----+----|----+----|\n");
-  printf ("         0      2000      4000      6000      8000     10000\n");
+  printf ("\t\t|----+----|----+----|----+----|----+----|----+----|\n");
+  printf ("\t\t0      2000      4000      6000      8000     10000\n");
   
 
   if (numscores > 0)

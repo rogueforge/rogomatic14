@@ -1,5 +1,5 @@
 /*
- * arms.c: Rog-O-Matic XIV (CMU) Thu Jan 31 15:46:02 1985 - mlm
+ * arms.c: Rog-O-Matic XIV (CMU) Sat Feb 16 09:47:34 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  * 
  * This file contains all utility functions which exist for armor, 
@@ -38,27 +38,12 @@ int havearmor (k, print, rustproof)
     }
   }
 
-  /* Put protected sets of armor with equal ACs first.  DR UTexas 19 Jan 84 */
-  for (j = n-1; j > 0; j--)
-  { if (armval[j] == armval[j-1])
-    { i = armind[j];
-      w = armind[j-1];
-      if (!itemis (w, PROTECTED) && itemis (i, PROTECTED))
-        swap (armind[j], armind[j-1]);
-    }
-  }
-
   if (print)
-  { mvaddstr (1, 0, "Current Armor Rankings");
+  { mvprintw (1,0, "Current %sArmor Rankings", rustproof ? "Rustproof " : "");
     for (i = 0; i<n; i++)
       mvprintw (i+3, 8, "%2d: %3d %s", i+1, armval[i], itemstr (armind[i]));
   }
-
-  /* Any uncursed, useful armor at or beyond position k? */
-  for (i=k; i <= n; i++)
-    if (!itemis ((j = armind[i-1]), CURSED) && armval[j] < 10) return (j);
   
-  /* Return the kth best, even though it is cursed or useless */
   return ((k <= n) ? armind[k-1] : NONE);
 }
 

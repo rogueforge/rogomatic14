@@ -1,5 +1,5 @@
 /*
- * survival.c: Rog-O-Matic XIV (CMU) Mon Jan  7 15:22:23 1985 - mlm
+ * survival.c: Rog-O-Matic XIV (CMU) Sun Feb 10 21:09:58 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains all of the "Run Away" code.
@@ -119,9 +119,7 @@ int runaway ()
   dwait (D_BATTLE | D_SEARCH, "Run away!!!!");
 
   if (on (STAIRS) && !floating)		/* Go up or down */
-  { if (!goupstairs (RUNNING)) godownstairs (RUNNING); 
-    return (1);
-  }
+    return (goupstairs (RUNNING) || godownstairs (RUNNING));
 
   if (canrun ())		/* If canrun finds a move, use it */
     return (followmap (RUNAWAY));

@@ -1,5 +1,5 @@
 /*
- * strategy.c: Rog-O-Matic XIV (CMU) Thu Jan 31 20:51:06 1985 - mlm
+ * strategy.c: Rog-O-Matic XIV (CMU) Sat Feb 16 10:03:16 1985 - mlm
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  *
  * This file contains all of the 'high level intelligence' of Rog-O-Matic. 
@@ -93,7 +93,7 @@ int   strategize ()
   if (handlering ())		/* We are engaged! */
     return (1);
 
-  if (blinded && grope (100))	/* Who turned out the lights */
+  if (blinded && grope (50))	/* Who turned out the lights */
   { display ("Blinded, groping..."); return (1); }
 
   if (aftermelee ())		/* Wait for lingering monsters */
@@ -129,7 +129,7 @@ int   strategize ()
   if (findarrow ())		/* Do we have an unitialized arrow? */
     return (1);
 
-  if (findroom ())	/* Look for another room */
+  if (findroom ())		/* Look for another room */
     return (1);
 
   /* 
@@ -180,7 +180,7 @@ int   strategize ()
 
   newlevel ();
   display ("I would give up, but I am too stubborn, starting over...");
-  return (grope (100));
+  return (grope (10));
 }
 
 /*
@@ -498,13 +498,12 @@ int adj;		/* How many attackers are there? */
    * fightmonster() and tomonster() cant see stalkers.
    */
 
-  if (beingstalked > 1000) { turns = 0; danger += 16; }
+  if (beingstalked > INVPRES) { turns = 0; danger += INVDAM; }
 
   /* Debugging breakpoint */
   dwait (D_BATTLE,
         "Battlestations: %s(%d), total danger %d, dir %d, %d turns, %d adj.", 
         monster, mbad, danger, mdir, turns, adj);
-
 
   /* 
    * Switch back to our mace or sword?
@@ -984,10 +983,6 @@ int tostuff ()
  * fightinvisible: being hounded by unseen beasties, try something clever.
  */
 
-# define INVDAM		(16)
-# define INVPRES	(INVHIT-100)
-# define INVLURK	(INVPRES-200)
-
 fightinvisible ()
 { char cmd[20]; register int dir, liberties = 0, lastdir, obj;
 
@@ -1045,24 +1040,23 @@ fightinvisible ()
 
   /* If can only go two ways, then go back and forth (will hit) */
   if (liberties == 1 || liberties == 2)
-    sprintf (cmd, "%c%c", keydir[lastdir], keydir[(lastdir+4)&7]);
+  { command (T_FIGHTING, "%c%c", keydir[lastdir], keydir[(lastdir+4)&7]);
+    return (1);
+  }
 
   /* Try to get away, usually gets to a square with only 2 liberties */
   else if (runaway ()) return (1);
 
   /* Else run two and then double back on him. If that will */
   /* not work, run in a circle (will hit one out of 4)      */
-  else
-  { for (dir=0; dir<8; dir += 2)
-      if ((onrc(CANGO, atdrow(dir), atdcol(dir))) &&
-          (onrc(CANGO, atrow+2*deltr[dir], atcol+2*deltc[dir])))
-        break;
+  for (dir=0; dir<8; dir += 2)
+    if ((onrc(CANGO, atdrow(dir), atdcol(dir))) &&
+	(onrc(CANGO, atrow+2*deltr[dir], atcol+2*deltc[dir])))
+      break;
 
-    if (dir > 7)	command (T_FIGHTING, "hjlk");
-    else		command (T_FIGHTING, "%c%c%c", keydir[dir],
-			         keydir[dir], keydir[(dir+4)&7]);
-  }
-
+  if (dir > 7)	command (T_FIGHTING, "hjlk");
+  else		command (T_FIGHTING, "%c%c%c", keydir[dir],
+			 keydir[dir], keydir[(dir+4)&7]);
   return (1);
 }
 

@@ -1,5 +1,5 @@
 ************************************************************************
-* README: Rog-O-Matic XIV (CMU) Tue Jan 29 15:02:02 1985 - mlm
+* README: Rog-O-Matic XIV (CMU) Tue Feb  5 14:04:02 1985 - mlm
 * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
 ************************************************************************
 
@@ -7,20 +7,16 @@
 
 1.0 UNPACKING:
 
-Rog-O-Matic is shipped as a collection of shell archives.  Run the
-distribution files through the shell (e.g. "sh rgm14.01"), and the
-individual source files will be created.  Rog-O-Matic is stored on the
-General Purpose Vax at Carnegie-Mellon University, and may be retrieved via
-FTP using the following file name:
+Rog-O-Matic is shipped by mail as a collection of shell archives.  Run
+the distribution files through the shell (e.g. "sh rgm14.01"), and the
+individual source files will be created.  Rog-O-Matic is also stored on
+the General Purpose Vax at Carnegie-Mellon University, and may be
+retrieved via FTP using the following file name:
 
-		mlm/rgm/rgm14.xx @ CMU-CS-G		(xx = 01,02,...)
+		mlm/rgm/rgm14.tar.Z @ G.CS.CMU.EDU	
 
-The file
-
-		mlm/rgm/Instructions @ CMU-CS-G
-
-contains instructions and pointers to files for this public directory.
-For FTP access, the username is 'ftpguest' and the password is 'cmunix'.
+This file is a compressed tar format file.  For FTP access, the
+username is 'ftpguest' and the password is 'cmunix'.
 
 2.0 INSTRUCTIONS FOR USE:
 
@@ -105,23 +101,76 @@ Rogomatic to play.
     Rogomatic parses the arguments and forks and execs Rogue and Player.
     For more information about the "rogomatic" command, see rogomatic.6.
 
+    Usage:	rogomatic [-ceuw]			Play a game
+	of	rogomatic -f game_file			Play against game_file
+	or	rogomatic -r [ rogue_save_file ]	Start saved game
+	or	rogomatic -p [ game_log ]		Replay game log
+    	or	rogomatic -s [ version ]		Show scores
+
+	-c	Cheat (look for magic arrows, version 3.6 only)
+	-e	Echo, log the game into a file
+	-u	Start up in user (transparent mode)
+	-w	Watched (Rog-O-Matic can ask user for help when stuck -- rare)
+	-f	next argument is the location of the Rogue game, eg:
+			rogomatic -f /usr/games/rogue
+	-r	Start a saved game, if next argument is given, it is the
+		location of the Rogue save file.
+	-p	Replay a Rog-O-Matic log file (created using the -e
+		option).  If next argument is given it is the name of
+		the log file. The default is "roguelog". Eg:
+			rogomatic -p drag.24.7361
+	-s	List Rog-O_Matic's scorefile.  Version must be one
+		of (3.6, 5.2, 5.3).  Defaults to install.h:DEFVER.
+
 3.2 RPLOT
 
     "rplot" prints a scatter plot of the rogomatic score file. Options
     allow for inclusion of scores obtained by cheating and addition of
     a rolling average to the plot.  "rplot" uses the rgmplot program.
 
+    Usage:	rogomatic -s [ version ] | rplot [ -ac ] [ minimum ]
+
+    Options:	-a	Include rolling average
+		-c	Include scores obtained by cheating ( 3.6 only )
+		[ min ]	Include only scores above min.
+	
 3.3 HISTPLOT
 
     "histplot" reads the scorefile and produces a histogram of either
     final score or level reached, depending on the option set.  The
     histogram plots the killing monster for each game.
 
+    Usage:	rogomatic -s [ version ] | histplot [ -acl ]
+
+    Options:	-aNNNN	Include only scores above NNNN
+		-c	Include cheating games ( 3.6 only )
+		-l	Plot level instead of score
+
 3.4 GENE
 
-    "gene" summarizes the current gene pool.
+    "gene" summarizes and initializes the current gene pool.
+    
+    Usage:	gene [ -f ] [ -v<value> ]	Read gene pool
+	or	gene -i [ -msv<value> ]		Create new gene pool
+
+    Options:	-i	Initial a new gene pool
+		-f	Full listing, shows gene values and scores
+		-mNN	Max gene pool size (limit of 100, learn.c:MAXM)
+		-s	Random number seed for new gene pool (-i option)
+		-v	Version to list/initial (one of 361,362,521,522,531)
 
 4.0 MORE ABOUT FILES
+
+4.1 SCOREFILES
+
+For each version of Rogue the systems has played, their are 2 score
+files: $RGMDIR/rgmdelta<version> and $RGMDIR/rgmscore<version>.  As
+each game is played, the score is appended to the DELTA file.  Whenever
+the -s option is given, a check is made for the DELTA file.  If new
+scores exist, they are sorted and a new SCORE file is created. Then
+the score file is printed on stdout.
+
+4.2 READING THE SOURCE
 
    For those perusing the source, the following files are in the
 source.  The notes indicate how important an understanding of that file
@@ -171,9 +220,9 @@ contains system code, strategy code, or utility code.
 
 Questions, comments, gripes, and ephemera to
 
-        Michael.Mauldin@CMU-CS-A.ARPA
+        Michael.Mauldin@CAD.CS.CMU.EDU
 
-	Michael Mauldin (Fuzzy)		(412) 578-3065
+	Michael Mauldin (Fuzzy)		(412) 268-3065
 	Department of Computer Science
 	Carnegie-Mellon University
 	Pittsburgh, PA  15213
