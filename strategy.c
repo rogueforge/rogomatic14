@@ -1012,7 +1012,7 @@ fightinvisible ()
   /* If we can bail out to the next level, do so */
   if (((beingstalked < INVPRES  && Hp < (INVDAM * 2)) ||
        (beingstalked >= INVPRES && Hp < (INVDAM * 3))) &&
-      godownstairs (RUNNING))
+      (goupstairs (RUNNING) || godownstairs (RUNNING)))
   { display ("Running like hell from an invisible stalker...");
     return (1); }
 
