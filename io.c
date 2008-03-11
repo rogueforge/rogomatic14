@@ -7,6 +7,7 @@
 
 # include <curses.h>
 # include <ctype.h>
+# include <signal.h>
 
 # include "install.h"
 
@@ -683,7 +684,16 @@ int terminationtype;            /* SAVED, FINSISHED, or DIED */
   else if (terminationtype == FINISHED)
     sendnow ("Qy\n");
   else
+  {
     sendnow ("Syy"); /* Must send two yesses,  R5.2 MLM */
+    /* If fatal error, kill rogue process, as it wont do a save */
+    if (stlmatch (reason, "fatal error trap"))
+    {
+      critical ();
+      kill (rogpid, SIGHUP);
+      uncritical ();
+    }
+  }
 
   /* Wait for Rogue to die */
   wait ((int *) NULL);
