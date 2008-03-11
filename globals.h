@@ -168,7 +168,7 @@ extern char	killedmonster, targetmonster;
 
 /* Door search variables */
 extern int	new_mark, new_findroom, new_search, new_stairs, new_arch;
-extern char	timessearched[24][80], timestosearch;
+extern char	timessearched[24][80], timestosearch, attempttosearch;
 extern int	searchstartr, searchstartc;
 extern int	reusepsd;
 
