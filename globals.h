@@ -15,6 +15,7 @@ FILE *wopen();			/* Open a file for world access */
 
 /* global characters and strings */
 extern char afterid;		/* Index of object after identify */
+extern char dropid;		/* Next object to drop */
 extern char *genocide;		/* List of monsters to genocide */
 extern char genocided[];	/* List of monsters genocided */
 extern char lastcmd[];		/* Copy of last command sent to Rogue */
@@ -191,3 +192,5 @@ extern int k_exper;		/* Level on which to experiment with items */
 extern int k_run;		/* Propensity for retreating */
 extern int k_wake;		/* Propensity for waking things up */
 extern int k_food;		/* Propensity for hoarding food (rings) */
+
+extern int dropreply ();
