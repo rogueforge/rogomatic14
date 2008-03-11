@@ -543,7 +543,8 @@ int adj;		/* How many attackers are there? */
    * Dont waste magic when on a scare monster scroll
    */
   
-  if (on (SCAREM) && !streq (monster, "dragon"))
+  if (on (SCAREM) && !streq (monster, "dragon") &&
+      (targetmonster == 0 || turns < 2))
   { dwait (D_BATTLE, "Battlestations: hitting from scaremonster.");
     return (0);
   }
@@ -711,6 +712,8 @@ int adj;		/* How many attackers are there? */
    
   if (die_in (1) && !streq(monster, "dragon") &&
       (obj = havenamed (scroll, "scare monster")) != NONE &&
+      (m == NONE || mlist[m].q != ASLEEP) &&
+      (targetmonster == 0 || turns < 2) &&
       drop (obj))
   { set (SCAREM);
     droppedscare++;
