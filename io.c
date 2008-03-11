@@ -98,12 +98,14 @@ int   onat;                             /* 0 ==> Wait for waitstr
     /* If the message has a more, strip it off and call terpmes */
     if (ch == *m)
     { if (*++m == 0)
-      { /* More than 50 messages since last command ==> start logging */
-        if (++morecount > 50 && !logging) 
+      { /* More than 3000 messages since last command ==> start logging */
+	/* When the player is transfixed, it can take a very long time */
+	/* till he finally dies. */
+        if (++morecount > 3000 && !logging) 
 	{ toggleecho (); dwait (D_WARNING, "Started logging --More-- loop."); }
 
-        /* More than 100 messages since last command ==> infinite loop */
-        if (++morecount > 100) dwait (D_FATAL, "Caught in --More-- loop.");
+        /* More than 3050 messages since last command ==> infinite loop */
+        if (morecount > 3050) dwait (D_FATAL, "Caught in --More-- loop.");
 
 	/* Send a space (and possibly a semicolon) to clear the message */
         if (onat == 2) sendnow (" ;");
