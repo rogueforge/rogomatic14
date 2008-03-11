@@ -199,4 +199,5 @@ extern int infer (stuff, char *);
 extern int infername (stuff, int, char *, char *);
 extern int used (stuff, char *);
 extern int know (stuff, char *);
+extern int pickident (int);
 extern int dropreply ();

@@ -82,9 +82,9 @@ int obj;
 
   /* read unknown scrolls or good scrolls rather than dropping them */
   if (inven[obj].type == scroll &&
-      (!itemis (obj, KNOWN) ||
-       stlmatch (inven[obj].str, "identify") &&
-	   prepareident (pickident (), obj) ||
+      (((!itemis (obj, KNOWN) ||
+         stlmatch (inven[obj].str, "identify")) &&
+	   prepareident (pickident (obj), obj)) ||
        stlmatch (inven[obj].str, "enchant") ||
        stlmatch (inven[obj].str, "genocide") ||
        stlmatch (inven[obj].str, "gold detection") ||
@@ -300,16 +300,23 @@ int obj, iscroll;
  * first item in the pack).
  */
 
-int pickident ()
+int pickident (iscroll)
+int iscroll;
 { register int obj;
 
   if      ((obj=unknown      (ring))   != NONE);
   else if ((obj=unidentified (wand))   != NONE);
-  else if ((obj=unidentified (scroll)) != NONE);
+  else if ((obj=haveother    (scroll, iscroll)) != NONE &&
+			used (scroll, inven[obj].str));
   else if ((obj=unidentified (potion)) != NONE);
-  else if ((obj=unknown      (scroll)) != NONE);
+  else if ((obj=unknown      (wand)) != NONE);
+  else if ((obj=haveother    (scroll, iscroll)) != NONE &&
+			!used (scroll, inven[obj].str));
   else if ((obj=unknown      (potion)) != NONE);
   else if ((obj=unknown      (hitter)) != NONE);
+  else if ((obj=unknown      (armor)) != NONE);
+  else if ((obj=unknown      (missile)) != NONE);
+  else if (iscroll == 0) obj = 1;
   else obj = 0;
 
   return (obj);

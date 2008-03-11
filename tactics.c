@@ -276,7 +276,7 @@ readscroll ()
         cursedarmor || cursedweapon) &&
        (exploredlevel || Level > 18 || know (scroll, "aggravate monsters")) &&
        (obj = unknown (scroll)) != NONE))
-  { prepareident (pickident (), obj);
+  { prepareident (pickident (obj), obj);
 
     /* Go to a corner to read the scroll */
     if (version <= RV36B && !know (scroll, "create monster") && gotocorner ())
