@@ -759,6 +759,8 @@ char *monster;
 didhit ()
 { register int m = 0;
 
+  didfight = 1;
+
   /* Record our hit */
   if (!cosmic) m = lastmonster;
 
@@ -775,6 +777,8 @@ didhit ()
 
 didmiss ()
 { register int m = 0;
+
+  didfight = 1;
 
   /* Record our miss */
   if (!cosmic) m = lastmonster;

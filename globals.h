@@ -67,6 +67,7 @@ extern int cursedweapon;	/* True if weapon if cursed */
 extern int darkdir;		/* Direction of arrow in dark room */
 extern int darkturns;		/* # arrows left to fire in dark room */
 extern int debugging;		/* Debugging options in effect */
+extern int didfight;            /* Last command caused fighting */
 extern int didreadmap;		/* Last magically mapped level */
 extern int doorlist[], *newdoors; /* Holds r,c of new doors found */
 extern int doublehasted;	/* True if double hasted (3.6 only) */

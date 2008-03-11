@@ -73,6 +73,7 @@ int tmode, a1, a2, a3, a4;
     case 'N': movedir = 7; wakemonster (movedir); break;
     default:  movedir = NOTAMOVE;
   }
+  didfight = 0;
   
   /* If in a real game (not replaying), then check for looping */
   if (!replaying)
