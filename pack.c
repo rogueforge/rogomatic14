@@ -159,6 +159,8 @@ register int pos;
     inven[i] = inven[i+1];
 
   inven[--invcount].str = savebuf;
+  /* Deleted item should not show up in the inventory */
+  inven[invcount].count = 0;
 }
 
 /* 
@@ -173,6 +175,13 @@ register int pos;
 
   if (version >= RV53A) return;
 
+  if (invcount >= MAXINV)
+  {
+    usesynch = 0; 
+    dwait (D_WARNING, "inventory full");
+    return;
+  }
+
   savebuf = inven[invcount].str;
   for (i=invcount; i>pos; --i)
   { inven[i] = inven[i-1];
@@ -183,8 +192,7 @@ register int pos;
   }
   inven[pos].str = savebuf;
 
-  if (++invcount > MAXINV)
-    usesynch = 0; 
+  invcount++;
 }
 
 /*
