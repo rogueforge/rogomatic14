@@ -99,6 +99,7 @@
 # include <ctype.h>
 # include <signal.h>
 # include <setjmp.h>  
+# include <errno.h>  
 # include "types.h"
 # include "termtokens.h"
 # include "install.h"
@@ -116,6 +117,7 @@ FILE  *trogue=NULL;		/* Pipe to Rogue process */
 /* Characters */
 char  logfilename[100];		/* Name of log file */
 char  afterid = '\0';           /* Letter of obj after identify */
+char  dropid = '\0';		/* Letter of next object to drop */
 char  genelock[100];		/* Gene pool lock file */
 char  genelog[100];		/* Genetic learning log file */
 char  genepool[100];		/* Gene pool */
@@ -160,8 +162,10 @@ int   cursedweapon = 0;		/* True if we are wielding cursed weapon */
 int   darkdir = NONE;		/* Direction of monster being arched */
 int   darkturns = 0;		/* Distance to monster being arched */
 int   debugging = D_NORMAL;	/* Debugging options in effect */
+int   didfight = 0;		/* Last command caused fighting */
 int   didreadmap = 0;		/* Last level we read a map on */
-int   doorlist[40];		/* List of doors on this level */
+int   didrerun = 0;		/* We did start with a rerun */
+int   doorlist[60];		/* List of doors on this level */
 int   doublehasted = 0; 	/* True if double hasted (Rogue 3.6) */
 int   droppedscare = 0;		/* True if we dropped 'scare' on this level */
 int   emacs = 0;		/* True ==> format output for Emacs */
@@ -189,6 +193,7 @@ int   lastmonster = NONE;	/* Last monster we tried to hit */
 int   lastobj = NONE;		/* What did we last use */
 int   lastwand = NONE;		/* Index of last wand */
 int   leftring = NONE;		/* Index of our left ring */
+int   levelrestarts = 0;	/* Incremented for restart on level */
 int   logdigested = 0;		/* True if log file has been read by replay */
 int   logging = 0;		/* True if keeping record of game */
 int   lyinginwait = 0;          /* True if we waited for a monster */
@@ -203,7 +208,9 @@ int   newweapon = 1;            /* Change in weapon status? */
 int   nohalf = 0;		/* True ==> no halftime show */
 int   noterm = 0;		/* True ==> no user watching */
 int   objcount = 0;             /* Number of objects */
+int   olddrop = 0;		/* Use old drop handling */
 int   ourscore = 0;		/* Final score when killed */
+int   overwriteinv = 0;		/* Overwrite next inv entry instead of insert */
 int   playing = 1;		/* True if still playing game */
 int   poorarrow = 0;		/* True if arrow has missed */
 int   protected = 0;		/* True if we protected our armor */
@@ -211,6 +218,7 @@ int   putonseeinv = 0;          /* Turn when last put on see inv ring */
 int   quitat = BOGUS;		/* Score to beat, quit if within 10% more */
 int   redhands = 0;		/* True if we have red hands */
 int   replaying = 0;		/* True if replaying old game */
+int   rerunning = 0;		/* True if rerunning old game */
 int   revvideo = 0;		/* True if in rev. video mode */
 int   rightring = NONE;		/* Index of our right ring */
 int   rogpid = 0;		/* Pid of rogue process */
@@ -221,6 +229,7 @@ int   singlestep = 0;		/* True ==> go one turn */
 int   slowed = 0;		/* True ==> recently zapped w/slow monster */
 int   stairrow, staircol;	/* Position of stairs on this level */
 int   startecho = 0;		/* True ==> turn on echoing on startup */
+long  stoppos = 0;		/* Logfile position for stop */
 int   teleported = 0;		/* # times teleported this level */
 int   terse = 0;		/* True ==> terse mode */
 int   transparent = 0;		/* True ==> user command mode */
@@ -236,7 +245,7 @@ int   zone = NONE;		/* Current screen zone, 0..8 */
 int   zonemap[9][9];		/* Map of zones connections */
 
 /* Functions */
-int (*istat)(), onintr ();
+int onintr (), sigintr ();
 char getroguetoken (), *getname();
 FILE *openlog();
 
@@ -246,7 +255,7 @@ stuffrec slist[MAXSTUFF]; 	int slistlen=0;
 /* Monster list, list of monsters on this level */
 monrec mlist[MAXMONST];		int mlistlen=0;
 
-char targetmonster = '@';	/* Monster we are arching at */
+char targetmonster = 0;		/* Monster we are arching at */
 
 /* Monster attribute and Long term memory arrays */
 attrec monatt[26];		/* Monster attributes */
@@ -279,7 +288,7 @@ char *knob_name[MAXKNOB] = {
 	"hoarding food:    "
 };
 /* Door search map */
-char timessearched[24][80], timestosearch;
+char timessearched[24][80], timestosearch, attempttosearch;
 int  searchstartr = NONE, searchstartc = NONE, reusepsd=0;
 int  new_mark=1, new_findroom=1, new_search=1, new_stairs=1, new_arch=1;
 
@@ -342,6 +351,7 @@ char *argv[];
 { char  ch, *s, *getenv(), *statusline(), msg[128];
   int startingup = 1;
   register int  i;
+  int set_handler;
 
   /*
    * Initialize some storage
@@ -379,13 +389,29 @@ char *argv[];
   if (argc > 2) rogpid = atoi (argv[2]);                  
 
   /* The third argument is an option list */
-  if (argc > 3) sscanf (argv[3], "%d,%d,%d,%d,%d,%d,%d,%d", 
+  if (argc > 3) sscanf (argv[3], "%d,%d,%d,%d,%d,%d,%d,%d,%d", 
 			&cheat, &noterm, &startecho, &nohalf,
-			&emacs, &terse, &transparent, &quitat);
+			&emacs, &terse, &transparent, &quitat, &rerunning);
 
   /* The fourth argument is the Rogue name */
   if (argc > 4)	strcpy (roguename, argv[4]);
   else		sprintf (roguename, "Rog-O-Matic %s", RGMVER);
+  if (rerunning)
+  {
+    didrerun = 1;
+    sprintf (roguename, "Rog-O-Matic %s", RGMVER);
+    strcpy (logfilename, argv[4]);
+    startreplay (&logfile, logfilename);
+  }
+
+  if (getenv ("ROGOGDB"))
+    attach_gdb (getpid ());
+  if (!replaying && getenv ("ROGUEGDB"))
+    attach_gdb (rogpid);
+  if ((s = getenv ("ROGOSTOP")) != NULL)
+    stoppos = atoi(s);
+  if (getenv ("ROGOOLDDROP"))
+    olddrop = 1;
 
   /* Now count argument space and assign a global pointer to it */
   arglen = 0;
@@ -423,12 +449,14 @@ char *argv[];
     sprintf (msg, " %s: version %s, genotype %d, quit at %d.",
 	     roguename, versionstr, geneid, quitat);
   
+  if (emacs || terse) reset_shell_mode();
   if (emacs)
   { fprintf (realstdout, "%s  (%%b)", msg); fflush (realstdout); }
   else if (terse)
   { fprintf (realstdout, "%s\n", msg); fflush (realstdout); }
   else
   { saynow (msg); }
+  if (emacs || terse) reset_prog_mode();
 
   /* 
    * Now that we have the version figured out, we can properly
@@ -460,8 +488,12 @@ char *argv[];
   getrogue (ill, 2);  /* Read the input up to end of first command */
   
   /* Identify all 26 monsters */
-  if (!replaying)
+  if (!replaying && !rerunning)
     for (ch = 'A'; ch <= 'Z'; ch++) send ("/%c", ch);
+  /* During rerun the monsters are identified via replayed commands, */
+  /* so we have to adjust the turns accordingly. */
+  if (rerunning)
+    turns -= 26;
 
   /*
    * Signal handling. On an interrupt, Rogomatic goes into transparent
@@ -470,10 +502,16 @@ char *argv[];
    * Kernigan & Dennis Ritchie. I sure wouldn't have thought of it.
    */
 
-  istat = signal (SIGINT, SIG_IGN); /* save original status */
+  set_handler = (signal (SIGINT, SIG_IGN) != SIG_IGN);
   setjmp (commandtop);              /* save stack position */
-  if (istat != SIG_IGN)
-    signal (SIGINT, onintr);
+  if (set_handler)
+  {
+    struct sigaction sa;
+    sigaction (SIGINT, (struct sigaction *)0, &sa);
+    sa.sa_handler = sigintr;
+    sa.sa_flags = 0;
+    sigaction (SIGINT, &sa, (struct sigaction *)0);
+  }
 
   if (interrupted)
   { saynow ("Interrupt [enter command]:");
@@ -487,7 +525,7 @@ char *argv[];
   { refresh ();
 
     /* If we have any commands to send, send them */
-    while (resend ())
+    while (playing && resend ())
     { if (startingup) showcommand (lastcmd);
       sendnow (";"); getrogue (ill, 2);
     }
@@ -513,11 +551,19 @@ char *argv[];
         !strategize())
     { ch = (noterm) ? ROGQUIT : getch ();
 
+      /* Clear strategy line during replay */
+      if (msgonscreen && (replaying || rerunning) && LINES > 26)
+	{ at (26,0); clrtoeol (); msgonscreen = 0; at (row,col); }
+
       switch (ch)
       { case '?': givehelp (); break;
       
         case '\n': if (terse) 
-	           { printsnap (realstdout); fflush (realstdout); }
+	           {
+		     reset_shell_mode();
+		     printsnap (realstdout); fflush (realstdout);
+		     reset_prog_mode();
+		   }
 	           else
                    { singlestep = 1; transparent = 1; }
 		   break;
@@ -666,7 +712,8 @@ char *argv[];
         case 'Q': quitrogue ("user typing quit", Gold, FINISHED); 
                   playing = 0; break;
 
-        case ROGQUIT: dwait (D_ERROR, "Strategize failed, gave up.");
+        case ROGQUIT: if (replaying) { playing = 0; break; }
+		      dwait (D_ERROR, "Strategize failed, gave up.");
                       quitrogue ("gave up", Gold, SAVED); break;
       }
     }
@@ -675,15 +722,16 @@ char *argv[];
     }
   }
   
-  if (! replaying)
+  if (! replaying && !didrerun)
   { saveltm (Gold);			/* Save new long term memory */
     endlesson ();			/* End genetic learning */  
   }
 
   /* Print termination messages */
   at (23, 0); clrtoeol (); refresh ();
-  endwin (); nocrmode (); noraw (); echo ();
+  endwin ();
   
+  if (emacs || terse) reset_shell_mode();
   if (emacs)  
   { if (*sumline) fprintf (realstdout, " %s", sumline);
   }
@@ -722,6 +770,48 @@ char *argv[];
 }
 
 /*
+ * fgetrogue: Get character from rogue process.
+ * If an interrupt occurs, return to the main loop.
+ */
+
+fgetrogue ()
+{
+  int ch;
+
+  while (1)
+  {
+    char c;
+    int retc = read (fileno (frogue), &c, 1);
+    if (retc == 1)
+      return (c);
+    else if (retc == 0)
+      return (EOF);
+    else if (errno == EINTR)
+    {
+      /*
+       * If we had a SIGINT interrupt, call the interrupt handler,
+       * which takes us back to the main loop.
+       */
+      if (interrupted)
+	onintr();
+      continue;
+    }
+    break;
+  }
+  return (EOF);
+}
+
+/*
+ * sigintr: The real SIGINT handler.
+ * Flags SIGINT, but the real action occurs in fgetrogue, when the
+ * fgetc is interrupted and causes a call to onintr.
+ */
+sigintr ()
+{
+  interrupted = 1;
+}
+
+/*
  * onintr: The SIGINT handler. Pass interrupts to main loop, setting
  * transparent mode. Also send some synchronization characters to Rogue,
  * and reset some goal variables.
@@ -736,7 +826,7 @@ onintr ()
   transparent = 1;              /* Drop into transprent mode */
   interrupted = 1;              /* Mark as an interrupt */
   noterm = 0;                   /* Allow commands */
-  longjmp (commandtop);         /* Back to command Process */
+  longjmp (commandtop, 1);      /* Back to command Process */
 }
 
 /*
@@ -752,6 +842,19 @@ startlesson ()
   srand (0);				/* Start random number generator */
   critical ();				/* Disable interrupts */
 
+  if (rerunning)
+  {
+    if (!readknobs("rogo.knobs", knob))
+    {
+      if (! readgenes (genepool))	/* Read the gene pool */
+	initpool (MAXKNOB, 20);		/* Random starting point */
+      setknobs (&geneid, knob, &genebest, &geneavg); /* Select a genotype */
+      writeknobs("rogo.knobs", knob);
+    }
+  }
+  else
+  {
+
   /* Serialize access to the gene pool */
   if (lock_file (genelock, MAXLOCK))	/* Lock the gene pool */
   { if (openlog (genelog) == NULL)	/* Open the gene log file */
@@ -762,9 +865,11 @@ startlesson ()
     writegenes (genepool);		/* Write out the gene pool */
     closelog ();			/* Close the gene log file */
     unlock_file (genelock);		/* Unlock the gene pool */
+    writeknobs("rogo.knobs", knob);
   }
   else
     fprintf (stderr, "Cannot lock gene pool to read '%s'\n", genepool);
+  }
 
   uncritical ();			/* Reenable interrupts */
 
@@ -800,4 +905,54 @@ endlesson ()
 
     uncritical ();			/* Re-enable interrupts */
   }
+}
+
+readknobs (knobfname, knb)
+char *knobfname;
+int *knb;
+{ char buf[BUFSIZ];
+  register char *b;
+  register int i;
+  FILE *kfil;
+
+  if ((kfil = fopen (knobfname, "r")) == NULL)
+    return (0);
+
+  b = buf;
+  fgets (b, BUFSIZ, kfil);
+  SKIPCHAR (' ', b);
+  for (i=0; ISDIGIT (*b); i++)
+  { if (i < MAXKNOB) knb[i] = atoi (b);
+    SKIPDIG (b);
+    SKIPCHAR (' ', b);
+  }
+
+  fclose (kfil);
+
+  if (i != MAXKNOB)
+  {
+    dwait (D_WARNING, "Failed to read knobs, got %d knobs", i);
+    return (0);
+  }
+  return (1);
+}
+
+writeknobs (knobfname, knb)
+char *knobfname;
+int *knb;
+{ FILE *kfil, *wopen();
+  register int i;
+
+  if (!logging)
+    return (0);
+
+  if ((kfil = wopen (knobfname, "w")) == NULL)
+    return (0);
+
+  for (i=0; i<MAXKNOB; i++) 
+  { fprintf (kfil, "%2d", knb[i]);
+    if (i < MAXKNOB-1) fprintf (kfil, " ");
+  }
+  fprintf (kfil, "\n");
+  fclose (kfil);
 }

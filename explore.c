@@ -187,6 +187,12 @@ int r, c;
  * Modified to understand maze room secret doors.		MLM.   10/83
  */
 
+/* Fix timessearched for attempt specific checks, assume that */
+/* the previous attempt did the required number of searches. */
+# define FIXATTEMPT(r,c) \
+  { if (timessearched[r][c] < attempttosearch) \
+      timessearched[r][c] = attempttosearch; }
+
 setpsd (print)
 { register int i, j, k, whereto, numberpsd=0;
 
@@ -202,12 +208,12 @@ setpsd (print)
     /* If attempt > 3, allow ANYTHING to be a secret door! */
     if (attempt > 3 && ! onrc (BEEN|DOOR|HALL|ROOM|WALL|STAIRS, i, j) &&
         nextto (CANGO, i, j))
-    { if (!onrc (PSD, i, j)) numberpsd++; setrc(PSD,i,j); }
+    { if (!onrc (PSD, i, j)) numberpsd++; setrc(PSD,i,j); FIXATTEMPT (i,j); }
 
     /* Set Possible Secret Door for maze room secret doors */
     else if (attempt > 0 && ! onrc (BEEN|DOOR|HALL|ROOM|WALL|STAIRS, i, j) &&
         mazedoor (i, j))
-    { if (!onrc (PSD, i, j)) numberpsd++; setrc(PSD,i,j); }
+    { if (!onrc (PSD, i, j)) numberpsd++; setrc(PSD,i,j); FIXATTEMPT (i,j); }
 
     /* Set Possible Secret Door for corridor secret door */
     else if (version >= RV53A &&
@@ -254,6 +260,7 @@ setpsd (print)
 	      (attempt > 1 || room[whereto] == 0))
 	  { if (!onrc (PSD, i, j)) numberpsd++;
 	    setrc (PSD,i,j);
+    	    if (attempt > 1) { FIXATTEMPT (i,j); }
 	  }
 	}
       }
@@ -431,6 +438,12 @@ int r, c, depth, *val, *avd, *cont;
     { *val = 0; }
 
   *avd += avdmonsters[r][c];
+  /* Inhibit blocking of door near player by sleeping monster. */
+  if (avdmonsters[r][c] == INFINITY &&
+      onrc ((DOOR | MONSTER), r, c) == DOOR &&
+      ((r - atrow) * (r - atrow) + (c - atcol) * (c - atcol)) <= 1)
+    *avd -= 1;
+  return (1);
 }
 
 /*
@@ -488,6 +501,7 @@ int *val, *avd, *cont;
   else				{ *val = 0;}
 
   *avd += avdmonsters[r][c];
+  return (1);
 }
 
 /*
@@ -717,7 +731,7 @@ int *val, *avd, *cont;
   { register int nr = r + deltr[k];
     register int nc = c + deltc[k];
     if (nr >= 1 && nr <= 22 &&
-      nc >= 0 && nc <= 80 &&
+      nc >= 0 && nc <= 79 &&
       onrc (PSD, nr, nc) && timessearched[nr][nc] < SEARCHES(nr,nc))
     { /* If adjacent square is on the screen */
       /* and if it has PSD set but has not been searched completely */
@@ -751,7 +765,7 @@ int *val, *avd, *cont;
 
 # define AVOID(r,c,ch) \
   { avdmonsters[r][c] = INFINITY; \
-    if (debug (D_SCREEN)) { at((r),(c)); addch(ch); at(row,col); }}
+    if (debug (D_SCREEN | D_SEARCH)) { at((r),(c)); addch(ch); at(row,col); }}
 
 avoidmonsters ()
 { register int i, r, c, wearingstealth;
@@ -945,6 +959,7 @@ exploreroom ()
 
 doorexplore()
 { static searchcount = 0;
+  char msg[128];
   int secretinit(), secretvalue();
 
   /* If no new squares or read map, dont bother */
@@ -954,13 +969,21 @@ doorexplore()
   if (makemove (SECRETDOOR, secretinit, secretvalue, REUSE))  /* move */
   { searchcount = 0; return (1); }
 
-  if (searchcount > 20)
-  { new_search = 0; return (0); }
+  if (searchcount > 40)
+  {
+    display("Giving up on search");
+    new_search = 0; searchcount = 0; return (0);
+  }
 
   if (ontarget)  /* Moved to a possible secret door, search it */
   { searchcount++;
-    saynow ("Searching square (%d,%d) for the %d%s time...", 
-            atrow, atcol, searchcount, ordinal (searchcount));
+    sprintf(msg, "Searching square (%d,%d) [%d] for the %d%s time...",
+            atrow, atcol, timessearched[atrow][atcol],
+	    searchcount, ordinal (searchcount));
+    if (attempt > 0)
+      display(msg);
+    else
+      saynow (msg);
     command (T_DOORSRCH, "s");
     return (1);
   }
@@ -1089,9 +1112,14 @@ archeryinit ()
     for (dist = 1, r = archrow+dr, c = archcol+dc;
          onrc (CANGO | HALL | MONSTER, r, c) == CANGO;
 	 r += dr, c += dc, dist++)
+      {
       if (dist > archturns && !onrc (TRAP, r, c))
       { archval[r][c] = dist - 1; /* number of arrows we get to shoot */
         if (debug (D_SCREEN)) { at (r, c); addch ('=');  at (row, col); }
+	}
+	/* Stop at door. */
+	if (onrc (DOOR, r, c))
+	  break;
       }
   }
 

@@ -113,6 +113,8 @@
 
 # define RGMDIR		"/usr/mlm/lib/rogomatic"
 
+# define TERMINFODIR   "/usr/mlm/lib/rogomatic"
+
 /* 
  * This file is created in the current directory if the snapshot command
  * is typed during a Rogue game.  It must be defined.

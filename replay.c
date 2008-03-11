@@ -11,7 +11,7 @@
 # include "types.h"
 # include "globals.h"
 
-# define MAXNUMLEV 50
+# define MAXNUMLEV 60
 # define FIRSTLEVSTR "\nR: "
 # define NEWLEVSTR "\nR: {ff}"
 # define POSITAT   "{ff}"
@@ -117,6 +117,9 @@ int *nmlev, maxnum;
     lvpos[l].pos = ftell (f);
     fillstruct (f, &lvpos[l]);      
   }
+  /* Handle last level (which is the you made it screen) for winning game. */
+  if (l > 0 && lvpos[l-1].level == 0)
+    l--;
 
   *nmlev = l;
   rewind (f);

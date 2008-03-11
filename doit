@@ -1,0 +1,122 @@
+#!/bin/sh
+#
+ERRFILE=./error5.2
+LOGFILE=./GeneLog521
+TERSE=-t
+NOBEATSCORE=-n
+#
+trap "" 1
+ulimit -Sc unlimited
+ulimit -Sf 10000
+while true
+do
+  # Limit logfile size
+  LOGSIZE=`wc -c $LOGFILE | awk '{ print $1 }'`
+  if [ $LOGSIZE -gt 10000000 ] ; then
+    mkdir -p genelogs
+    BACKUPFILE=$LOGFILE-`date +%y%m%d%H`
+    mv $LOGFILE $BACKUPFILE
+    gzip $BACKUPFILE
+    mv $BACKUPFILE.gz genelogs
+    touch $LOGFILE
+  fi
+  #
+  # Run it with logging and no halftime show.
+  rm -f roguelog $ERRFILE rogo.ltm rogo.knobs
+  ./rogomatic -f ./rogue -h -e $NOBEATSCORE $TERSE
+  RES=$?
+  if [ $RES != 0 ] ; then
+    stty sane
+    mv roguelog rogocore
+    mv rogo.knobs rogocore.knobs
+    mv rogo.ltm rogocore.ltm
+    echo "`date` dumped core" >>/var/tmp/rogomatic.log
+    break
+  fi
+  #
+  if [ -f roguelog ] ; then
+    if [ -s $ERRFILE ] ; then
+      mv roguelog abort.log
+      mv $ERRFILE abort.err
+      break
+    fi
+    echo "`date` same result" >>/var/tmp/rogomatic.log
+    continue
+  fi
+  #
+  # Get log file name
+  LASTLOG=`ls -t *.*.* | grep -v '.err' | grep -v .knobs | grep -v .ltm | head -1`
+  #
+  # Make sure we can replay the game.
+  ./rogomatic -p $TERSE $LASTLOG >/dev/null
+  #
+  # Make sure we can rerun the game and get the same result,
+  # using rogo.ltm and rogo.knobs, which were written above.
+  head -n 71 $LASTLOG >rogo.rerun
+  ./rogomatic -f ./rogue -P -h -e $NOBEATSCORE $TERSE rogo.rerun >/dev/null
+  #
+  # Keep log file on errors.
+  KEEPLOG=no
+  if [ -s $ERRFILE ] ; then
+    mv $ERRFILE $LASTLOG.err
+    KEEPLOG=yes
+  fi
+  #
+  # Keep log files upon give ups.
+  RETRY=`egrep '(Multiple restart|Giving up on)' $LASTLOG`
+  if [ -n "$RETRY" ] ; then
+    echo "$RETRY" >>$LASTLOG.err
+    KEEPLOG=yes
+  fi
+  #
+  # Check that rerun yielded the same result.
+  if [ ! -f roguelog ] ; then
+    NEWLOG=`ls -t *.*.* | grep -v '.err' | grep -v .knobs | grep -v .ltm | grep -v $LASTLOG | head -1`
+    echo "Rerun roguelog is missing for $LASTLOG, maybe on $NEWLOG" >>$LASTLOG.err
+    KEEPLOG=yes
+  else
+    TMPFIL1=/tmp/rogodiff1$$
+    diff $LASTLOG roguelog >$TMPFIL1
+    if [ -s $TMPFIL1 ] ; then
+      echo "Rerun diffs for $LASTLOG:" >>$LASTLOG.err
+      cat $TMPFIL1 >>$LASTLOG.err
+      KEEPLOG=yes
+    fi
+    rm -f $TMPFIL1 roguelog
+  fi
+  #
+  # Determine score and throw away low score log files if there was no error.
+  SCORE=`echo $LASTLOG | sed -e 's/\./ /g' | awk '{ print $3 }'`
+  if [ "$SCORE" -gt 8000 ] ; then
+    KEEPLOG=yes
+  fi
+  case $LASTLOG in
+    star.*.*)
+      FROZEN=`grep transfixed $LASTLOG`
+      if [ -z "$FROZEN" ] ; then
+        KEEPLOG=yes
+        KEEPLOG=no
+      fi
+      ;;
+    tota.*.*)
+      KEEPLOG=yes
+      ;;
+  esac
+  echo "`date` $LASTLOG $SCORE $KEEPLOG" >>/var/tmp/rogomatic.log
+  #
+  # Get rid of log file or save knobs and ltm if we want to keep it.
+  if [ "$KEEPLOG" = no ] ; then
+    rm -f $LASTLOG rogo.rerun rogo.knobs rogo.ltm
+  else
+    if [ -f rogo.knobs ] ; then
+      cp -p rogo.knobs $LASTLOG.knobs
+    fi
+    if [ -f rogo.ltm ] ; then
+      cp -p rogo.ltm $LASTLOG.ltm
+    fi
+  fi
+  #
+  if [ -f /tmp/zstop ] ; then
+    break
+  fi
+done

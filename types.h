@@ -15,7 +15,7 @@
 
 /* The unctrl macro for systems where curses doesn't define it */
 
-# ifndef unctrl
+# if !defined(unctrl) && !defined(NCURSES_UNCTRL_H_incl) && !defined(_UNCTRL_H)
 extern char	*_unctrl[];
 
 # define	unctrl(ch)	(_unctrl[ch & 0177])
@@ -32,8 +32,8 @@ extern char	*_unctrl[];
 # define SAVED		(2)
 # define MAXINV		(26)
 # define NONE		(-1)
-# define MAXSTUFF	(30)
-# define MAXMONST	(40)
+# define MAXSTUFF	(100)
+# define MAXMONST	(100)
 # define SAVEARROWS	(30)
 # define NAMSIZ		(64)
 # define MAXLEV		(30)
@@ -42,7 +42,7 @@ extern char	*_unctrl[];
 # define FAILURE	(0)
 
 # define ISPRT(c)	((c) >= ' ' && (c) <= '~')
-# define GETROGUECHAR	fgetc(frogue)
+# define GETROGUECHAR	fgetrogue()
 # define GETLOGCHAR	fgetc(logfile)
 
 /*
@@ -294,6 +294,9 @@ extern char	*_unctrl[];
 # define forget(obj,trait) ((obj>=0) ? (inven[obj].traits&= ~(trait)) : 0)
 
 /* The types of objects */
+/* Work around conflicting scroll definition from curses.h. */
+#undef scroll
+#define scroll rogo_scroll
 typedef enum { strange, food, potion, scroll, wand, ring, hitter,
                thrower, missile, armor, amulet, gold, none} stuff;
 

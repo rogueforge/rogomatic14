@@ -31,10 +31,22 @@ extern int genericinit(), sleepvalue();	/* From explore.c */
 
 int   strategize ()
 {
+  char msg[128];
   dwait (D_CONTROL, "Strategizing...");
 
   /* If replaying, instead of making an action, return the old one */
   if (replaying) return (replaycommand ());
+
+  /* If rerunning, return the old action, if available */
+  if (rerunning)
+    if (replaycommand ())
+      return (1);
+
+  if (logging && stoppos && (ftell(fecho) > stoppos))
+  {
+    stoppos = 0;
+    attach_gdb(getpid());
+  }
 
   /* Clear any messages we printed last turn */
   if (msgonscreen) { at (0,0); clrtoeol (); msgonscreen = 0; at (row,col); }
@@ -42,6 +54,9 @@ int   strategize ()
 
   /* ----------------------- Production Rules --------------------------- */
 
+
+  if (qresend ())               /* Send any remaining commands */
+    return (1);
 
   if (fightmonster ())          /* We are under attack! */
     return (1);
@@ -169,7 +184,13 @@ int   strategize ()
    */
   
   while (attempt++ < MAXATTEMPTS)
-  { timestosearch += max (3, k_door / 5);
+  { int newsearch = timestosearch + max (3, k_door / 5);
+    /* Avoid char overflow */
+    attempttosearch = timestosearch;
+    timestosearch = min (newsearch, 127);
+    sprintf(msg, "Secret door attempt %d, timestosearch %d",
+	    attempt, timestosearch);
+    display(msg);
     foundnew ();
     if (doorexplore ()) return (1);
   }
@@ -178,8 +199,29 @@ int   strategize ()
    * Don't give up, start all over!
    */
 
+  {
+    /* Preserve level restart counter and didreadmap */
+    int wasmapped = didreadmap;
+    int restarts = levelrestarts;
+
+    {
+    /* For debugging only */
+    static int xxrestart = 0;
+
+    while (xxrestart)
+      strategize ();
+    }
+
   newlevel ();
-  display ("I would give up, but I am too stubborn, starting over...");
+    didreadmap = wasmapped;
+    levelrestarts = restarts + 1;
+
+    if (levelrestarts > 1)
+      sprintf (msg, "Multiple restart %d...", levelrestarts);
+    else
+      sprintf (msg, "I would give up, but I am too stubborn, starting over...", levelrestarts);
+    display (msg);
+  }
   return (grope (10));
 }
 
@@ -329,6 +371,16 @@ int   tomonster ()
   for (i = 0, which = NONE, closest = 999; i < mlistlen; i++)
   { dist = max (abs (mlist[i].mrow - atrow), abs (mlist[i].mcol - atcol));
     monchar = mlist[i].chr;
+
+    /* Handle teleporter scroll after hold monster scroll, */
+    /* the monster is still shown on the screen at the old location. */
+    /* Do not consider this monster after teleport. */
+    { int atroom = whichroom (atrow, atcol);
+      int mroom = whichroom (mlist[i].mrow, mlist[i].mcol);
+      if (atroom != NONE && mroom != NONE && atroom != mroom &&
+	  (version < RV53A || mlist[i].q == HELD) && dist > 2)
+	continue;
+    }
 
     /* 
      * IF   we are not using a magic arrow OR
@@ -486,7 +538,12 @@ int adj;		/* How many attackers are there? */
   turns = hasted ? (mdist-1)*2 : (mdist-1);
 
   /* No point in wasting resources when we are invulnerable */
-  if (on (SCAREM) && (turns > 0 || confused) && !streq(monster, "dragon"))
+  /* Don't rest when the monster is asleep, as we would wait forever. */
+  /* Don't rest when we are arching, as we would wait forever, */
+  /* as archmonster marks it as awake although it is really asleep. */
+  if (on (SCAREM) && (turns > 0 || confused) &&
+      (m == NONE || mlist[m].q != ASLEEP) &&
+      (targetmonster == 0 || turns < 2) && !streq(monster, "dragon"))
   { command (T_RESTING, "s");
     display ("Resting on scare monster");
     dwait (D_BATTLE, "Battlestations: resting, on scaremonster.");
@@ -516,7 +573,8 @@ int adj;		/* How many attackers are there? */
    * Dont waste magic when on a scare monster scroll
    */
   
-  if (on (SCAREM) && !streq (monster, "dragon"))
+  if (on (SCAREM) && !streq (monster, "dragon") &&
+      (targetmonster == 0 || turns < 2))
   { dwait (D_BATTLE, "Battlestations: hitting from scaremonster.");
     return (0);
   }
@@ -684,6 +742,8 @@ int adj;		/* How many attackers are there? */
    
   if (die_in (1) && !streq(monster, "dragon") &&
       (obj = havenamed (scroll, "scare monster")) != NONE &&
+      (m == NONE || mlist[m].q != ASLEEP) &&
+      (targetmonster == 0 || turns < 2) &&
       drop (obj))
   { set (SCAREM);
     droppedscare++;
@@ -933,14 +993,17 @@ int tostuff ()
    * NOTE: Dont pick up the scaremonster scroll!!!    MLM
    */
 
-  for (i = 0, which = NONE, closest = 999; i < slistlen; i++)
+  for (i = 0, which = NONE, closest = 99999; i < slistlen; i++)
   { if (!onrc (USELESS, slist[i].srow, slist[i].scol) ||
         (droppedscare && objcount < maxobj &&
          !onrc (SCAREM, slist[i].srow, slist[i].scol)))
-    { dist = max (abs (slist[i].srow - atrow), abs (slist[i].scol - atcol));
+    { int deltax = slist[i].scol - atcol;
+      int deltay = slist[i].srow - atrow;
+      /* Compute real distance to avoid endless loops, max dist is 7000. */
+      dist = deltax * deltax + deltay * deltay;
 
       /* Make junk look farther away, but not farther than infinity */
-      if (onrc (USELESS, slist[i].srow, slist[i].scol)) dist += 500;
+      if (onrc (USELESS, slist[i].srow, slist[i].scol)) dist += 10000;
 
       /* If this is the closest item, save its distance and index */
       if (dist < closest)
@@ -1039,8 +1102,10 @@ fightinvisible ()
     { liberties++; lastdir = dir; }
 
   /* If can only go two ways, then go back and forth (will hit) */
+  /* Need separate commands to discover pickups after every move. */
   if (liberties == 1 || liberties == 2)
-  { command (T_FIGHTING, "%c%c", keydir[lastdir], keydir[(lastdir+4)&7]);
+  { command (T_FIGHTING, "%c", keydir[lastdir]);
+    qcommand (T_FIGHTING, "%c", keydir[(lastdir+4)&7]);
     return (1);
   }
 
@@ -1054,9 +1119,19 @@ fightinvisible ()
 	(onrc(CANGO, atrow+2*deltr[dir], atcol+2*deltc[dir])))
       break;
 
-  if (dir > 7)	command (T_FIGHTING, "hjlk");
-  else		command (T_FIGHTING, "%c%c%c", keydir[dir],
-			 keydir[dir], keydir[(dir+4)&7]);
+  if (dir > 7)
+  {
+    command (T_FIGHTING, "h");
+    qcommand (T_FIGHTING, "j");
+    qcommand (T_FIGHTING, "l");
+    qcommand (T_FIGHTING, "k");
+  }
+  else
+  {
+    command (T_FIGHTING, "%c", keydir[dir]);
+    qcommand (T_FIGHTING, "%c", keydir[dir]);
+    qcommand (T_FIGHTING, "%c", keydir[(dir+4)&7]);
+  }
   return (1);
 }
 
@@ -1120,7 +1195,9 @@ archery ()
  */
 
 pickupafter ()
-{ /* If no goal */
+{
+  int result, oldcomp = compression;
+  /* If no goal */
   if (agoalr < 0 || agoalc < 0)
     return (0);
 
@@ -1130,8 +1207,12 @@ pickupafter ()
     return (0);
   }
   
-  /* Else go for it */  
-  return (gotowards (agoalr, agoalc, 0));
+  /* Else go for it, but check for other pickups in dark rooms. */  
+  if (!on(HALL) && darkroom ())
+    compression = 0;
+  result = gotowards (agoalr, agoalc, 0);
+  compression = oldcomp;
+  return (result);
 }
 
 /*
@@ -1171,4 +1252,48 @@ quitforhonors ()
   }
 
   return (0);
+}
+
+/*
+ * qcommand: add a command to the queue of commands to be sent to Rogue.
+ * The commands are sent one at a time by the qresend routine.
+ */
+
+# define CQSIZE 16
+# define qbump(p,sizeq) (p)=((p)+1)%sizeq
+
+struct cqueue
+{
+  int tmode;
+  char cmd[10];
+};
+static struct cqueue cq[CQSIZE];
+static int qhead = 0;
+static int qtail = 0;
+
+/* VARARGS2 */
+qcommand (tmode, f, a1, a2, a3, a4)
+char *f;
+int tmode, a1, a2, a3, a4;
+{
+  /* Build the command */
+  cq[qtail].tmode = tmode;
+  sprintf (cq[qtail].cmd, f, a1, a2, a3, a4);
+
+  qbump (qtail, CQSIZE);
+}
+
+/*
+ * qresend: Send next command from the command queue
+ */
+
+qresend ()
+{
+  if (qhead == qtail) return (0);	/* Fail if no commands */
+
+  /* Send the next command */
+  command(cq[qhead].tmode, "%s", cq[qhead].cmd);
+  qbump (qhead, CQSIZE);
+
+  return (1);				/* Return success */
 }

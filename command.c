@@ -73,6 +73,7 @@ int tmode, a1, a2, a3, a4;
     case 'N': movedir = 7; wakemonster (movedir); break;
     default:  movedir = NOTAMOVE;
   }
+  didfight = 0;
   
   /* If in a real game (not replaying), then check for looping */
   if (!replaying)
@@ -81,6 +82,8 @@ int tmode, a1, a2, a3, a4;
       if (streq (cmd, "i") && comcount > 3)
         dwait (D_FATAL, "command: cannot synchronize inventory, invcount %d.",
                invcount);
+      if (comcount > 1000)
+        dwait (D_FATAL, "command: too many identical commands.");
     }
     else
     { strcpy (lastcom, cmd);
@@ -158,8 +161,11 @@ char *cmd;
   int neww, obj;
 
   switch (functionchar (cmd))
-  { case 'd':	setrc (STUFF | USELESS, atrow, atcol);
+  { case 'd':	if (olddrop)
+	  	{
+		    setrc (STUFF | USELESS, atrow, atcol);
 		deleteinv (OBJECT (commandarg (cmd, 1)));
+		}
 		break;
 
     case 'e':   removeinv (OBJECT (commandarg (cmd, 1)));
@@ -173,14 +179,14 @@ char *cmd;
     case 'q':	lastobj = OBJECT (commandarg (cmd, 1));
 		usemsg ("Quaffing", lastobj);
 		strcpy (lastname, inven[lastobj].str);
-		useobj (inven[lastobj].str);
+		useobj (potion, inven[lastobj].str);
 		removeinv (lastobj);
 		break;
 
     case 'r':	lastobj = OBJECT (commandarg (cmd, 1));
 		usemsg ("Reading", lastobj);
 		strcpy (lastname, inven[lastobj].str);
-		useobj (inven[lastobj].str);
+		useobj (scroll, inven[lastobj].str);
 		removeinv (lastobj);
 		break;
 
@@ -213,7 +219,7 @@ char *cmd;
 		lastwand = OBJECT (commandarg (cmd, 2));
 		usemsg ("Pointing", lastwand);
 		strcpy (lastname, inven[lastwand].str);
-		useobj (inven[lastwand].str);
+		useobj (wand, inven[lastwand].str);
 
 		/* Update number of charges */
 		if (inven[lastwand].charges > 0) 
@@ -288,6 +294,8 @@ bumpsearchcount ()
 { register int dr, dc;
   for (dr = -1; dr <= 1; dr++)
     for (dc = -1; dc <= 1; dc++)
+      /* Avoid char overflow */
+      if (timessearched[atrow+dr][atcol+dc] < 127)
       timessearched[atrow+dr][atcol+dc]++;
 }
 
@@ -298,7 +306,32 @@ bumpsearchcount ()
 replaycommand ()
 { char oldcmd[128];
 
+  if (replaying)
+  {
   getoldcommand (oldcmd);
+    /* Check for winning game. */
+    if (stlmatch(oldcmd, "< "))
+    {
+      saynow ("End of winning game log, type 'Q' to exit.");
+      return (0);
+    }
+  }
+  else
+  {
+    char *cp = oldcmd;
+    int ch;
+    while ((ch = getrerun ()) != ';')
+    {
+      if (ch == '\0')
+      {
+	rerunning = 0;
+	return (0);
+      }
+      *cp++ = ch;
+    }
+    *cp = '\0';
+    backuprerun ();
+  }
   command (T_OTHER, oldcmd); 
   return (1); 
 }

@@ -58,7 +58,7 @@ int movetype, (*evalinit)(), (*evaluate)(), reevaluate;
   /* Must rebuild the movement map */
   mvtype = 0;	/* Will become 'if (mvtype==movetype) movetype=0;' */
 
-  dwait (D_SEARCH, "Findmove: computing new search path.");
+  dwait (D_SEARCH, "Findmove: computing new search path for movetype %d.", movetype);
 
   /* currentrectangle(); */     /* always done after each move of the rogue */
 

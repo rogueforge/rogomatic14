@@ -7,6 +7,7 @@
 
 # include <curses.h>
 # include <ctype.h>
+# include <signal.h>
 
 # include "install.h"
 
@@ -15,6 +16,7 @@
 # else
 #     include <sys/time.h>
 # endif
+# include <sys/ioctl.h>
 
 # include "types.h"
 # include "globals.h"
@@ -26,7 +28,11 @@
  * Charonscreen returns the current character on the screen (using
  * curses(3)).  This macro is based on the winch(win) macro.
  */
+#if 0
 # define charonscreen(X,Y)	(stdscr->_y[X][Y])
+#else
+# define charonscreen(Y,X)	screen[Y][X]
+#endif
 
 char *month[] = 
 { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -42,6 +48,40 @@ static char screen00 = ' ';
 
 char  queue[SENDQ];             /* To Rogue */
 int   head = 0, tail = 0;
+
+/*
+ * display_rogue_header: Display interesting header lines from rogue
+ * during replay.
+ */
+display_rogue_header()
+{
+  char line[80];
+  int cl;
+
+  strncpy(line, &screen[0][0], sizeof(line));
+  line[sizeof(line) - 1] = '\0';
+  /* Ignore lines which are not of interest. */
+  if (stlmatch(line, "Illegal command"))
+    return;
+  if (stlmatch(line, "Item:"))
+    return;
+  if (stlmatch(line, "Range is "))
+    return;
+  if (stlmatch(line, "                         "))
+    return;
+  if (strstr(line, "(* for list)"))
+    return;
+  if (line[1] == ')')
+    return;
+  for (cl = 0; cl < sizeof(line); cl++)
+  {
+    int ch = line[cl];
+    if (ch == '\0')
+      break;
+    mvaddch (0, cl, ch);
+  }
+  refresh ();
+}
 
 /*
  * Getrogue: Sensory interface.
@@ -91,34 +131,36 @@ int   onat;                             /* 0 ==> Wait for waitstr
     /* "Press return" prompt only happens if there is a score file */
     /* Available on that system. Hopefully the grass is the same   */
     /* in all versions of Rogue!                                   */
-    if (ch == *d) { if (0 == *++d) { addch (ch); deadrogue (); return;} }
+    if (ch == *d) { if (0 == *++d) { addch (ch); deadrogue (); playing = 0; return;} }
     else d = ")_______";
 
     /* If the message has a more, strip it off and call terpmes */
     if (ch == *m)
     { if (*++m == 0)
-      { /* More than 50 messages since last command ==> start logging */
-        if (++morecount > 50 && !logging) 
+      { /* More than 3000 messages since last command ==> start logging */
+	/* When the player is transfixed, it can take a very long time */
+	/* till he finally dies. */
+        if (++morecount > 3000 && !logging) 
 	{ toggleecho (); dwait (D_WARNING, "Started logging --More-- loop."); }
 
-        /* More than 100 messages since last command ==> infinite loop */
-        if (++morecount > 100) dwait (D_FATAL, "Caught in --More-- loop.");
+        /* More than 3050 messages since last command ==> infinite loop */
+        if (morecount > 3050) dwait (D_FATAL, "Caught in --More-- loop.");
 
-	/* Send a space (and possibly a semicolon) to clear the message */
-        if (onat == 2) sendnow (" ;");
-        else           sendnow (" ");
-
-        /* Clear the --More-- of the end of the message */
-        for (i = col - 7; i < col; screen[0][i++] = ' ');
-
-        terpmes ();			/* Interpret the message */
-
-        /* This code gets rid of the "Studded leather arm" bug */
-	/* But it causes other problems.		MLM   */
-        /* sprintf (&screen[0][col - 7], "--More--"); */ 
+	/* Handle more prompt at top of loop. */
+	morepromptcol = col;
+	if (row == 1)
+	{
+	  morepromptcol += 80;
+	  continue;
       }
     }
-    else m = "More--";
+    }
+    else
+    {
+      if (m > moreprompt && ch == CM_TOK && row == 1 && col == 0)
+	continue;
+      m = moreprompt;
+    }
 
     /* If the message is 'Call it:', cancel the request */
     if (ch == *call)
@@ -136,6 +178,7 @@ int   onat;                             /* 0 ==> Wait for waitstr
     /* Now figure out what the token means */
     switch (ch)
     { case BS_TOK: 
+	if (col > 0)
         col--;
         break;
 
@@ -146,22 +189,41 @@ int   onat;                             /* 0 ==> Wait for waitstr
             screen[row][i] = ' ';
           }
         else
+	  {
+	    /* Interpret some messages before clearing them. */
+  	    if (col == 0 &&
+	        (stlmatch (&screen[0][0], "Range is") ||
+		 stlmatch (&screen[0][0], "There is something there already")))
+	      terpmes ();
           for (i = col; i < 80; i++)
             screen[row][i] = ' ';
+	  }
 
         if (row) { at (row, col); clrtoeol (); }
         else if (col == 0) screen00 = ' ';
         break;
 
       case CL_TOK: 
+	/* Handle new screen messages before the clear */
+        if (screen[0][0] != ' ' && screen[0][0] != 'I')
+	  terpmes ();
         clearscreen ();
         break;
 
       case CM_TOK: 
         screen00 = screen[0][0];
+	if (row && cm_row == 0)
+	{
+          if (replaying && LINES > 25 && !emacs && !terse)
+	    display_rogue_header();
+	}
+	cm_row = row;
         break;
 
       case CR_TOK: 
+  	if (row == 0
+	    && stlmatch (&screen[0][0], "Drop what"))
+          terpmes ();
 	/* Handle missing '--more--' between inventories  MLM 24-Jun-83 */
 	if (row==0 && screen[0][1]==')' && screen[0][col-1] != '-')
           terpmes ();
@@ -224,6 +286,7 @@ int   onat;                             /* 0 ==> Wait for waitstr
         { screen00 = screen[0][0]; }
         else if (col == 1 && ch == 'l' && screen[0][0] == 'I')
         { screen[0][0] = screen00;
+	  /* Handle new messages when sync command is seen. */
           if (screen00 != ' ') terpmes ();
           screen[0][0] = 'I';
         }
@@ -248,10 +311,21 @@ int   onat;                             /* 0 ==> Wait for waitstr
   }
 
   if (version < RV53A && checkrange && !pending ())
-  { command (T_OTHER, "Iz"); checkrange = 0; }
+  {
+    if (!replaying && !rerunning)
+      /* Clear range message after displaying it */
+      /* We have an apostrophe at the end of the range message,
+       * which is at the same position as the last apostrophe
+       * of the Illegal command ';' message.
+       * With optimized curses the last apostrophe is not sent,
+       * causing rogomatic to hang, waiting for the last apostrophe.
+       */
+      command (T_OTHER, "Iz ");
+    checkrange = 0;
+  }
  
   /* If mapping status has changed */
-  if (wasmapped != didreadmap)
+  if (didreadmap && wasmapped != didreadmap)
   { dwait (D_CONTROL | D_SEARCH, "wasmapped: %d   didreadmap: %d",
            wasmapped, didreadmap);
 
@@ -274,6 +348,19 @@ int   onat;                             /* 0 ==> Wait for waitstr
 	{ unsetrc (CANGO | SAFE, i, j);          /* Infer cant go and...   */
 	  setnewgoal ();		         /* invalidate the map.    */
 	}
+
+  /* Avoid endless moves when in corridor area and blinded. */
+  /* If the move did not succeed, assume that we can't go there. */
+  if (blinded && !confused && !moved && !didfight && movedir != NOTAMOVE)
+  {
+    r = atdrow(movedir);
+    c = atdcol(movedir);
+    if (onrc(CANGO, r, c))
+    {
+      unsetrc (CANGO | SAFE, r, c);	/* Infer cant go and...   */
+      setnewgoal ();			/* invalidate the map.    */
+    }
+  }
 
   at (row, col); 
   if (!emacs && !terse) refresh ();
@@ -349,20 +436,25 @@ terpbot ()
 
     /* Handle Emacs and Terse mode */
     if (emacs || terse)
-    { /* Skip backward over blanks and nulls */
-      for (i = 79; screen[23][i] == ' ' || screen[23][i] == '\0'; i--);
-      screen[23][++i] = '\0';
+    {
+      char lastline[81];
+      strncpy(lastline, &screen[23][0], sizeof(lastline));
+      /* Skip backward over blanks and nulls */
+      for (i = 79; lastline[i] == ' ' || lastline[i] == '\0'; i--);
+      lastline[++i] = '\0';
 
+      reset_shell_mode();
       if (emacs)
-      { sprintf (modeline, " %s (%%b)", screen[23]);
-        if (strlen (modeline) > 72) sprintf (modeline, " %s", screen[23]);
+      { sprintf (modeline, " %s (%%b)", lastline);
+        if (strlen (modeline) > 72) sprintf (modeline, " %s", lastline);
         fprintf (realstdout, "%s", modeline);
         fflush (realstdout);
       }
       else if (terse && oldlev != Level)
-      { fprintf (realstdout, "%s\n", screen[23]);
+      { fprintf (realstdout, "%s\n", lastline);
         fflush (realstdout);
       }
+      reset_prog_mode();
     }
   }
 }
@@ -410,6 +502,26 @@ dumpwalls ()
 }
 
 /*
+ * dumppsd: Dump the current PSD map
+ */
+
+dumppsd ()
+{ register int   r, c, S;
+  char ch;
+
+  for (r = 1; r < 23; r++)
+  { for (c = 0; c < 80; c++)
+    { S=scrmap[r][c];
+      ch = (PSD&S)                     ? 'P' : '\0';
+      if (ch) mvaddch (r, c, ch);
+    }
+  }
+
+  at (row, col);
+  refresh();
+}
+
+/*
  * sendnow: Send a string to the Rogue process.
  */
 
@@ -422,7 +534,21 @@ int a1, a2, a3, a4;
   
   sprintf (cmd, f, a1, a2, a3, a4);
 
-  while (*s) sendcnow (*s++);
+  while (*s)
+  {
+    int ch = *s++;
+    sendcnow (ch);
+    if (rerunning)
+    {
+      /* Consume character from rerun. */
+      int gotch = getrerun ();
+      if (gotch != ch && ch != '\n' && gotch != '\0')
+      {
+        dwait (D_ERROR, "Rerun expected `%c', got `%c'", ch, gotch);
+	rerunning = 0;
+      }
+    }
+  }
 }
 
 /*
@@ -627,7 +753,7 @@ int terminationtype;            /* SAVED, FINSISHED, or DIED */
   ts = localtime(&clock);
 
   /* Build a summary line */  
-  sprintf (sumline, "%3s %2d, %4d %-8.8s %7d%s%-17.17s %3d %3d ",
+  sprintf (sumline, "%3s %2d, %4d %-8.8s %7d%s%-13.13s %3d %3d ",
            month[ts -> tm_mon], ts -> tm_mday, 1900 + ts -> tm_year,
            getname (), gld, cheat ? "*" : " ", reason, MaxLevel, Hpmax);
   
@@ -643,7 +769,7 @@ int terminationtype;            /* SAVED, FINSISHED, or DIED */
   at (23, 0); clrtoeol (); refresh ();
 
   /* 22 is index of score in sumline */
-  if (!replaying)
+  if (!replaying && !didrerun)
     add_score (sumline, versionstr, (terse || emacs || noterm));
 
   /* Restore interrupt status */
@@ -667,7 +793,16 @@ int terminationtype;            /* SAVED, FINSISHED, or DIED */
   else if (terminationtype == FINISHED)
     sendnow ("Qy\n");
   else
+  {
     sendnow ("Syy"); /* Must send two yesses,  R5.2 MLM */
+    /* If fatal error, kill rogue process, as it wont do a save */
+    if (stlmatch (reason, "fatal error trap"))
+    {
+      critical ();
+      kill (rogpid, SIGHUP);
+      uncritical ();
+    }
+  }
 
   /* Wait for Rogue to die */
   wait ((int *) NULL);
@@ -705,6 +840,9 @@ int a1, a2, a3, a4, a5, a6, a7, a8;
 
   if (!emacs && !terse)
   { sprintf (buf, f, a1, a2, a3, a4, a5, a6, a7, a8);
+    if (replaying && LINES > 25)
+      at (25,0);
+    else
     at (0,0);
     for (b=buf; *b; b++) printw ("%s", unctrl (*b));
     clrtoeol ();
@@ -778,7 +916,7 @@ givehelp ()
 
 pauserogue ()
 { 
-  at (23, 0);
+  at (LINES - 1, 0);
   addstr ("--press space to continue--");
   clrtoeol ();
   refresh ();
@@ -848,6 +986,27 @@ charsavail ()
   }
 
   if (n > 0) noterm = 0;
+  return ((int) n);
+}
+
+/*
+ * rogueavail: How many characters are there from rogue?
+ * Used for --More-- tail handling, as there might be more output
+ * after the --More-- prompt due to curses optimization.
+ */
+
+rogueavail ()
+{ long n;
+  int retc;
+
+  if (replaying)
+    return 0;
+  
+  if (retc = ioctl (fileno(frogue), FIONREAD, &n))
+  { saynow ("Ioctl frogue returns %d, n=%ld.\n", retc, n);
+    n=0;
+  }
+
   return ((int) n);
 }
 
@@ -1052,26 +1211,109 @@ int getlogtoken()
 }
 
 /*
+ * getquotedstring: retrieve a quoted string from a logfile we are replaying.
+ */
+
+getquotedstring (s)
+register char *s;
+{
+  register int charcount = 0;
+  char ch = ' ', term = '"';
+  term = ch = GETLOGCHAR;
+  while ((ch = GETLOGCHAR) != term && (int) ch != EOF && charcount++ < 127)
+    { *(s++) = ch;
+    }
+  *s = '\0';
+}
+
+/*
  * getoldcommand: retrieve the old command from a logfile we are replaying.
  */
 
 getoldcommand (s)
 register char *s;
-{ register int charcount = 0;
-  char ch = ' ', term = '"', *startpat = "\nC: ";
+{
+  char ch = ' ', term = '"', *commpat = "\nC: ", *stratpat = "\nS: ";
 
-  while (*startpat && (int) ch != EOF)
-  { if ((ch = GETLOGCHAR) != *(startpat++)) startpat = "\nC: "; }
-
-  if ((int) ch != EOF)
-  { term = ch = GETLOGCHAR;
-    while ((ch = GETLOGCHAR) != term && (int) ch != EOF && charcount++ < 128)
-    { *(s++) = ch;
-    }
+  if (replaying && stoppos && (ftell(logfile) > stoppos))
+  {
+    stoppos = 0;
+    transparent = 1;
   }
 
   *s = '\0';
+  while (*commpat && (int) ch != EOF)
+  {
+    ch = GETLOGCHAR;
+    if (ch != *(commpat++))
+      commpat = "\nC: ";
+    if (ch == *stratpat)
+    {
+      if (*++stratpat == 0)
+      {
+	char stratmsg[128], *b;
+	getquotedstring (stratmsg);
+	if (!emacs && !terse && LINES > 26)
+	{
+	  at (26,0);
+	  for (b=stratmsg; *b; b++) printw ("%s", unctrl (*b));
+	  clrtoeol ();
+	  at (row, col);
+	  msgonscreen = 1;
+	}
+        stratpat = "\nS: ";
+      }
+    }
+    else
+      stratpat = "\nS: ";
+  }
+
+  if ((int) ch != EOF)
+  {
+    getquotedstring (s);
+    if (s[0] == 'd' && s[1] != ';')
+      olddrop = 1;
+    }
+  }
+
+/*
+ * getrerun: retrieve next character from logfile for rerunning.
+ */
+
+static char rrbuf[128];
+static char *rrp = rrbuf;
+getrerun ()
+{
+  int ch;
+  if (*rrp == '\0')
+  {
+    getoldcommand (rrbuf);
+    rrp = rrbuf;
 }
+
+  ch = *rrp;
+  if (ch)
+    rrp++;
+  return (ch);
+}
+
+/*
+ * backuprerun: push back retrieved character for rerunning.
+ */
+backuprerun ()
+{
+  if (rrp > rrbuf)
+    rrp--;
+}
+
+/*
+ * peekrerun: netx available character for rerunning.
+ */
+peekrerun ()
+{
+  return (*rrp);
+}
+
 
 /*
  * dosnapshot: add a snapshot to the SHAPSHOT file.

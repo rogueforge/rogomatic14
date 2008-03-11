@@ -7,6 +7,7 @@
 
 # include <stdio.h>
 # include <signal.h>
+# include <string.h>
 # include "install.h"
 
 # define READ    0
@@ -25,6 +26,8 @@ char *argv[];
 { int   ptc[2], ctp[2];
   int   child, score = 0, oldgame = 0;
   int   cheat = 0, noterm = 1, echo = 0, nohalf = 0, replay = 0;
+  int	rerun = 0, seed = 0;
+  char	replayseed[128];
   int   emacs = 0, rf = 0, terse = 0, user = 0, quitat = 2147483647;
   char  *rfile = "", *rfilearg = "", options[32];
   char  ropts[128], roguename[128];
@@ -36,7 +39,9 @@ char *argv[];
         case 'e': echo++;         break; /* Echo file to roguelog */
         case 'f': rf++;           break; /* Next arg is the rogue file */
         case 'h': nohalf++;       break; /* No halftime show */
+        case 'n': quitat = -1;    break; /* Do not try to beat score */
         case 'p': replay++;       break; /* Play back roguelog */
+        case 'P': rerun++;        break; /* Rerun roguelog */
         case 'r': oldgame++;      break; /* Use saved game */
         case 's': score++;        break; /* Give scores only */
         case 't': terse++;        break; /* Give status lines only */
@@ -44,7 +49,7 @@ char *argv[];
         case 'w': noterm = 0;     break; /* Watched mode */
         case 'E': emacs++;        break; /* Emacs mode */
         default:  printf 
-                  ("Usage: rogomatic [-cefhprstuwE] or rogomatic [file]\n");
+                  ("Usage: rogomatic [-cefhpPrstuwE] or rogomatic [file]\n");
                   exit (1);
       }
     }
@@ -56,7 +61,7 @@ char *argv[];
   }
 
   if (argc > 1)
-  { printf ("Usage: rogomatic [-cefhprstuwE] or rogomatic <file>\n");
+  { printf ("Usage: rogomatic [-cefhpPrstuwE] or rogomatic <file>\n");
     exit (1);
   }
 
@@ -77,10 +82,11 @@ char *argv[];
     exit (1);
   }
 
-  if (!replay && !score) quitat = findscore (rfile, "Rog-O-Matic");
+  if (!replay && !score && quitat > 0)
+    quitat = findscore (rfile, "Rog-O-Matic");
 
-  sprintf (options, "%d,%d,%d,%d,%d,%d,%d,%d",
-           cheat, noterm, echo, nohalf, emacs, terse, user,quitat);
+  sprintf (options, "%d,%d,%d,%d,%d,%d,%d,%d,%d",
+           cheat, noterm, echo, nohalf, emacs, terse, user,quitat,rerun);
   sprintf (roguename, "Rog-O-Matic %s for %s", RGMVER, getname ());
   sprintf (ropts, "name=%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
            roguename, "fruit=apricot", "terse", "noflush", "noask",
@@ -94,6 +100,43 @@ char *argv[];
     exit (1);
   }
 
+  if (rerun)
+  {
+    char *fname = ROGUELOG;
+    FILE *fp;
+    char *msg = "welcome to dungeon #";
+    char *seedstr = replayseed, *m = msg;
+    int cnt = 2000, ch;
+
+    if (argc == 1)
+    {
+      fname = argv[0];
+      argc--;
+    }
+    strcpy (roguename, fname);
+
+    fp = fopen (fname, "r");
+    if (fp == NULL)
+    {
+      printf ("Cannot open replay file %s\n", fname);
+      exit (1);
+    }
+ 
+    while (cnt-- > 0 && *m)
+    { if (fgetc (fp) == *m) m++; else m = msg;}
+  
+    if (*m == '\0')			/* Found msg, get seed string */
+    { while ((ch = fgetc (fp)) >='0' && ch <= '9') *(seedstr++) = ch;
+      *seedstr = '\0';
+    }
+    else				/* Use default version */
+    {
+      printf ("Cannot find seed in replay file %s\n", fname);
+      exit (1);
+    }
+    fclose(fp);
+  }
+
   trogue = ptc[WRITE];
   frogue = ctp[READ];
 
@@ -102,11 +145,15 @@ char *argv[];
     dup (ptc[READ]);
     close (1);
     dup (ctp[WRITE]);
+    close(2);
 
     putenv ("TERMCAP", ROGUETERM);
-    putenv ("TERM", "rg");
+    putenv ("TERM", "rterm");
+    putenv ("TERMINFO", TERMINFODIR);
+    putenv ("LINES", "24");
     putenv ("ROGUEOPTS", ropts);
-
+    if (rerun)
+        putenv("SEED", replayseed);
     if (oldgame)  execl (rfile, rfile, "-r", 0);
     if (argc)     execl (rfile, rfile, argv[0], 0);
     execl (rfile, rfile, 0);
@@ -141,7 +188,10 @@ char *argv[];
 
 replaylog (fname, options)
 char *fname, *options;
-{ execl ("player", "player", "ZZ", "0", options, fname, 0);
+{
+  if (getenv("ROGOVALGRIND"))
+    execl ("vplayer", "vplayer", "ZZ", "0", options, fname, 0);
+  execl ("player", "player", "ZZ", "0", options, fname, 0);
 # ifdef PLAYER
   execl (PLAYER, "player", "ZZ", "0", options, fname, 0);
 # endif

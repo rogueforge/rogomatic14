@@ -34,7 +34,15 @@ char ch, *str;
 
   /* If it is a monster, set its array index */
   else if (ch >= 'a' && ch <= 'z')
-  { monindex[ch-'a'+ 1] = addmonhist (str); }
+  {
+    monindex[ch-'a'+ 1] = addmonhist (str);
+    /* Reanalyze after last monster character is mapped. */
+    /* During rerun the mapping is not yet set up in versiondep, */
+    /* because the identify commands are not queued but read later */
+    /* from the logfile. */
+    if (rerunning && ch == 'z')
+      analyzeltm ();
+  }
 }
 
 /* 
@@ -131,6 +139,8 @@ int score;
 restoreltm ()
 {
   sprintf (ltmnam, "%s/ltm%d", RGMDIR, version);
+  if (rerunning && fexists("rogo.ltm"))
+    strcpy(ltmnam, "rogo.ltm");
   dwait (D_CONTROL, "Restoreltm called, reading file '%s'", ltmnam);
 
   clearltm (monhist);			/* Clear the original sums */
@@ -143,7 +153,16 @@ restoreltm ()
   /* Only read the long term memory if we can get access */
   if (lock_file (LOCKFILE, MAXLOCK))
   { if (fexists (ltmnam))
+    {
+      /* Save long term memory for rerunning */
+      if (logging && (!rerunning || !fexists("rogo.ltm")))
+      {
+	char cmdbuf[256];
+        sprintf(cmdbuf, "cp %s %s", ltmnam, "rogo.ltm");
+	system(cmdbuf);
+      }
       readltm ();
+    }
     else 
     { dwait (D_CONTROL | D_SAY,
              "Starting long term memory file '%s'...", ltmnam);

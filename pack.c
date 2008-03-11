@@ -43,7 +43,7 @@ register int i;
     sprintf (item, "%s %s%s%s%s%s%s%s%s%s.",	  /* DR UTexas */
             item, inven[i].str, 
              (itemis (i, KNOWN) ? "" : ", unknown"),
-             (used (inven[i].str) ? ", tried" : ""),
+             (used (inven[i].type, inven[i].str) ? ", tried" : ""),
              (itemis (i, CURSED) ? ", cursed" : ""),
              (itemis (i, UNCURSED) ? ", uncursed" : ""),
              (itemis (i, ENCHANTED) ? ", enchanted" : ""),
@@ -89,6 +89,20 @@ int pos;
   { clearpack  (pos);		/* Assure nothing at that spot  DR UT */
     rollpackup (pos);		/* Close up the hole */
   }
+
+  countpack ();
+  checkrange = 1;
+}
+
+/*
+ * zapinv: remove an item from the inventory, if multiple items remove all.
+ */
+
+zapinv (pos)
+int pos;
+{ 
+  clearpack  (pos);		/* Assure nothing at that spot  DR UT */
+  rollpackup (pos);		/* Close up the hole */
 
   countpack ();
   checkrange = 1;
@@ -159,6 +173,8 @@ register int pos;
     inven[i] = inven[i+1];
 
   inven[--invcount].str = savebuf;
+  /* Deleted item should not show up in the inventory */
+  inven[invcount].count = 0;
 }
 
 /* 
@@ -173,6 +189,13 @@ register int pos;
 
   if (version >= RV53A) return;
 
+  if (invcount >= MAXINV)
+  {
+    usesynch = 0; 
+    dwait (D_WARNING, "inventory full");
+    return;
+  }
+
   savebuf = inven[invcount].str;
   for (i=invcount; i>pos; --i)
   { inven[i] = inven[i-1];
@@ -183,8 +206,7 @@ register int pos;
   }
   inven[pos].str = savebuf;
 
-  if (++invcount > MAXINV)
-    usesynch = 0; 
+  invcount++;
 }
 
 /*
@@ -194,7 +216,7 @@ register int pos;
 
 resetinv()
 { 
-  if (!replaying) command (T_OTHER, "i");
+  if (!replaying && !rerunning) command (T_OTHER, "i");
 }
 
 /*
@@ -215,6 +237,7 @@ doresetinv ()
 
   invcount = objcount = urocnt = 0;
   currentarmor = currentweapon = leftring = rightring = NONE;
+  overwriteinv = 0;
   
   if (version >= RV53A) invcount = MAXINV;
 }
@@ -228,11 +251,13 @@ doresetinv ()
 inventory (msgstart, msgend)
 char *msgstart, *msgend;
 { register char *p, *q, *mess = msgstart, *mend = msgend;
-  char objname[100], *realname();
+  char objname[100];
   int  n, ipos, xknow = 0, newitem = 0, inuse = 0, printed = 0;
   int  plushit = UNKNOWN, plusdam = UNKNOWN, charges = UNKNOWN;
   stuff what; 
   char *xbeg, *xend;
+  char fakename[100];
+  char *getenv();
 
   xbeg = xend = "";
   dwait (D_PACK, "inventory: message %s", mess);
@@ -278,16 +303,42 @@ char *msgstart, *msgend;
   while (mend[-1]=='.') mend--;		/* Remove trailing periods */
 
   /* Read any parenthesized strings at the end of the message */
+  fakename[0] = '\0';
   while (mend[-1]==')')
-  { while (*--mend != '(') ;		/* on exit mend -> '(' */
+  { 
+    char *fend = mend - 1;
+    while (*--mend != '(') ;		/* on exit mend -> '(' */
     if (stlmatch(mend,"(being worn)") )
     { currentarmor = ipos; inuse = INUSE; }
     else if (stlmatch(mend,"(weapon in hand)") )
     { currentweapon = ipos; inuse = INUSE; }
     else if (stlmatch(mend,"(on left hand)") )
-    { leftring = ipos; inuse = INUSE; }
+    {
+      leftring = ipos; inuse = INUSE;
+      if (newitem)
+      {
+	newitem = 0;
+	overwriteinv = 1;
+      }
+    }
     else if (stlmatch(mend,"(on right hand)") )
-    { rightring = ipos; inuse = INUSE; }
+    {
+      rightring = ipos; inuse = INUSE;
+      if (newitem)
+      {
+	newitem = 0;
+	overwriteinv = 1;
+      }
+    }
+    else
+    {
+      /* Record as fakename */
+      char *fbeg = mend + 1;
+      char *fnp = fakename;
+      while (fbeg < fend)
+        *fnp++ = *fbeg++;
+      *fnp = '\0';
+    }
 
     while (mend[-1]==' ') mend--;
   }
@@ -302,7 +353,8 @@ char *msgstart, *msgend;
 
   /* Undo plurals by removing trailing 's' */
   while (mend[-1] == ' ') mend--;
-  if (mend[-1]=='s') mend--;
+  if (mend[-1]=='s')
+    mend--;
 
   /* Now find what we have picked up: */
   if (stlmatch(mend-4,"food")) {what=food;xknow=KNOWN;}
@@ -341,6 +393,13 @@ char *msgstart, *msgend;
 
   for (p = objname, q = xbeg; q < xend;  p++, q++) *p = *q;
   *p = '\0';
+  if (streq(objname,"blindnes") ||
+      streq(objname,"paralysi") ||
+      streq(objname,"aggravate monster"))
+  {
+    *p++ = 's';
+    *p = '\0';
+  }
 
   dwait (D_PACK, "inv: %s '%s', hit %d, dam %d, chg %d, knw %d",
          stuffmess[(int) what], objname, plushit, plusdam, charges, xknow);
@@ -352,13 +411,18 @@ char *msgstart, *msgend;
   /* If the name of the object matches something in the database, */
   /* slap the real name into the slot and mark it as known */
 
+  if (objname[0] && fakename[0])
+    infername(what, 0, fakename, objname);
   if ((what == potion || what == scroll || what == wand) && !xknow)
-  { char *dbname = realname (objname);
+  { char *dbname = realname (what, objname);
     if (*dbname)
     { strcpy (objname, dbname);
       xknow = KNOWN;
       if (newitem)
-      { at (0,0);
+      { if (replaying && LINES > 25)
+	  at (25,0);
+	else
+	  at (0,0);
 
         if (n == 1) printw ("a ");
         else printw ("%d ", n);
@@ -395,14 +459,33 @@ char *msgstart, *msgend;
 
   if (n > 1 && ipos < invcount && inven[ipos].type == what &&
       n == inven[ipos].count+1 &&
-      stlmatch(objname, inven[ipos].str) && 
+      (what != food || objname[0] == inven[ipos].str[0]) &&
+      (stlmatch(objname, inven[ipos].str) ||
+       (fakename[0] && stlmatch(fakename, inven[ipos].str))) && 
       inven[ipos].phit == plushit &&
       inven[ipos].pdam == plusdam)
+  {
     inven[ipos].count = n;
+    /* Work around problem with multiple object groups for missiles */
+    /* If we have 11 darts at position r) in the pack and find */
+    /* 12 extra darts at position r), the pack ist out of sync,
+    /* as the extra darts are not added to the pack. */
+    /* Resync inventory for missiles as a workaorund. */
+    if (what == missile)
+      usesynch = 0;
+  }
 
   /* New item, in older Rogues, open up a spot in the pack */
   else
-  { if (version < RV53A) rollpackdown (ipos);		
+  { if (version < RV53A)
+    {
+      /* Overwrite current item during identify replay, */
+      /* as the item to be identified cannot be removed in readident */
+      /* during replay. */
+      if (!overwriteinv)
+	rollpackdown (ipos);
+      overwriteinv = 0;
+    }
 
     inven[ipos].type = what;
     inven[ipos].count = n;

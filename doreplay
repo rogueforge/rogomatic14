@@ -1,0 +1,69 @@
+#!/bin/sh
+#
+ERRFILE=./error5.2
+ROGUEBIN=${ROGUEBIN:-./rogue}
+ROGOMATICBIN=${ROGOMATICBIN:-./rogomatic}
+#
+VERBOSE=${VERBOSE:-no}
+NOBEATSCORE=-n
+#
+for i in $*
+do
+  rm -f replay.out roguelog $ERRFILE rogo.ltm rogo.knobs
+  if [ -f $i.knobs ] ; then
+    cp -p $i.knobs rogo.knobs
+  fi
+  if [ -f $i.ltm ] ; then
+    cp -p $i.ltm rogo.ltm
+  fi
+  REPLAYFILE=$i
+  if [ -f $i.gz ] ; then
+    gzip -d <$i.gz >$i
+  fi
+  if [ ! -f $i ] ; then
+    echo "replay file $i is missing"
+    continue
+  fi
+  if [ -f rogo.ltm -a -f rogo.knobs ] ; then
+    head -n 71 $i >rogo.rerun
+    REPLAYFILE=rogo.rerun
+  fi
+  if [ "$VERBOSE" = yes ] ; then
+    $ROGOMATICBIN -f $ROGUEBIN -P -e -h $NOBEATSCORE -w $REPLAYFILE
+  else
+    $ROGOMATICBIN -f $ROGUEBIN -P -e -h $NOBEATSCORE -t $REPLAYFILE >/dev/null
+  fi
+  if [ -s $ERRFILE ] ; then
+    echo "Rerun errors for $i" >>replay.out
+    cat $ERRFILE >>replay.out
+  fi
+  if [ -f rogue.vg ] ; then
+    mv rogue.vg $i.vg
+  fi
+  if [ ! -f roguelog ] ; then
+    NEWLOG=`ls -t *.*.* | grep -v '.err' | grep -v .knobs | grep -v .ltm | grep -v $i | head -1`
+    echo "Rerun roguelog is missing for $i, maybe on $NEWLOG" >>replay.out
+  else
+    TMPFIL1=/tmp/rogodiff1$$
+    TMPFIL2=/tmp/rogodiff2$$
+    grep -v '^S: "' <$REPLAYFILE >$TMPFIL1
+    if [ $REPLAYFILE = rogo.rerun ] ; then
+      diff $i roguelog >$TMPFIL2
+    else
+      diff $TMPFIL1 roguelog >$TMPFIL2
+    fi
+    if [ -s $TMPFIL2 ] ; then
+      echo "Rerun diffs for $i:" >>replay.out
+      cat $TMPFIL2 >>replay.out
+    fi
+    rm -f $TMPFIL1 $TMPFIL2
+  fi
+  if [ -f $i.gz ] ; then
+    rm -f $i
+  fi
+  if [ -f replay.out ] ; then
+    cat replay.out
+  fi
+done
+#
+rm -f roguelog

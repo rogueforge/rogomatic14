@@ -27,11 +27,26 @@
 # define FALSE 0
 
 /*
+ * attach_gdb: Start gdb and attach it to running program.
+ */
+
+attach_gdb (pid)
+int pid;
+{
+  char cmd[512];
+  sprintf (cmd, "xterm -e gdb /proc/%d/exe %d &", pid, pid);
+  system (cmd);
+  sleep (5);
+}
+
+/*
  * baudrate: Determine the baud rate of the terminal
  */
 
 baudrate ()
-{ static short  baud_convert[] =
+{
+#if 0
+  static short  baud_convert[] =
   { 0, 50, 75, 110, 135, 150, 200, 300, 600, 1200, 1800, 2400, 4800, 9600 };
   static struct sgttyb  sg;
   static short  baud_rate;
@@ -42,6 +57,9 @@ baudrate ()
     ? baud_convert[sg.sg_ospeed] : 9600;
 
   return (baud_rate);
+#else
+  return 38400;
+#endif
 }
 
 /*

@@ -82,9 +82,9 @@ int obj;
 
   /* read unknown scrolls or good scrolls rather than dropping them */
   if (inven[obj].type == scroll &&
-      (!itemis (obj, KNOWN) ||
-       stlmatch (inven[obj].str, "identify") &&
-	   prepareident (pickident (), obj) ||
+      (((!itemis (obj, KNOWN) ||
+         stlmatch (inven[obj].str, "identify")) &&
+	   prepareident (pickident (obj), obj)) ||
        stlmatch (inven[obj].str, "enchant") ||
        stlmatch (inven[obj].str, "genocide") ||
        stlmatch (inven[obj].str, "gold detection") ||
@@ -110,7 +110,11 @@ int obj;
       quaff (obj))
   { return (1); }
 
+  dropid = LETTER (obj);
+  if (olddrop)
   command (T_HANDLING, "d%c", LETTER (obj));
+  else
+    command (T_HANDLING, "d");
   return (1);
 }
 
@@ -280,6 +284,9 @@ display (s)
 char *s;
 { saynow (s);
   msgonscreen=1;
+  /* Log strategy message */
+  if (logging && cecho)
+    fprintf (fecho, "\nS: \"%s\"", s);
 }
 
 /* 
@@ -299,16 +306,25 @@ int obj, iscroll;
  * first item in the pack).
  */
 
-int pickident ()
+int pickident (iscroll)
+int iscroll;
 { register int obj;
+  char *getenv();
+  int oldpick = (getenv("ROGOOLDPICK") != NULL);
 
   if      ((obj=unknown      (ring))   != NONE);
   else if ((obj=unidentified (wand))   != NONE);
-  else if ((obj=unidentified (scroll)) != NONE);
+  else if ((obj=haveother    (scroll, iscroll)) != NONE &&
+			used (scroll, inven[obj].str));
   else if ((obj=unidentified (potion)) != NONE);
-  else if ((obj=unknown      (scroll)) != NONE);
+  else if ((obj=unknown      (wand)) != NONE && !oldpick);
+  else if ((obj=haveother    (scroll, iscroll)) != NONE &&
+			!used (scroll, inven[obj].str));
   else if ((obj=unknown      (potion)) != NONE);
   else if ((obj=unknown      (hitter)) != NONE);
+  else if ((obj=unknown      (armor)) != NONE);
+  else if ((obj=unknown      (missile)) != NONE && !oldpick);
+  else if (iscroll == 0) obj = 1;
   else obj = 0;
 
   return (obj);
@@ -325,7 +341,7 @@ stuff otype;
     if (inven[i].count &&
         (inven[i].type == otype) &&
         (itemis (i, KNOWN) == 0) &&
-	(!used (inven[i].str)))
+	(!used (otype, inven[i].str)))
       return (i);
 
   return (NONE);
@@ -342,7 +358,7 @@ stuff otype;
     if (inven[i].count &&
         (inven[i].type == otype) &&
         (itemis (i, KNOWN) == 0) &&
-	(used (inven[i].str)))
+	(used (otype, inven[i].str)))
       return (i);
 
   return (NONE);
@@ -477,7 +493,8 @@ int haveminus ()
   for (i=0; i<invcount; ++i)
     if (inven[i].count &&
         inven[i].phit != UNKNOWN &&
-        inven[i].phit < 0)
+        inven[i].phit < 0 &&
+        !itemis (i, INUSE))
       return (i);
 
   return (NONE);

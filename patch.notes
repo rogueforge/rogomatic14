@@ -1,0 +1,29 @@
+> If you were
+> just going to abandon you patches you can send them my way and I'll take
+> a look and see if they can be integrated.
+
+Yes, I am going to abandon them, so you can do whatever you want
+with them.
+
+============================
+
+A few comments on the rogomatic patches:
+- I added a rerun mode, which replays a roguelog file with a running
+  rogue executable, so that I could debug problems in rogue itself.
+- The ROGOOLDXXX and oldxxx stuf is there to allow replays of games which
+  were run with an unpatched version of rogomatic, for regression testing.
+- doit and doreplay are shell scripts for running rogomatic in a loop
+  and for replaying a game which was run by doit.
+- The patches to database.c avoid wrong inferences, as there are e.g.
+  silver wands and silver potions, which were not discernible without
+  the patches.
+- The two extra return (1); statements in explore.c fix a problem with a
+  return of random values, they definitely should go in.
+- The dropreply patch is for the cases when the item is cursed, as rogue
+  and rogomatic would get out of sync otherwise.
+  A similar approch would be needed for the throw and wield commands,
+  because the items could be cursed as well, but I did not find time to
+  implement that.
+- Most of the other patches should have an appropriate comment.
+
+

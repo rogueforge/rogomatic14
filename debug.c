@@ -47,7 +47,7 @@ int msgtype, a1, a2, a3, a4, a5, a6, a7, a8;
     if ((errfil = wopen (errfn, "a")) != NULL)
     { fprintf (errfil, "User %s, error type %d:  %s\n\n",
                getname(), msgtype, msg);
-      if (msgtype & (D_FATAL | D_ERROR))
+      if (msgtype & (D_FATAL | D_ERROR | D_WARNING))
       { printsnap (errfil);
         summary (errfil, NEWLINE);
         fprintf (errfil, "\f\n");
@@ -55,13 +55,17 @@ int msgtype, a1, a2, a3, a4, a5, a6, a7, a8;
       fclose (errfil);
     }
   }
+#if 0
+  if (msgtype & (D_FATAL | D_ERROR /*| D_WARNING*/))
+    attach_gdb (getpid ());
+#endif
 
   if (msgtype & D_FATAL)
   { extern jmp_buf commandtop;			/* From play */
     saynow (msg);
     playing = 0;
     quitrogue ("fatal error trap", Gold, SAVED);
-    longjmp (commandtop);
+    longjmp (commandtop, 1);
   }
 
   if (! debug (msgtype | D_INFORM))		/* If debugoff */

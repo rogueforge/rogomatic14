@@ -34,6 +34,7 @@ newlevel ()
   darkdir = NONE; darkturns = 0;	/* Not arching old monster */
   stairrow = NONE; staircol = 0;	/* Get rid of old stairs */
   missedstairs = 0;
+  levelrestarts = 0;
   newdoors = doorlist;			/* Clear door list */
   goalr = goalc = NONE;			/* Old goal invalid */
   trapr = trapc = NONE;			/* Old traps are gone */
@@ -44,6 +45,7 @@ newlevel ()
   compression = Level < 13;		/* Set move compression */
   newarmor = newweapon = newring = 1;	/* Reevaluate our items */
   foundnew ();				/* Reactivate all rules */
+  didreadmap = 0;			/* No magic mapping yet  */
 
   /*
    * Clear the highlevel map
@@ -180,6 +182,12 @@ int traptype, standingonit;
   setrc (TRAP | traptype, r, c);
 }
 
+#define vertwall(r,c) (seerc ('|',(r),(c)) || seerc ('-',(r),(c)))
+#define doorat(r,c) \
+	(seerc ('|', (r)-1, (c)) && vertwall ((r)+1, (c)) || \
+	 seerc ('|', (r)+1, (c)) && vertwall ((r)-1, (c)) || \
+         seerc ('-', (r), (c)-1) && seerc ('-', (r), (c)+1))
+
 /*
  * findstairs: Look for STAIRS somewhere and set the stairs to that square.
  */
@@ -194,7 +202,16 @@ int notr, notc;
     for (c = 1; c < 79; c++)
       if ((seerc ('%', r, c) || onrc (STAIRS, r, c)) &&
 	  r != notr && c != notc)
-      { setrc (STAIRS, r, c); stairrow = r; staircol = c; }
+      {
+	/* Handle mimic disguised as stairs on a door. */
+	if (doorat(row, col))
+	{
+	  setrc (DOOR, row, col);
+	  unsetrc (HALL | ROOM, row, col);
+	  continue;
+	}
+	setrc (STAIRS, r, c); stairrow = r; staircol = c;
+      }
 }
 
 /*
@@ -365,6 +382,7 @@ updateat ()
 { register int dr = atrow - atrow0, dc = atcol - atcol0;
   register int i, r, c;
   int   dist, newzone, sum;
+  int zonechg = 0;
 
   /*
    * Record passage from one zone to the next
@@ -374,6 +392,7 @@ updateat ()
 
   if (newzone != NONE && zone != NONE && newzone != zone)
   { new_arch = 1;
+    zonechg = 1;
     zonemap[zone][newzone] = zonemap[newzone][zone] = 1;
     if ((levelmap[zone] & (EXPLORED | HASROOM)) == 0)
     { for (i = 0, sum = 0; i < 9; i++) sum += zonemap[zone][i];
@@ -389,7 +408,10 @@ updateat ()
    * Check for teleport, else if we moved multiple squares, mark them as BEEN
    */
 
-  if (direc (dr, dc) != movedir || dr && dc && abs(dr) != abs(dc))
+  if (direc (dr, dc) != movedir ||
+      (zonechg && movedir != NOTAMOVE &&
+       onrc (TRAP, atrow0 + deltr[movedir], atcol0 + deltc[movedir])) ||
+      dr && dc && abs(dr) != abs(dc))
     teleport ();
   else
   { dist = (abs(dr)>abs(dc)) ? abs(dr) : abs(dc);
@@ -418,8 +440,7 @@ updateat ()
         rooms++;
     }
 
-    if (seerc ('|', atrow-1, atcol) && seerc ('|', atrow+1, atcol) ||
-        seerc ('-', atrow, atcol-1) && seerc ('-', atrow, atcol+1))
+    if (doorat(atrow, atcol))
     { set (DOOR | SAFE); unset (HALL | ROOM); terrain = "door";
       if ((rm = whichroom (atrow, atcol)) != NONE) levelmap[rm] |= HASROOM;
     }
@@ -478,12 +499,14 @@ register int row, col;
       { foundnew ();
         timestosearch = k_door / 5;
 	teleported = 0; /* Dont give up on this level yet */
+	if (newdoors >= &doorlist[58])
+	  dwait (D_FATAL, "Overflowed doorlist array");
 	*newdoors++ = row;  *newdoors++ = col;
       }
       if (onrc (STUFF, row, col)) deletestuff (row, col);
       setrc (SEEN | CANGO | SAFE | DOOR | WALL | EVERCLR, row, col);
       unsetrc (ROOM | TRAP | ARROW | TRAPDOR | TELTRAP | GASTRAP | BEARTRP |
-               DARTRAP | MONSTER | SCAREM | SLEEPER, row, col);
+               DARTRAP | MONSTER | SCAREM | HALL | SLEEPER, row, col);
       clearcurrect();  /* LGCH: redo currentrectangle */
       break;
 
@@ -551,6 +574,13 @@ register int row, col;
       break;
 
     case '%':
+      /* Handle mimic disguised as stairs on a door. */
+      if (doorat(row, col))
+      {
+	setrc (DOOR, row, col);
+	unsetrc (HALL | ROOM, row, col);
+	break;
+      }
       if (!onrc (STAIRS, row, col)) foundnew ();
       if ((!cosmic || onrc (BEEN, row, col)) && onrc (STUFF, row, col))
         deletestuff (row, col);
@@ -645,6 +675,8 @@ teleport ()
       r += deltr[movedir]; c += deltc[movedir];
     }
   }
+  if (movedir == NOTAMOVE && functionchar (lastcmd) == 'r')
+    infer(scroll, "teleportation");
 }
 
 /*
@@ -661,7 +693,24 @@ mapinfer()
 
   dwait (D_CONTROL, "Map read: inferring rooms.");
   for (r=1; r<23; r++)
-  { inroom = 0;
+  { int doormaybehidden = 0;
+    inroom = 0;
+    /* It could happen that the player is on a door, causing us */
+    /* to miss the door and computing wrong information. */
+    /* We do a sanity check first and skip the row for this case. */
+    for (c=0; c<80; c++)
+    { if (seerc ('|', r, c) || (seerc ('+', r, c) && !seerc('-', r, c-1)))
+      { inroom = !inroom; }
+      if (seerc ('@', r, c) || isupper(screen[r][c]))
+	doormaybehidden = 1;
+    }
+    if (inroom)
+    {
+      if (doormaybehidden == 0)
+        dwait (D_WARNING, "Inconsistent mapinfer row %d", r);
+      continue;
+    }
+    inroom = 0;
     for (c=0; c<80; c++)
     { if (seerc ('|', r, c) || (seerc ('+', r, c) && !seerc('-', r, c-1)))
       { inroom = !inroom; }

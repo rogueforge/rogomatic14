@@ -15,6 +15,7 @@ FILE *wopen();			/* Open a file for world access */
 
 /* global characters and strings */
 extern char afterid;		/* Index of object after identify */
+extern char dropid;		/* Next object to drop */
 extern char *genocide;		/* List of monsters to genocide */
 extern char genocided[];	/* List of monsters genocided */
 extern char lastcmd[];		/* Copy of last command sent to Rogue */
@@ -30,8 +31,7 @@ extern char *termination;	/* Latin verb for how we died */
 extern char versionstr[];	/* Version of Rogue we are playing */
 
 /* character and string functions */
-extern int getlogtoken();
-extern char *getname(), *itemstr();
+extern char getlogtoken(), *getname(), *itemstr();
 extern char logchar(), *monname(), *realname();
 
 /* double precision floating point functions */
@@ -66,7 +66,9 @@ extern int cursedweapon;	/* True if weapon if cursed */
 extern int darkdir;		/* Direction of arrow in dark room */
 extern int darkturns;		/* # arrows left to fire in dark room */
 extern int debugging;		/* Debugging options in effect */
+extern int didfight;		/* Last command caused fighting */
 extern int didreadmap;		/* Last magically mapped level */
+extern int didrerun;		/* We did start with a rerun */
 extern int doorlist[], *newdoors; /* Holds r,c of new doors found */
 extern int doublehasted;	/* True if double hasted (3.6 only) */
 extern int droppedscare;	/* Number of scare mon. on this level */
@@ -95,6 +97,7 @@ extern int lastmonster;		/* Last monster we tried to hit */
 extern int lastobj;		/* What did we last try to use */
 extern int lastwand;		/* Index of last wand */
 extern int leftring;		/* Index of our left ring */
+extern int levelrestarts;	/* Incremented for restart on level */
 extern int logdigested;		/* True if game log has been read by replay */
 extern int logging;		/* True if logging game */
 extern int lyinginwait;		/* Did we lie in wait last turn? */
@@ -108,7 +111,9 @@ extern int newweapon;		/* True if our weapon status has changed */
 extern int nohalf;		/* True if no halftime show */
 extern int noterm;		/* True if no human watching */
 extern int objcount;		/* Number of objects */
+extern int olddrop;		/* Use old drop handling */
 extern int ourscore;		/* Our score when we died/quit */
+extern int overwriteinv;	/* Overwrite next inv entry instead of insert */
 extern int playing;		/* True if still playing the game */
 extern int poorarrow;		/* # Times we failed to kill in one blow */
 extern int protected;		/* True if we protected our armor */
@@ -116,6 +121,7 @@ extern int putonseeinv;		/* Time when last put on see invisible ring */
 extern int quitat;		/* Score we are trying to beat */
 extern int redhands;		/* True if our hands are red */
 extern int replaying;		/* True if replaying old game */
+extern int rerunning;		/* True if rerunning old game */
 extern int revvideo;		/* True if in rev. video mode */
 extern int rightring;		/* Index of our right ring */
 extern int rogpid;		/* Process id of Rogue process */
@@ -124,6 +130,7 @@ extern int row,col;		/* where is the cursor? */
 extern int scrmap[24][80];	/* attribute flags for squares */
 extern int slowed;		/* True if we recently slowed a monster */
 extern int stairrow,staircol;	/* Where is the staircase */
+extern long stoppos;		/* Logfile position for stop */
 extern int teleported;		/* times teleported on this level */
 extern int terse;		/* True if in terse mode */
 extern int transparent;		/* True ==> user mode */
@@ -166,7 +173,7 @@ extern char	killedmonster, targetmonster;
 
 /* Door search variables */
 extern int	new_mark, new_findroom, new_search, new_stairs, new_arch;
-extern char	timessearched[24][80], timestosearch;
+extern char	timessearched[24][80], timestosearch, attempttosearch;
 extern int	searchstartr, searchstartc;
 extern int	reusepsd;
 
@@ -191,3 +198,10 @@ extern int k_exper;		/* Level on which to experiment with items */
 extern int k_run;		/* Propensity for retreating */
 extern int k_wake;		/* Propensity for waking things up */
 extern int k_food;		/* Propensity for hoarding food (rings) */
+
+extern void useobj (stuff s, char *oldname);
+extern void infername (stuff s, int used, char *oldname, char *name);
+extern int used (stuff s, char *oldname);
+extern int know (stuff s, char *name);
+extern char *realname (stuff s, char *oldname);
+extern void infer (stuff s, char *objname);

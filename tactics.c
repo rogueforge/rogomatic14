@@ -166,8 +166,10 @@ quaffpotion ()
   if (Hp == Hpmax &&
       ((obj = havemult (potion, "healing", 2)) != NONE ||
        (obj = havemult (potion, "extra healing", 2)) != NONE ||
-       know ("blindness") && (obj = havenamed (potion, "healing")) != NONE ||
-       know ("blindness") && (know ("hallucination") || version < RV53A)  &&
+       know (potion, "blindness") &&
+	(obj = havenamed (potion, "healing")) != NONE ||
+       know (potion, "blindness") &&
+	(know (potion, "hallucination") || version < RV53A)  &&
         Level < 15 && (obj = havenamed (potion, "extra healing")) != NONE) &&
       quaff (obj))
     return (1);
@@ -272,18 +274,20 @@ readscroll ()
       ((currentweapon != NONE) &&
        (Level >= (k_exper/10) || objcount >= maxobj ||
         cursedarmor || cursedweapon) &&
-       (exploredlevel || Level > 18 || know ("aggravate monsters")) &&
+       (exploredlevel || Level > 18 || know (scroll, "aggravate monsters")) &&
        (obj = unknown (scroll)) != NONE))
-  { prepareident (pickident (), obj);
+  { prepareident (pickident (obj), obj);
 
     /* Go to a corner to read the scroll */
-    if (version <= RV36B && !know ("create monster") && gotocorner ())
+    if (version <= RV36B && !know (scroll, "create monster") && gotocorner ())
       return (1);
 
     /* Must put on our good armor first */
     if (!cursedarmor && 
-        (!know("enchant armor") || stlmatch(inven[obj].str, "enchant armor") ||
-         !know("protect armor") || stlmatch(inven[obj].str, "protect armor")))
+        (!know(scroll, "enchant armor") ||
+	 stlmatch(inven[obj].str, "enchant armor") ||
+         !know(scroll, "protect armor") ||
+	 stlmatch(inven[obj].str, "protect armor")))
     { int obj2 = havearmor (1, NOPRINT, ANY); /* Pick our best armor */
 
       if (obj2 == currentarmor);
@@ -406,10 +410,10 @@ register int turns;
     if ((onrc(CANGO|TRAP, atdrow(blindir), atdcol(blindir)) == CANGO)) 
       break;
 
-  if (turns) command (T_GROPING, "%c%c%ds", keydir[blindir],
-                      keydir[(blindir+4)&7], turns);
-  else       command (T_GROPING, "%c%c", keydir[blindir],
-                      keydir[(blindir+4)&7]);
+  /* Need separate commands to discover pickups after every move. */
+  command (T_GROPING, "%c", keydir[blindir]);
+  qcommand (T_GROPING, "%c", keydir[(blindir+4)&7]);
+  if (turns) qcommand (T_GROPING, "%ds", turns);
 
   blindir = (blindir+2) % 8;
   return (1);
@@ -505,7 +509,7 @@ register int running; /* True ==> dont do anything fancy */
   { halftimeshow (Level);
 
     /* Start logging at Level GOODGAME, if we arent already */
-    if (Level > (GOODGAME-2) && !replaying && !logging) toggleecho ();
+    if (Level > (GOODGAME-2) && !replaying && !rerunning && !logging) toggleecho ();
 
     /* Send the DOWN command and return */
     command (T_MOVING, ">");
@@ -703,9 +707,9 @@ restup ()
   if (Hp < Level+10 && Hp < Hpmax/3 &&
       ((obj = havemult (potion, "extra healing", 2)) != NONE ||
        (obj = havemult (potion, "healing", 2)) != NONE ||
-       (know ("hallucination") &&
+       (know (potion, "hallucination") &&
         (obj = havenamed (potion, "extra healing")) != NONE) ||
-       (know ("blindness") &&
+       (know (potion, "blindness") &&
         (obj = havenamed (potion, "healing")) != NONE)) &&
       quaff (obj))
   { return (1); }

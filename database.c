@@ -20,7 +20,9 @@
 # define TABLESIZE 101
 # define NOTFOUND  (-1)
 
-struct  { char  fakename[64];
+struct  { stuff st;
+	  int	used;
+	  char  fakename[64];
           char  roguenam[64]; } dbase[TABLESIZE];
 
 int datalen = 0;
@@ -29,13 +31,14 @@ int datalen = 0;
  * findentry: find the database entry for 'string'
  */
 
-findentry (string)
-char *string;
+static int
+findentry (stuff s, char *string)
 { register int i;
 
   for (i = 0; i < datalen; i++)
-    if (streq (dbase[i].fakename, string) ||
-        *dbase[i].roguenam && streq (dbase[i].roguenam, string))
+    if (s == dbase[i].st &&
+        (streq (dbase[i].fakename, string) ||
+         *dbase[i].roguenam && streq (dbase[i].roguenam, string)))
       return (i);
 
   return (NOTFOUND);
@@ -46,10 +49,12 @@ char *string;
  *         object with name 'oldname'.
  */
 
-useobj (oldname)
-char *oldname;
-{ if (findentry (oldname) == NOTFOUND)
-  { strcpy (dbase[datalen].fakename, oldname);
+void
+useobj (stuff s, char *oldname)
+{ if (findentry (s, oldname) == NOTFOUND)
+  { dbase[datalen].st = s;
+    dbase[datalen].used = 1;
+    strcpy (dbase[datalen].fakename, oldname);
     strcpy (dbase[datalen++].roguenam, "");
   }
 }
@@ -60,15 +65,16 @@ char *oldname;
  * light).
  */
 
-infername (oldname, name)
-char *oldname;
-char *name;
+void
+infername (stuff s, int used, char *oldname, char *name)
 { register int i;
 
-  i = findentry (oldname);
+  i = findentry (s, oldname);
 
   if (i == NOTFOUND)
-  { strcpy (dbase[datalen].fakename, oldname);
+  { dbase[datalen].st = s;
+    dbase[datalen].used = used;
+    strcpy (dbase[datalen].fakename, oldname);
     strcpy (dbase[datalen++].roguenam, name);
   }
   else
@@ -84,13 +90,12 @@ char *name;
  * used: Return true if we have marked 'oldname' as used.
  */
 
-int used (oldname)
-char *oldname;
+int used (stuff s, char *oldname)
 { register int i;
 
   for (i = 0; i < datalen; i++)
-    if (streq (dbase[i].fakename, oldname))
-      return (TRUE);
+    if (s == dbase[i].st && streq (dbase[i].fakename, oldname))
+      return (dbase[i].used);
 
   return (FALSE);
 }
@@ -99,12 +104,21 @@ char *oldname;
  * know: Return true if we know what the fake name for 'name' is.
  */
 
-int know (name)
-char *name;
+int know (stuff s, char *name)
 { register int i;
+  static int oldknow = -1;
+
+  if (oldknow < 0)
+  {
+    if (getenv ("ROGOOLDKNOW"))
+      oldknow = 1;
+    else
+      oldknow = 0;
+  }
 
   for (i = 0; i < datalen; i++)
-    if (*dbase[i].roguenam && streq (dbase[i].roguenam, name))
+    if ((oldknow || s == dbase[i].st) &&
+	*dbase[i].roguenam && streq (dbase[i].roguenam, name))
       return (TRUE);
 
   return (FALSE);
@@ -114,12 +128,12 @@ char *name;
  * realname: Returns the real name of an object nmed 'oldname'.
  */
 
-char *realname (oldname)
-char *oldname;
+char *realname (stuff s, char *oldname)
 { register int i;
 
   for (i = 0; i < datalen; i++)
-    if (*dbase[i].roguenam && streq (dbase[i].fakename, oldname))
+    if (s == dbase[i].st &&
+	*dbase[i].roguenam && streq (dbase[i].fakename, oldname))
       return (dbase[i].roguenam);
 
   return ("");
@@ -134,6 +148,8 @@ dumpdatabase ()
 
   for (i = 0; i < datalen; i++)
   { at (i+1, 0);
-    printw ("%-32s '%s'", dbase[i].roguenam, dbase[i].fakename);
+    printw ("%2d %c %-32s '%s'",
+	     dbase[i].st, dbase[i].used ? 'y' : 'n',
+	     dbase[i].roguenam, dbase[i].fakename);
   }
 }
