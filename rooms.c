@@ -366,6 +366,7 @@ updateat ()
 { register int dr = atrow - atrow0, dc = atcol - atcol0;
   register int i, r, c;
   int   dist, newzone, sum;
+  int zonechg = 0;
 
   /*
    * Record passage from one zone to the next
@@ -375,6 +376,7 @@ updateat ()
 
   if (newzone != NONE && zone != NONE && newzone != zone)
   { new_arch = 1;
+    zonechg = 1;
     zonemap[zone][newzone] = zonemap[newzone][zone] = 1;
     if ((levelmap[zone] & (EXPLORED | HASROOM)) == 0)
     { for (i = 0, sum = 0; i < 9; i++) sum += zonemap[zone][i];
@@ -390,7 +392,10 @@ updateat ()
    * Check for teleport, else if we moved multiple squares, mark them as BEEN
    */
 
-  if (direc (dr, dc) != movedir || dr && dc && abs(dr) != abs(dc))
+  if (direc (dr, dc) != movedir ||
+      (zonechg && movedir != NOTAMOVE &&
+       onrc (TRAP, atrow0 + deltr[movedir], atcol0 + deltc[movedir])) ||
+      dr && dc && abs(dr) != abs(dc))
     teleport ();
   else
   { dist = (abs(dr)>abs(dc)) ? abs(dr) : abs(dc);
@@ -479,12 +484,14 @@ register int row, col;
       { foundnew ();
         timestosearch = k_door / 5;
 	teleported = 0; /* Dont give up on this level yet */
+	if (newdoors >= &doorlist[58])
+	  dwait (D_FATAL, "Overflowed doorlist array");
 	*newdoors++ = row;  *newdoors++ = col;
       }
       if (onrc (STUFF, row, col)) deletestuff (row, col);
       setrc (SEEN | CANGO | SAFE | DOOR | WALL | EVERCLR, row, col);
       unsetrc (ROOM | TRAP | ARROW | TRAPDOR | TELTRAP | GASTRAP | BEARTRP |
-               DARTRAP | MONSTER | SCAREM | SLEEPER, row, col);
+               DARTRAP | MONSTER | SCAREM | HALL | SLEEPER, row, col);
       clearcurrect();  /* LGCH: redo currentrectangle */
       break;
 
@@ -646,6 +653,8 @@ teleport ()
       r += deltr[movedir]; c += deltc[movedir];
     }
   }
+  if (movedir == NOTAMOVE && functionchar (lastcmd) == 'r')
+    infer(scroll, "teleportation");
 }
 
 /*

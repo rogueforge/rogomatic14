@@ -201,3 +201,4 @@ extern int used (stuff, char *);
 extern int know (stuff, char *);
 extern int pickident (int);
 extern int dropreply ();
+extern char functionchar (char *);
