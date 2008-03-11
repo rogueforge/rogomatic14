@@ -43,7 +43,7 @@ register int i;
     sprintf (item, "%s %s%s%s%s%s%s%s%s%s.",	  /* DR UTexas */
             item, inven[i].str, 
              (itemis (i, KNOWN) ? "" : ", unknown"),
-             (used (inven[i].str) ? ", tried" : ""),
+             (used (inven[i].type, inven[i].str) ? ", tried" : ""),
              (itemis (i, CURSED) ? ", cursed" : ""),
              (itemis (i, UNCURSED) ? ", uncursed" : ""),
              (itemis (i, ENCHANTED) ? ", enchanted" : ""),
@@ -353,7 +353,7 @@ char *msgstart, *msgend;
   /* slap the real name into the slot and mark it as known */
 
   if ((what == potion || what == scroll || what == wand) && !xknow)
-  { char *dbname = realname (objname);
+  { char *dbname = realname (what, objname);
     if (*dbname)
     { strcpy (objname, dbname);
       xknow = KNOWN;

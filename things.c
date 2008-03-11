@@ -326,7 +326,7 @@ stuff otype;
     if (inven[i].count &&
         (inven[i].type == otype) &&
         (itemis (i, KNOWN) == 0) &&
-	(!used (inven[i].str)))
+	(!used (otype, inven[i].str)))
       return (i);
 
   return (NONE);
@@ -343,7 +343,7 @@ stuff otype;
     if (inven[i].count &&
         (inven[i].type == otype) &&
         (itemis (i, KNOWN) == 0) &&
-	(used (inven[i].str)))
+	(used (otype, inven[i].str)))
       return (i);
 
   return (NONE);

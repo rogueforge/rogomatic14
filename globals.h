@@ -33,7 +33,7 @@ extern char versionstr[];	/* Version of Rogue we are playing */
 /* character and string functions */
 extern int getlogtoken();
 extern char *getname(), *itemstr();
-extern char logchar(), *monname(), *realname();
+extern char logchar(), *monname(), *realname(stuff, char *);
 
 /* double precision floating point functions */
 double prob(), mean(), stdev();	/* For stats.c */
@@ -194,4 +194,9 @@ extern int k_run;		/* Propensity for retreating */
 extern int k_wake;		/* Propensity for waking things up */
 extern int k_food;		/* Propensity for hoarding food (rings) */
 
+extern int useobj (stuff, char *);
+extern int infer (stuff, char *);
+extern int infername (stuff, int, char *, char *);
+extern int used (stuff, char *);
+extern int know (stuff, char *);
 extern int dropreply ();

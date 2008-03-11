@@ -172,14 +172,14 @@ char *cmd;
     case 'q':	lastobj = OBJECT (commandarg (cmd, 1));
 		usemsg ("Quaffing", lastobj);
 		strcpy (lastname, inven[lastobj].str);
-		useobj (inven[lastobj].str);
+		useobj (potion, inven[lastobj].str);
 		removeinv (lastobj);
 		break;
 
     case 'r':	lastobj = OBJECT (commandarg (cmd, 1));
 		usemsg ("Reading", lastobj);
 		strcpy (lastname, inven[lastobj].str);
-		useobj (inven[lastobj].str);
+		useobj (scroll, inven[lastobj].str);
 		removeinv (lastobj);
 		break;
 
@@ -212,7 +212,7 @@ char *cmd;
 		lastwand = OBJECT (commandarg (cmd, 2));
 		usemsg ("Pointing", lastwand);
 		strcpy (lastname, inven[lastwand].str);
-		useobj (inven[lastwand].str);
+		useobj (wand, inven[lastwand].str);
 
 		/* Update number of charges */
 		if (inven[lastwand].charges > 0) 
