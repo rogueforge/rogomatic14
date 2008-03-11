@@ -36,6 +36,7 @@ char *argv[];
         case 'e': echo++;         break; /* Echo file to roguelog */
         case 'f': rf++;           break; /* Next arg is the rogue file */
         case 'h': nohalf++;       break; /* No halftime show */
+        case 'n': quitat = -1;    break; /* Do not try to beat score */
         case 'p': replay++;       break; /* Play back roguelog */
         case 'r': oldgame++;      break; /* Use saved game */
         case 's': score++;        break; /* Give scores only */
@@ -77,7 +78,8 @@ char *argv[];
     exit (1);
   }
 
-  if (!replay && !score) quitat = findscore (rfile, "Rog-O-Matic");
+  if (!replay && !score && quitat > 0)
+    quitat = findscore (rfile, "Rog-O-Matic");
 
   sprintf (options, "%d,%d,%d,%d,%d,%d,%d,%d",
            cheat, noterm, echo, nohalf, emacs, terse, user,quitat);
