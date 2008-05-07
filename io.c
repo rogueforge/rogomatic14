@@ -682,7 +682,10 @@ int terminationtype;            /* SAVED, FINSISHED, or DIED */
 
   /* Send the requisite handshaking to Rogue */
   if (terminationtype == DIED)
-    sendnow ("\n");
+    if (version == RV54A)
+      sendnow ("\n\n");
+    else
+      sendnow ("\n");
   else if (terminationtype == FINISHED)
     sendnow ("Qy\n");
   else
