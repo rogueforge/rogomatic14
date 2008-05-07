@@ -1,0 +1,56 @@
+Date:   Wed May 7 22:34:38 2008 +0000
+
+    Allow local rlog directory to override the value of the RGMDIR and LOCKFILE
+    # defines.  This allows me to do development easier.
+
+Date:   Wed May 7 18:33:31 2008 +0000
+
+    Added lots of ignore properties, as well as moved some files around.
+
+Date:   Mon May 5 06:32:25 2008 +0000
+
+    This should install and run now (at least in my home directory), still need
+    to try on a multi-user setup.
+
+Date:   Mon May 5 06:06:22 2008 +0000
+
+    A few more fixes.
+
+Date:   Wed Apr 30 06:54:35 2008 +0000
+
+    Big changes
+      - added new copyrights to all files
+      - moved things which are sort of developer docs or historical info to doc
+        directory (will find a better place later on)
+      - removed files which I can't figure out what to do with (for instance there
+        seem to be various animation files for which the creating programs are
+        missing, so just deleting them for now, will probably rip out that stuff
+        anyway and instead have some sort of splash screen?).
+
+Date:   Wed Apr 30 05:16:20 2008 +0000
+
+    This is now officially a framewerk c project.
+
+Date:   Wed Apr 30 03:58:00 2008 +0000
+
+    Update MAINTAINERCLEAN files
+
+Date:   Wed Apr 30 03:23:05 2008 +0000
+
+    First version of the future rogomatic framewerk package.
+
+Date:   Wed Apr 30 03:06:43 2008 +0000
+
+    Moving things out of the way in order to get framewerk working.
+
+Date:   Mon Apr 28 04:34:47 2008 +0000
+
+    This will now compile and work under MacOSX if you have the patched rogue36
+
+Date:   Fri Apr 25 06:12:28 2008 +0000
+
+    Initial import of the code from http://robot-club.com/lti/rgm14.tar.Z
+    
+    I also found 3 versions of the code at
+    http://www.roguelikedevelopment.org/archive/index.php
+    but the version above seemed the most recent.

@@ -1,0 +1,94 @@
+# put whatever (auto)make commands here, they will be included from Makefile.am
+#
+#lib_LTLIBRARIES =
+#
+#libmylib_la_SOURCES =
+#
+#libmylib_la_LIBADD = 		\
+#  @FW_PKGCONFIG_PREREQS_LIBS@
+#
+#libmylib_la_LDFLAGS = 	\
+#  -version-info @FW_PACKAGE_MAJOR_VERSION@:@FW_PACKAGE_MINOR_VERSION@:0
+
+bin_PROGRAMS = \
+  player       \
+  rogomatic
+
+player_SOURCES = \
+  arms.c         \
+  command.c      \
+  config.c       \
+  database.c     \
+  debug.c        \
+  explore.c      \
+  io.c           \
+  learn.c        \
+  ltm.c          \
+  main.c         \
+  mess.c         \
+  monsters.c     \
+  pack.c         \
+  rand.c         \
+  replay.c       \
+  rooms.c        \
+  scorefile.c    \
+  search.c       \
+  stats.c        \
+  strategy.c     \
+  survival.c     \
+  tactics.c      \
+  things.c       \
+  titlepage.c    \
+  utility.c      \
+  worth.c        \
+  getroguetoken.c\
+  debuglog.c
+
+rogomatic_SOURCES = \
+  config.c          \
+  debuglog.c        \
+  findscore.c       \
+  setup.c           \
+  scorefile.c       \
+  utility.c
+
+noinst_PROGRAMS = \
+  rgmplot         \
+  datesub         \
+  histplot        \
+  gene            \
+  deciphervt100
+
+rgmplot_SOURCES = \
+  rgmplot.c       \
+  utility.c
+
+datesub_SOURCES = \
+  datesub.c
+
+histplot_SOURCES = \
+  histplot.c \
+  utility.c
+
+gene_SOURCES = \
+  config.c     \
+  debuglog.c   \
+  gene.c       \
+  rand.c       \
+  learn.c      \
+  stats.c      \
+  utility.c
+
+deciphervt100_SOURCES = \
+  deciphervt100.c       \
+  getroguetoken.c       \
+  debuglog.c
+
+# special case for lex output
+datesub.c: datesub.l
+	lex datesub.l
+	mv lex.yy.c datesub.c
+
+CLEANFILES += datesub.c
+
+MAINTAINERCLEANFILES += config.h.in

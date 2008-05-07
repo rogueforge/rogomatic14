@@ -1,0 +1,9 @@
+# put whatever (auto)make commands here, they will be included from Makefile.am
+
+#check_PROGRAMS =
+
+#testprog_SOURCES =
+
+TESTS =
+
+MAINTAINERCLEANFILES += test-wrapper.sh.in
