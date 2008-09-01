@@ -119,7 +119,7 @@ char *argv[];
   else
   { /* Encode the open files into a two character string */
 
-    char *ft = "aa", rp[32]; ft[0] += frogue; ft[1] += trogue;
+    char ft[3] = "aa", rp[32]; ft[0] += frogue; ft[1] += trogue;
 
     /* Pass the process ID of the Rogue process as an ASCII string */
     sprintf (rp, "%d", child);

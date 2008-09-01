@@ -329,7 +329,7 @@ timerec timespent[50];
 /* End of the game messages */
 char *termination = "perditus";
 char *gamename = "Rog-O-Matic";
-char *roguename = "Rog-O-Matic                             ";
+char roguename[241] = "Rog-O-Matic                             ";
 
 /* Used by onintr() to restart Rgm at top of command loop */
 jmp_buf  commandtop;
