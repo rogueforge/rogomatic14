@@ -31,6 +31,7 @@
  * baudrate: Determine the baud rate of the terminal
  */
 
+#if defined(BSD41) || defined(BSD42)
 baudrate ()
 { static short  baud_convert[] =
   { 0, 50, 75, 110, 135, 150, 200, 300, 600, 1200, 1800, 2400, 4800, 9600 };
@@ -44,6 +45,7 @@ baudrate ()
 
   return (baud_rate);
 }
+#endif
 
 /*
  * getname: get userid of player.
