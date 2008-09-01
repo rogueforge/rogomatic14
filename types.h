@@ -16,9 +16,11 @@
 /* The unctrl macro for systems where curses doesn't define it */
 
 # ifndef unctrl
+# if defined(BSD41) || defined(BSD42)
 extern char	*_unctrl[];
 
 # define	unctrl(ch)	(_unctrl[ch & 0177])
+#endif
 # endif
 
 /* Global Preprocessor constants */
