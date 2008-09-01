@@ -14,6 +14,7 @@
 # include <signal.h>
 # include <sys/types.h>
 # include <sys/stat.h>
+# include <stdarg.h>
 
 # include "install.h"
 
@@ -30,6 +31,7 @@
  * baudrate: Determine the baud rate of the terminal
  */
 
+#if defined(BSD41) || defined(BSD42)
 baudrate ()
 { static short  baud_convert[] =
   { 0, 50, 75, 110, 135, 150, 200, 300, 600, 1200, 1800, 2400, 4800, 9600 };
@@ -43,6 +45,7 @@ baudrate ()
 
   return (baud_rate);
 }
+#endif
 
 /*
  * getname: get userid of player.
@@ -207,11 +210,11 @@ char *lokfil;
  */
 
 /* VARARGS2 */
-quit (code, fmt, a1, a2, a3, a4)
-int code, a1, a2, a3, a4;
-char *fmt;
-{
-  fprintf (stderr, fmt, a1, a2, a3, a4);
+quit (int code, char *fmt, ...)
+{ va_list ap;
+  va_start (ap, fmt);
+  vfprintf (stderr, fmt, ap);
+  va_end (ap);
   exit (code);
 }
 

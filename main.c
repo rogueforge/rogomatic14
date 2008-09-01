@@ -307,7 +307,7 @@ stuff translate[128] =
      /* \04x */ none, potion, none, none, none, none, none, none,
      /* \05x */ hitter, hitter, gold, none, amulet, none, none, wand,
      /* \06x */ none, none, none, none, none, none, none, none,
-     /* \07x */ none, none, food, none, none, ring, none, scroll,
+     /* \07x */ none, none, food, none, none, ring, none, rscroll,
      /* \10x */ none, none, none, none, none, none, none, none,
      /* \11x */ none, none, none, none, none, none, none, none,
      /* \12x */ none, none, none, none, none, none, none, none,
@@ -327,7 +327,7 @@ timerec timespent[50];
 /* End of the game messages */
 char *termination = "perditus";
 char *gamename = "Rog-O-Matic";
-char *roguename = "Rog-O-Matic                             ";
+char roguename[241] = "Rog-O-Matic                             ";
 
 /* Used by onintr() to restart Rgm at top of command loop */
 jmp_buf  commandtop;
@@ -736,7 +736,7 @@ onintr ()
   transparent = 1;              /* Drop into transprent mode */
   interrupted = 1;              /* Mark as an interrupt */
   noterm = 0;                   /* Allow commands */
-  longjmp (commandtop);         /* Back to command Process */
+  longjmp (commandtop, 1);      /* Back to command Process */
 }
 
 /*

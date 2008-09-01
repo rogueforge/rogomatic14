@@ -22,8 +22,10 @@ findscore (rogue, roguename)
 register char *rogue, *roguename;
 { register int score, best = -1;
   char cmd[100], buffer[BUFSIZ];
-  register char *s, *tmpfname = TEMPFL;
+  register char *s;
+  char tmpfname[18] = TEMPFL;
   FILE *tmpfil;
+  char *mktemp();
 
   /* Run 'rogue -s', and put the scores into a temp file */
   sprintf (cmd, "%s -s >%s", rogue, mktemp (tmpfname)); 

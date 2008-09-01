@@ -16,9 +16,11 @@
 /* The unctrl macro for systems where curses doesn't define it */
 
 # ifndef unctrl
+# if defined(BSD41) || defined(BSD42)
 extern char	*_unctrl[];
 
 # define	unctrl(ch)	(_unctrl[ch & 0177])
+#endif
 # endif
 
 /* Global Preprocessor constants */
@@ -294,7 +296,7 @@ extern char	*_unctrl[];
 # define forget(obj,trait) ((obj>=0) ? (inven[obj].traits&= ~(trait)) : 0)
 
 /* The types of objects */
-typedef enum { strange, food, potion, scroll, wand, ring, hitter,
+typedef enum { strange, food, potion, rscroll, wand, ring, hitter,
                thrower, missile, armor, amulet, gold, none} stuff;
 
 typedef struct { int   fail, win; } probability;

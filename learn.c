@@ -45,6 +45,24 @@ static FILE *glog=NULL;
 
 static int compgene();
 
+static parsegene();
+static summgene();
+static birth();
+static printdna();
+static cross();
+static mutate();
+static shift();
+static randompool();
+static selectgene();
+static unique();
+static untested();
+static youngest();
+static makeunique();
+static triangle();
+static badgene();
+static writegene();
+static initgene();
+
 /*
  * Start a new gene pool
  */

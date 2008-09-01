@@ -500,7 +500,7 @@ char *name;
   }
   else				/* Rogue 5.3 */
   { if (streq (name, "identify scroll"))
-    { if ((obj = unknown (scroll)) != NONE || (obj = have (scroll)) != NONE)
+    { if ((obj = unknown (rscroll)) != NONE || (obj = have (rscroll)) != NONE)
         id = LETTER (obj);
     }
     else if (streq (name, "identify potion"))

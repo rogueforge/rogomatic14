@@ -191,3 +191,7 @@ extern int k_exper;		/* Level on which to experiment with items */
 extern int k_run;		/* Propensity for retreating */
 extern int k_wake;		/* Propensity for waking things up */
 extern int k_food;		/* Propensity for hoarding food (rings) */
+
+extern int command(int tmode, char *f, ...);
+extern int sendnow(char *f, ...);
+extern int saynow(char *f, ...);

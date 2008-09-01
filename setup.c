@@ -17,6 +17,7 @@
 # define ROGUETERM "rg|rterm:am:bs:ce=^[^S:cl=^L:cm=^[a%+ %+ :co#80:li#24:so=^[D:se=^[d:pt:ta=^I:up=^[;:db:xn:"
 
 int   frogue, trogue;
+extern char *getname();
 
 main (argc, argv)
 int   argc;
@@ -106,7 +107,8 @@ char *argv[];
     putenv ("TERMCAP", ROGUETERM);
     putenv ("TERM", "rg");
     putenv ("ROGUEOPTS", ropts);
-
+    putenv ("LINES", "24");
+    putenv ("COLUMNS", "80");
     if (oldgame)  execl (rfile, rfile, "-r", 0);
     if (argc)     execl (rfile, rfile, argv[0], 0);
     execl (rfile, rfile, 0);
@@ -116,7 +118,7 @@ char *argv[];
   else
   { /* Encode the open files into a two character string */
 
-    char *ft = "aa", rp[32]; ft[0] += frogue; ft[1] += trogue;
+    char ft[3] = "aa", rp[32]; ft[0] += frogue; ft[1] += trogue;
 
     /* Pass the process ID of the Rogue process as an ASCII string */
     sprintf (rp, "%d", child);

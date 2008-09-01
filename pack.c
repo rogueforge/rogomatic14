@@ -309,15 +309,15 @@ char *msgstart, *msgend;
   else if (stlmatch(mess,"amulet")) xtr(amulet,0,0,KNOWN)
   else if (stlmatch(mess,"potion of ")) xtr(potion,10,0,KNOWN)
   else if (stlmatch(mess,"potions of ")) xtr(potion,11,0,KNOWN)
-  else if (stlmatch(mess,"scroll of ")) xtr(scroll,10,0,KNOWN)
-  else if (stlmatch(mess,"scrolls of ")) xtr(scroll,11,0,KNOWN)
+  else if (stlmatch(mess,"scroll of ")) xtr(rscroll,10,0,KNOWN)
+  else if (stlmatch(mess,"scrolls of ")) xtr(rscroll,11,0,KNOWN)
   else if (stlmatch(mess,"staff of ")) xtr(wand,9,0,KNOWN)
   else if (stlmatch(mess,"wand of ")) xtr(wand,8,0,KNOWN)
   else if (stlmatch(mess,"ring of "))  xtr(ring,8,0,KNOWN)
   else if (stlmatch(mend-4,"mail")) xtr(armor,0,0,0)
   else if (stlmatch(mend-6,"potion")) xtr(potion,0,7,0)
-  else if (stlmatch(mess,"scroll titled '")) xtr(scroll,15,1,0)
-  else if (stlmatch(mess,"scrolls titled '")) xtr(scroll,16,1,0)
+  else if (stlmatch(mess,"scroll titled '")) xtr(rscroll,15,1,0)
+  else if (stlmatch(mess,"scrolls titled '")) xtr(rscroll,16,1,0)
   else if (stlmatch(mend-5,"staff")) xtr(wand,0,6,0)
   else if (stlmatch(mend-4,"wand"))  xtr(wand,0,5,0)
   else if (stlmatch(mend-4,"ring")) xtr(ring,0,5,0)
@@ -352,7 +352,7 @@ char *msgstart, *msgend;
   /* If the name of the object matches something in the database, */
   /* slap the real name into the slot and mark it as known */
 
-  if ((what == potion || what == scroll || what == wand) && !xknow)
+  if ((what == potion || what == rscroll || what == wand) && !xknow)
   { char *dbname = realname (objname);
     if (*dbname)
     { strcpy (objname, dbname);
@@ -365,7 +365,7 @@ char *msgstart, *msgend;
 
         printw ("%s%s of %s (%c)",
                 what == potion ?    "potion" :
-                  what == scroll ?  "scroll" :
+                  what == rscroll ?  "scroll" :
                   what == ring ?    "ring" :
                                     "wand",
                 (n == 1) ? "" : "s",
