@@ -109,7 +109,8 @@ char *argv[];
     putenv ("TERMCAP", ROGUETERM);
     putenv ("TERM", "rg");
     putenv ("ROGUEOPTS", ropts);
-
+    putenv ("LINES", "24");
+    putenv ("COLUMNS", "80");
     if (oldgame)  execl (rfile, rfile, "-r", 0);
     if (argc)     execl (rfile, rfile, argv[0], 0);
     execl (rfile, rfile, 0);
