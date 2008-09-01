@@ -689,7 +689,7 @@ int adj;		/* How many attackers are there? */
    */
    
   if (die_in (2) && turns > 0 && !redhands &&
-      ((obj = havenamed (scroll, "monster confusion")) != NONE))
+      ((obj = havenamed (rscroll, "monster confusion")) != NONE))
     return (reads (obj));
   
   /* 
@@ -700,7 +700,7 @@ int adj;		/* How many attackers are there? */
    * We have a lot more programming to do here!!!!   Fuzzy
    */
    
-  if (die_in (1) && (obj = havenamed (scroll, "hold monster")) != NONE &&
+  if (die_in (1) && (obj = havenamed (rscroll, "hold monster")) != NONE &&
       reads (obj))
   { holdmonsters ();
     return (1);
@@ -711,7 +711,7 @@ int adj;		/* How many attackers are there? */
    */
    
   if (die_in (1) && !streq(monster, "dragon") &&
-      (obj = havenamed (scroll, "scare monster")) != NONE &&
+      (obj = havenamed (rscroll, "scare monster")) != NONE &&
       (m == NONE || mlist[m].q != ASLEEP) &&
       (targetmonster == 0 || turns < 2) &&
       drop (obj))
@@ -737,7 +737,7 @@ int adj;		/* How many attackers are there? */
    */
    
   if (die_in (1) && turns == 0 &&
-      (obj = havenamed (scroll, "teleportation")) != NONE)
+      (obj = havenamed (rscroll, "teleportation")) != NONE)
   { beingheld = 0;
     return (reads (obj));
   }
@@ -1029,7 +1029,7 @@ fightinvisible ()
 
   /* Can we teleport out of here? */  
   if (Hp < INVDAM && beingstalked > INVPRES &&
-      (obj = havenamed (scroll, "teleport")) != NONE && reads (obj))
+      (obj = havenamed (rscroll, "teleport")) != NONE && reads (obj))
   { beingstalked = INVPRES-1;
     return (1); }  
 

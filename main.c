@@ -309,7 +309,7 @@ stuff translate[128] =
      /* \04x */ none, potion, none, none, none, none, none, none,
      /* \05x */ hitter, hitter, gold, none, amulet, none, none, wand,
      /* \06x */ none, none, none, none, none, none, none, none,
-     /* \07x */ none, none, food, none, none, ring, none, scroll,
+     /* \07x */ none, none, food, none, none, ring, none, rscroll,
      /* \10x */ none, none, none, none, none, none, none, none,
      /* \11x */ none, none, none, none, none, none, none, none,
      /* \12x */ none, none, none, none, none, none, none, none,

@@ -81,7 +81,7 @@ int obj;
     return (0);
 
   /* read unknown scrolls or good scrolls rather than dropping them */
-  if (inven[obj].type == scroll &&
+  if (inven[obj].type == rscroll &&
       (((!itemis (obj, KNOWN) ||
          stlmatch (inven[obj].str, "identify")) &&
 	   prepareident (pickident (obj), obj)) ||
@@ -139,7 +139,7 @@ int obj;
 reads (obj)
 int obj;
 {
-  if (inven[obj].type != scroll)
+  if (inven[obj].type != rscroll)
   { dwait (D_ERROR, "Trying to read %c", LETTER (obj)); 
     usesynch = 0;
     return (0); 
@@ -306,12 +306,12 @@ int iscroll;
 
   if      ((obj=unknown      (ring))   != NONE);
   else if ((obj=unidentified (wand))   != NONE);
-  else if ((obj=haveother    (scroll, iscroll)) != NONE &&
-			used (scroll, inven[obj].str));
+  else if ((obj=haveother    (rscroll, iscroll)) != NONE &&
+			used (rscroll, inven[obj].str));
   else if ((obj=unidentified (potion)) != NONE);
   else if ((obj=unknown      (wand)) != NONE);
-  else if ((obj=haveother    (scroll, iscroll)) != NONE &&
-			!used (scroll, inven[obj].str));
+  else if ((obj=haveother    (rscroll, iscroll)) != NONE &&
+			!used (rscroll, inven[obj].str));
   else if ((obj=unknown      (potion)) != NONE);
   else if ((obj=unknown      (hitter)) != NONE);
   else if ((obj=unknown      (armor)) != NONE);

@@ -241,7 +241,7 @@ lightroom ()
   if (blinded || !darkroom ())
     return (0);
 
-  if ((obj = havenamed (scroll, "light")) != NONE && reads (obj))
+  if ((obj = havenamed (rscroll, "light")) != NONE && reads (obj))
     return (1);
 
   if ((obj = havewand ("light")) != NONE && point (obj, 0))
@@ -675,7 +675,7 @@ teleport ()
     }
   }
   if (movedir == NOTAMOVE && functionchar (lastcmd) == 'r')
-    infer(scroll, "teleportation");
+    infer(rscroll, "teleportation");
 }
 
 /*

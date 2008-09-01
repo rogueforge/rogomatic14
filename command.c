@@ -180,7 +180,7 @@ char *cmd;
     case 'r':	lastobj = OBJECT (commandarg (cmd, 1));
 		usemsg ("Reading", lastobj);
 		strcpy (lastname, inven[lastobj].str);
-		useobj (scroll, inven[lastobj].str);
+		useobj (rscroll, inven[lastobj].str);
 		removeinv (lastobj);
 		break;
 
