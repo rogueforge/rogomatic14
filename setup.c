@@ -17,6 +17,7 @@
 # define ROGUETERM "rg|rterm:am:bs:ce=^[^S:cl=^L:cm=^[a%+ %+ :co#80:li#24:so=^[D:se=^[d:pt:ta=^I:up=^[;:db:xn:"
 
 int   frogue, trogue;
+extern char *getname();
 
 main (argc, argv)
 int   argc;

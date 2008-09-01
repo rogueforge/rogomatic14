@@ -24,6 +24,7 @@ register char *rogue, *roguename;
   char cmd[100], buffer[BUFSIZ];
   register char *s, *tmpfname = TEMPFL;
   FILE *tmpfil;
+  char *mktemp();
 
   /* Run 'rogue -s', and put the scores into a temp file */
   sprintf (cmd, "%s -s >%s", rogue, mktemp (tmpfname)); 
