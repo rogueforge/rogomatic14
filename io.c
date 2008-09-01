@@ -28,7 +28,7 @@
  * Charonscreen returns the current character on the screen (using
  * curses(3)).  This macro is based on the winch(win) macro.
  */
-# define charonscreen(X,Y)	(stdscr->_y[X][Y])
+# define charonscreen(X,Y)   mvinch(X,Y)
 
 char *month[] = 
 { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
