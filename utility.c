@@ -14,6 +14,7 @@
 # include <signal.h>
 # include <sys/types.h>
 # include <sys/stat.h>
+# include <stdarg.h>
 
 # include "install.h"
 
@@ -207,11 +208,11 @@ char *lokfil;
  */
 
 /* VARARGS2 */
-quit (code, fmt, a1, a2, a3, a4)
-int code, a1, a2, a3, a4;
-char *fmt;
-{
-  fprintf (stderr, fmt, a1, a2, a3, a4);
+quit (int code, char *fmt, ...)
+{ va_list ap;
+  va_start (ap, fmt);
+  vfprintf (stderr, fmt, ap);
+  va_end (ap);
   exit (code);
 }
 

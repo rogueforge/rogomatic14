@@ -433,13 +433,14 @@ dumpwalls ()
  */
 
 /* VARARGS1 */
-sendnow (f, a1, a2, a3, a4)
-char *f;
-int a1, a2, a3, a4;
+sendnow (char *f, ...)
 { char cmd[128];
   register char *s = cmd;
+  va_list ap;
   
-  sprintf (cmd, f, a1, a2, a3, a4);
+  va_start (ap, f);
+  vsprintf (cmd, f, ap);
+  va_end (ap);
 
   while (*s) sendcnow (*s++);
 }
@@ -469,13 +470,14 @@ int c;
 # define bump(p,sizeq) (p)=((p)+1)%sizeq
 
 /* VARARGS1 */
-send (f, a1, a2, a3, a4)
-char *f;
-int a1, a2, a3, a4;
+send (char *f, ...)
 { char cmd[128];
   register char *s = cmd;
+  va_list ap;
 
-  sprintf (s, f, a1, a2, a3, a4);
+  va_start (ap, f);
+  vsprintf (s, f, ap);
+  va_end (ap);
 
   for (; *s; bump (tail, SENDQ))
     queue[tail] = *(s++);
@@ -729,13 +731,14 @@ char *mess;
  */
 
 /* VARARGS1 */
-say (f, a1, a2, a3, a4, a5, a6, a7, a8)
-char *f;
-int a1, a2, a3, a4, a5, a6, a7, a8;
+say (char *f, ...)
 { char buf[BUFSIZ], *b;
+  va_list ap;
 
   if (!emacs && !terse)
-  { sprintf (buf, f, a1, a2, a3, a4, a5, a6, a7, a8);
+  { va_start (ap,f);
+    vsprintf (buf, f, ap);
+    va_end (ap);
     at (0,0);
     for (b=buf; *b; b++) printw ("%s", unctrl (*b));
     clrtoeol ();
@@ -749,11 +752,18 @@ int a1, a2, a3, a4, a5, a6, a7, a8;
  */
 
 /* VARARGS1 */
-saynow (f, a1, a2, a3, a4, a5, a6, a7, a8)
-char *f;
-int a1, a2, a3, a4, a5, a6, a7, a8;
-{ if (!emacs && !terse)
-  { say (f, a1, a2, a3, a4, a5, a6, a7, a8);
+saynow (char *f, ...)
+{ char buf[BUFSIZ], *b;
+  va_list ap;
+
+  if (!emacs && !terse)
+  { va_start (ap,f);
+    vsprintf (buf, f, ap);
+    va_end (ap);
+    at (0,0);
+    for (b=buf; *b; b++) printw ("%s", unctrl (*b));
+    clrtoeol ();
+    at (row, col);
     refresh ();
   }
 }

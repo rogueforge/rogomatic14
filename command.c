@@ -47,15 +47,16 @@ int   d, mode;
  */
 
 /* VARARGS2 */
-command (tmode, f, a1, a2, a3, a4)
-char *f;
-int tmode, a1, a2, a3, a4;
+command (int tmode, char *f, ...)
 { int times;
   char cmd[128], functionchar (); 
   static char lastcom[32] = "";
+  va_list ap;
 
   /* Build the command */
-  sprintf (cmd, f, a1, a2, a3, a4);
+  va_start (ap, f);
+  vsprintf (cmd, f, ap);
+  va_end (ap);
 
   /* Echo the command if in transparent mode */
   if (transparent)		showcommand (cmd);

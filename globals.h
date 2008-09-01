@@ -195,6 +195,9 @@ extern int k_wake;		/* Propensity for waking things up */
 extern int k_food;		/* Propensity for hoarding food (rings) */
 
 extern int useobj (stuff, char *);
+extern int command(int tmode, char *f, ...);
+extern int sendnow(char *f, ...);
+extern int saynow(char *f, ...);
 extern int infer (stuff, char *);
 extern int infername (stuff, int, char *, char *);
 extern int used (stuff, char *);
