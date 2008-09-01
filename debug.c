@@ -61,7 +61,7 @@ dwait(int msgtype, char *f, ...)
     saynow (msg);
     playing = 0;
     quitrogue ("fatal error trap", Gold, SAVED);
-    longjmp (commandtop);
+    longjmp (commandtop, 1);
   }
 
   if (! debug (msgtype | D_INFORM))		/* If debugoff */

@@ -738,7 +738,7 @@ onintr ()
   transparent = 1;              /* Drop into transprent mode */
   interrupted = 1;              /* Mark as an interrupt */
   noterm = 0;                   /* Allow commands */
-  longjmp (commandtop);         /* Back to command Process */
+  longjmp (commandtop, 1);      /* Back to command Process */
 }
 
 /*
