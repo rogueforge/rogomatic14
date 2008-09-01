@@ -8,6 +8,7 @@
 # include <curses.h>
 # include <ctype.h>
 # include <signal.h>
+# include <sys/ioctl.h>
 
 # include "install.h"
 
