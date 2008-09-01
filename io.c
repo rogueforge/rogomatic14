@@ -11,7 +11,7 @@
 
 # include "install.h"
 
-# ifdef BSD41
+# if defined(BSD41) || !defined(BSD42)
 #     include <time.h>
 # else
 #     include <sys/time.h>
