@@ -25,14 +25,19 @@ register char *rogue, *roguename;
   register char *s;
   char tmpfname[18] = TEMPFL;
   FILE *tmpfil;
-  char *mktemp();
+  int fd;
 
+  fd = mkstemp(tmpfname);
+
+  if (fd > 0)
+  {
   /* Run 'rogue -s', and put the scores into a temp file */
-  sprintf (cmd, "%s -s >%s", rogue, mktemp (tmpfname)); 
+  sprintf (cmd, "%s -s >%s", rogue, tmpfname);
   system (cmd); 
+  }
 
   /* If no temp file created, return default score */
-  if ((tmpfil = fopen (tmpfname, "r")) == NULL)
+  if (fd <= 0 || (tmpfil = fdopen(fd,"r")) == NULL)
     return (best); 
 
   /* Skip to the line starting with 'Rank...'. */
