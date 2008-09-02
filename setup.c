@@ -111,9 +111,9 @@ char *argv[];
     putenv ("ROGUEOPTS", ropts);
     putenv ("LINES", "24");
     putenv ("COLUMNS", "80");
-    if (oldgame)  execl (rfile, rfile, "-r", 0);
-    if (argc)     execl (rfile, rfile, argv[0], 0);
-    execl (rfile, rfile, 0);
+    if (oldgame)  execl (rfile, rfile, "-r", NULL);
+    if (argc)     execl (rfile, rfile, argv[0], NULL);
+    execl (rfile, rfile, NULL);
     _exit (1);
   }
 
@@ -127,9 +127,9 @@ char *argv[];
 
     if (!author ()) nice (4);
 
-    execl ("player", "player", ft, rp, options, roguename, 0);
+    execl ("player", "player", ft, rp, options, roguename, NULL);
 # ifdef PLAYER
-    execl (PLAYER, "player", ft, rp, options, roguename, 0);
+    execl (PLAYER, "player", ft, rp, options, roguename, NULL);
 # endif
     printf ("Rogomatic not available, 'player' binary missing.\n");
     kill (child, SIGKILL);
@@ -145,9 +145,9 @@ char *argv[];
 
 replaylog (fname, options)
 char *fname, *options;
-{ execl ("player", "player", "ZZ", "0", options, fname, 0);
+{ execl ("player", "player", "ZZ", "0", options, fname, NULL);
 # ifdef PLAYER
-  execl (PLAYER, "player", "ZZ", "0", options, fname, 0);
+  execl (PLAYER, "player", "ZZ", "0", options, fname, NULL);
 # endif
   printf ("Replay not available, 'player' binary missing.\n");
   exit (1);
