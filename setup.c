@@ -105,6 +105,8 @@ char *argv[];
     dup (ptc[READ]);
     close (1);
     dup (ctp[WRITE]);
+    close (ptc[WRITE]); /* Close parent's (player's) unused end of the pipes */
+    close (ctp[READ]);
 
     putenv ("TERMCAP", ROGUETERM);
     putenv ("TERM", "rg");
@@ -121,6 +123,9 @@ char *argv[];
   { /* Encode the open files into a two character string */
 
     char ft[3] = "aa", rp[32]; ft[0] += frogue; ft[1] += trogue;
+
+    close (ptc[READ]); /* Close child's (rogue's) unused end of the pipes */
+    close (ctp[WRITE]);
 
     /* Pass the process ID of the Rogue process as an ASCII string */
     sprintf (rp, "%d", child);
