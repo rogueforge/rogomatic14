@@ -458,6 +458,8 @@ char *argv[];
   if (!replaying)
     while ((int) (ch = GETROGUECHAR) != CL_TOK && (int) ch != EOF);
 
+  clearscreen ();
+
   /* 
    * Note: If we are replaying, the logfile is now in synch
    */
