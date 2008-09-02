@@ -33,7 +33,8 @@ extern double mean(), stdev(), sqrt();
 extern FILE *wopen();
 extern char *malloc();
 
-static int inittime=0, trialno=0, lastid=0;
+static time_t inittime=0;
+static int trialno=0, lastid=0;
 static int crosses=0, shifts=0, mutations=0;
 static statistic g_score = ZEROSTAT;
 static statistic g_level = ZEROSTAT;
@@ -283,7 +284,7 @@ register char *genepool;
   /* Read the header line */
   b = buf;
   if (fgets (b, BUFSIZ, gfil) == NULL) return (0);
-  sscanf (b, "%d %d %d %d %d %d",
+  sscanf (b, "%ld %d %d %d %d %d",
 	&inittime, &trialno, &lastid, &crosses, &shifts, &mutations);
   SKIPTO ('|', b);
   parsestat (b, &g_score);
@@ -348,7 +349,7 @@ register char *genepool;
     quit (1, "Cannot open file '%s'\n", genepool);
 
   /* Write the header line */
-  fprintf (gfil, "%d %d %d %d %d %d",
+  fprintf (gfil, "%ld %d %d %d %d %d",
 	   inittime, trialno, lastid, crosses, shifts, mutations);
   fprintf (gfil, "|");
   writestat (gfil, &g_score);
