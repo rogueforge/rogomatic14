@@ -24,7 +24,7 @@ extern char nextid;		/* Next object to identify */
 extern char ourkiller[];	/* What was listed on the tombstone */
 extern char *parmstr;		/* Pointer to argument space */
 extern char queue[];		/* stuff to be sent to Rogue */
-extern char *roguename;		/* Name we are playing under */
+extern char roguename[241];		/* Name we are playing under */
 extern char screen[24][80];	/* characters drawn by Rogue */
 extern char sumline[];		/* Summation line */
 extern char *termination;	/* Latin verb for how we died */
