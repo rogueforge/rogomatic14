@@ -12,6 +12,7 @@
 # include <sgtty.h>
 # include <stdio.h>
 # include <signal.h>
+# include <pwd.h>
 # include <sys/types.h>
 # include <sys/stat.h>
 # include <stdarg.h>
@@ -52,15 +53,15 @@ baudrate ()
  */
 
 char *getname ()
-{ static char name[100];
-  int   i;
+{ static char name[100] = "";
+  struct passwd *pw;
 
+  pw = getpwuid(getuid());
 
-  getpw (getuid (), name);
-  i = 0;
-  while (name[i] != ':' && name[i] != ',')
-    i++;
-  name[i] = '\0';
+  if (pw != NULL)
+      strncpy(name, pw->pw_name, 100);
+
+  name[99] = 0;
 
   return (name);
 }
