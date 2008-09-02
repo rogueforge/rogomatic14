@@ -20,6 +20,7 @@
 # define swap(x,y) {t=(x); (x)=(y); (y)=t;}
 
 int havearmor (k, print, rustproof)
+int k, print, rustproof;
 { register int i, j, w, t, n=0;
   int armind[MAXINV], armval[MAXINV];
 
@@ -53,7 +54,7 @@ int havearmor (k, print, rustproof)
  * of remove curse and -2 for when we don't have a remove curse.
  */
 
-armorclass (i)
+int armorclass (i)
 int i;
 { int class;
 
@@ -92,6 +93,7 @@ int i;
  */
 
 int haveweapon (k, print)
+int k, print;
 { register int i, j, w, t, n=0;
   int weapind[MAXINV], weapval[MAXINV];
   for (i=0; i<invcount; ++i)
@@ -136,7 +138,7 @@ int haveweapon (k, print)
  *              high numbers.
  */
 
-weaponclass (i)
+int weaponclass (i)
 int i;
 { int class, hitplus = 0, damplus = 0;
 
@@ -204,6 +206,7 @@ int i;
  */
 
 int havering (k, print)
+int k, print;
 { register int i, j, r, t, n=0;
   int ringind[MAXINV], ringval[MAXINV];
   for (i=0; i<invcount; ++i)
@@ -245,7 +248,7 @@ int havering (k, print)
  *            value of the ring.
  */
 
-ringclass (i)
+int ringclass (i)
 int i;
 { int class = 0, magicplus = 0;
 
@@ -435,6 +438,7 @@ int i;
  */
 
 int havebow (k, print)
+int k, print;
 { register int i, j, w, t, n=0;
   int bowind[MAXINV], bowval[MAXINV];
   for (i=0; i<invcount; ++i)
@@ -463,7 +467,7 @@ int havebow (k, print)
  *           hit, multiplied by 10.
  */
 
-bowclass (i)
+int bowclass (i)
 int i;
 { int class, hitplus = 0, damplus = 0;
 
@@ -525,7 +529,7 @@ int havemissile ()
  * havearrow: return the index of any arrow which has count 1.
  */
 
-havearrow ()
+int havearrow ()
 { int arr;
 
   for (arr = 0; arr<invcount; arr++)
@@ -542,7 +546,7 @@ havearrow ()
  *             Do a picky identify to try to find its plusses.
  */
 
-plusweapon ()
+int plusweapon ()
 {
   cursedweapon = 0;
   newweapon = 1;
@@ -554,7 +558,7 @@ plusweapon ()
  * hitbonus: Return the bonus to hit.
  */
 
-hitbonus (strength)
+int hitbonus (strength)
 int strength;
 { int bonus = 0;
   
@@ -581,7 +585,7 @@ int strength;
  * damagebonus: bonus = the damage bonus.
  */
 
-damagebonus (strength)
+int damagebonus (strength)
 int strength;
 { int bonus = 0;
 
@@ -614,7 +618,7 @@ int strength;
  * setbonuses: Set global hit and damage pluses.
  */
 
-setbonuses ()
+int setbonuses ()
 {
   /* Set global Hit bonus */
   gplushit = hitbonus (Str);

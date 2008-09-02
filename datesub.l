@@ -4,7 +4,7 @@
  * Copyright (C) 1985 by A. Appel, G. Jacobson, L. Hamey, and M. Mauldin
  */
 
-int yywrap() { return 1; }
+int yywrap(void) { return 1; }
 %}
 %%
 "Jan"				printf ("1"); 
@@ -21,7 +21,9 @@ int yywrap() { return 1; }
 "Dec"				printf ("12"); 
 %%
 
-main ()
+int main (argc, argv)
+int argc;
+char *argv[];
 { while (yylex ())
     ; 
 }

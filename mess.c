@@ -8,6 +8,8 @@
 
 # include <curses.h>
 # include <ctype.h>
+# include <stdlib.h>
+# include <string.h>
 # include "types.h"
 # include "globals.h"
 
@@ -21,10 +23,10 @@ static int monkilled[] = {
 static int totalkilled=0, timeshit=0, timesmissed=0, hits=0, misses=0;
 static int sumgold=0, sumsqgold=0, numgold=0;
 
-static mhit=0, mmiss=0, mtarget= NONE;
+static int mhit=0, mmiss=0, mtarget= NONE;
 
 /* Other local data */
-identifying = 0;		/* Next message is from identify scroll */
+int identifying = 0;		/* Next message is from identify scroll */
 static int justreadid = 0;	/* True if just read identify scroll */
 static int gushed = 0;		/* True ==> water on the head msg recently */
 static int echoit;		/* True ==> echo this message to the user */
@@ -45,7 +47,7 @@ static char *result[] = { res1, res2, res3, res4 };
  * multiple messages.
  */
 
-terpmes ()
+int terpmes ()
 { char mess[128];
   register char *m, *mend, *s = screen[0], *t;
 
@@ -75,7 +77,7 @@ terpmes ()
  * or call functions.
  */
 
-parsemsg (mess, mend)
+int parsemsg (mess, mend)
 register char *mess, *mend;
 { int unknown = 0;
 
@@ -446,7 +448,7 @@ register char *mess, *mend;
  * characters matched by the 'i'th *.
  */
 
-smatch (dat, pat, res)
+int smatch (dat, pat, res)
 register char *dat, *pat, **res;
 { register char *star = 0, *starend, *resp;
   int nres = 0;
@@ -481,7 +483,7 @@ register char *dat, *pat, **res;
  * readident: read an identify scroll.
  */
 
-readident (name)
+int readident (name)
 char *name;
 { int obj; char id = '*';	/* Default is "* for list" */
 
@@ -539,7 +541,7 @@ char *name;
  * rampage: read a scroll of genocide.
  */
  
-rampage ()
+int rampage ()
 { char monc;
 
   /* Check the next monster in the list, we may not fear him */ 
@@ -582,7 +584,7 @@ rampage ()
  * Good rings we have identified, so dont bother marking rings.
  */
 
-curseditem ()
+void curseditem ()
 { usesynch = 0;    /* Force a reset inventory */
 
   /* lastdrop is index of last item we tried to use which could be cursed */
@@ -609,7 +611,7 @@ curseditem ()
  * base, and then zap that name into all of the same objects 
  */
 
-infer (objname)
+int infer (objname)
 char *objname;
 { register int i;
 
@@ -628,7 +630,7 @@ char *objname;
  * Killed: called whenever we defeat a monster.
  */
 
-killed (monster)
+int killed (monster)
 register char *monster;
 { register int m = 0, mh = 0;
 
@@ -682,7 +684,7 @@ register char *monster;
  * washit: Record being hit by a monster.
  */
 
-washit (monster)
+int washit (monster)
 char *monster;
 { register int mh = 0, m = 0;
 
@@ -708,7 +710,7 @@ char *monster;
  * wasmissed: Record being missed by a monster.
  */
 
-wasmissed (monster)
+int wasmissed (monster)
 char *monster;
 { register int mh = 0, m = 0;
 
@@ -732,7 +734,7 @@ char *monster;
  * didhit: Record hitting a monster.
  */
 
-didhit ()
+int didhit ()
 { register int m = 0;
 
   /* Record our hit */
@@ -749,7 +751,7 @@ didhit ()
  * didmiss: Record missing a monster.
  */
 
-didmiss ()
+int didmiss ()
 { register int m = 0;
 
   /* Record our miss */
@@ -766,7 +768,7 @@ didmiss ()
  * mshit: Record hitting a monster with a missile.
  */
 
-mshit (monster)
+void mshit (monster)
 char *monster;
 { register int mh;
 
@@ -786,7 +788,7 @@ char *monster;
  * msmiss: Record missing a monster with a missile.
  */
 
-msmiss (monster)
+void msmiss (monster)
 char *monster;
 { register int mh;
 
@@ -808,7 +810,7 @@ char *monster;
  *            statistics about the amount of gold picked up.
  */
 
-countgold (amount)
+int countgold (amount)
 register char *amount;
 { int pot;
 
@@ -820,29 +822,33 @@ register char *amount;
  * Summary: print a summary of the game.
  */
 
-summary (f, sep)
+int summary (f, sep)
 FILE *f;
-char sep;
+int sep;
 { register int m;
-  char s[1024], *monname ();
+  char s[1024], s2[100], *monname ();
 
   sprintf (s, "Monsters killed:%c%c", sep, sep);
 
   for (m=0; m<=26; m++)
     if (monkilled[m] > 0)
-    { sprintf (s, "%s\t%d %s%s%c", s, monkilled[m],  monname (m+'A'-1),
+    { sprintf (s2, "\t%d %s%s%c", monkilled[m],  monname (m+'A'-1),
                plural (monkilled[m]), sep);
+      strcat(s, s2);
     }
 
-  sprintf (s, "%s%cTotal: %d%c%c", s, sep, totalkilled, sep, sep);
+  sprintf (s2, "%cTotal: %d%c%c", sep, totalkilled, sep, sep);
+  strcat(s, s2);
   
-  sprintf (s, "%sHit %d out of %d times, was hit %d out of %d times.%c", s,
+  sprintf (s2, "Hit %d out of %d times, was hit %d out of %d times.%c",
            hits, misses+hits,
            timeshit, timesmissed+timeshit, sep);
+  strcat(s, s2);
 
   if (numgold > 0)
-    sprintf (s, "%sGold %d total, %d pots, %d average.%c",  s,
+    sprintf (s2, "Gold %d total, %d pots, %d average.%c",
              sumgold, numgold, (sumgold*10+5) / (numgold*10), sep);
+    strcat(s, s2);
 
   if (f == NULL)
     addstr (s);
@@ -854,7 +860,7 @@ char sep;
  * versiondep: Set version dependent variables.
  */
 
-versiondep ()
+int versiondep ()
 {
   if (version >= RV53A)		genocide = "DMJGU";
   else if (version >= RV52A)	genocide = "UDVPX";
@@ -869,7 +875,7 @@ versiondep ()
  * when we are being stalked by an invisible monster.
  */
 
-getmonhist (monster, hitormiss)
+int getmonhist (monster, hitormiss)
 char *monster;
 int hitormiss;
 { if (cosmic || blinded)

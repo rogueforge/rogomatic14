@@ -14,7 +14,9 @@
  */
 
 # include <stdio.h>
+# include <stdlib.h>
 # include "types.h"
+# include "globals.h"
 # include "install.h"
 
 int knob[MAXKNOB];
@@ -33,7 +35,7 @@ char genelock[100];
 char genelog[100];
 char genepool[100];
 
-main (argc, argv)
+int main (argc, argv)
 int   argc;
 char *argv[];
 { int m=10, init=0, seed=0, version=RV53A, full=0;

@@ -14,6 +14,7 @@
  */
 
 # include <curses.h>
+# include <string.h>
 # include "types.h"
 # include "globals.h"
 
@@ -29,7 +30,7 @@ int datalen = 0;
  * findentry: find the database entry for 'string'
  */
 
-findentry (string)
+int findentry (string)
 char *string;
 { register int i;
 
@@ -46,7 +47,7 @@ char *string;
  *         object with name 'oldname'.
  */
 
-useobj (oldname)
+int useobj (oldname)
 char *oldname;
 { if (findentry (oldname) == NOTFOUND)
   { strcpy (dbase[datalen].fakename, oldname);
@@ -60,7 +61,7 @@ char *oldname;
  * light).
  */
 
-infername (oldname, name)
+int infername (oldname, name)
 char *oldname;
 char *name;
 { register int i;
@@ -129,7 +130,7 @@ char *oldname;
  * dumpdatabase: Debugging, dump the database one the screen.
  */
 
-dumpdatabase ()
+int dumpdatabase ()
 { register int i;
 
   for (i = 0; i < datalen; i++)

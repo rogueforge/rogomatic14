@@ -14,8 +14,11 @@
  */
 
 # include <stdio.h>
+# include <stdlib.h>
+# include <time.h>
 # include <sys/types.h>
 # include "types.h"
+# include "globals.h"
 
 # define TRIALS(g)		((g)->score.count)
 # define NONE		(-1)
@@ -31,9 +34,9 @@ typedef struct
 extern int knob[];
 extern double mean(), stdev(), sqrt();
 extern FILE *wopen();
-extern char *malloc();
 
-static int inittime=0, trialno=0, lastid=0;
+static time_t inittime=0;
+static int trialno=0, lastid=0;
 static int crosses=0, shifts=0, mutations=0;
 static statistic g_score = ZEROSTAT;
 static statistic g_level = ZEROSTAT;
@@ -45,29 +48,30 @@ static FILE *glog=NULL;
 
 static int compgene();
 
-static parsegene();
-static summgene();
-static birth();
-static printdna();
-static cross();
-static mutate();
-static shift();
-static randompool();
-static selectgene();
-static unique();
-static untested();
-static youngest();
-static makeunique();
-static triangle();
-static badgene();
-static writegene();
-static initgene();
+static int parsegene();
+static int summgene();
+static void birth(FILE *, genotype *);
+static int printdna();
+static int cross();
+static int mutate();
+static int shift();
+static int randompool();
+static int selectgene();
+static int unique();
+static int untested();
+static int youngest();
+static int makeunique();
+static int triangle();
+static int badgene();
+static int writegene();
+static int initgene();
 
 /*
  * Start a new gene pool
  */
 
-initpool (k, m)
+int initpool (k, m)
+int k, m;
 { char *ctime();
 
   inittime = time (0);
@@ -82,7 +86,7 @@ initpool (k, m)
  * Summarize the current gene pool
  */
 
-analyzepool (full)
+int analyzepool (full)
 int full;
 { register int g;
   char *ctime();
@@ -134,7 +138,7 @@ int full;
  * setknobs: Read gene pool, pick genotype, and set knobs accordingly.
  */
 
-setknobs (newid, knb, best, avg)
+int setknobs (newid, knb, best, avg)
 int *newid, *knb, *best, *avg;
 { register int i, g;
   
@@ -154,7 +158,7 @@ int *newid, *knb, *best, *avg;
  * evalknobs: Add a data point to the gene pool
  */
 
-evalknobs (gid, score, level)
+void evalknobs (gid, score, level)
 int gid, score, level;
 { register int g;
 
@@ -196,7 +200,7 @@ register char *genelog;
  * closelog: Close the log file
  */
 
-closelog ()
+int closelog ()
 { if (glog) fclose (glog);
 }
 
@@ -204,7 +208,7 @@ closelog ()
  * pickgenotype: Run one trial, record performance, and do some learning
  */
 
-pickgenotype ()
+int pickgenotype ()
 { register int youth, father, mother, new;
   
   /* Find genotype with fewer trials than needed to measure its performance */
@@ -266,7 +270,7 @@ pickgenotype ()
  * if the file exists and cannot be read.
  */
 
-readgenes (genepool)
+int readgenes (genepool)
 register char *genepool;
 { char buf[BUFSIZ];
   register char *b;
@@ -283,7 +287,7 @@ register char *genepool;
   /* Read the header line */
   b = buf;
   fgets (b, BUFSIZ, gfil);
-  sscanf (b, "%d %d %d %d %d %d",
+  sscanf (b, "%ld %d %d %d %d %d",
 	&inittime, &trialno, &lastid, &crosses, &shifts, &mutations);
   SKIPTO ('|', b);
   parsestat (b, &g_score);
@@ -309,7 +313,7 @@ register char *genepool;
  * structure, fill the structure according to the string.
  */
 
-static parsegene (buf, gene)
+static int parsegene (buf, gene)
 register char *buf;
 register genotype *gene;
 { register int i;
@@ -338,7 +342,7 @@ register genotype *gene;
  * writegenes: Write the gene pool 'genes' out to file 'genepool'
  */
 
-writegenes (genepool)
+int writegenes (genepool)
 register char *genepool;
 { register FILE *gfil;
   register int g;
@@ -348,7 +352,7 @@ register char *genepool;
     quit (1, "Cannot open file '%s'\n", genepool);
 
   /* Write the header line */
-  fprintf (gfil, "%d %d %d %d %d %d",
+  fprintf (gfil, "%ld %d %d %d %d %d",
 	   inittime, trialno, lastid, crosses, shifts, mutations);
   fprintf (gfil, "|");
   writestat (gfil, &g_score);
@@ -367,7 +371,7 @@ register char *genepool;
  * Write out one line representing the gene.
  */
 
-static writegene (gfil, g)
+static int writegene (gfil, g)
 register FILE *gfil;
 register genotype *g;
 { register int i;
@@ -394,7 +398,7 @@ register genotype *g;
  * initgene: Allocate a new genotype structure, set everything to 0.
  */
 
-static initgene (gene)
+static int initgene (gene)
 register genotype *gene;
 { register int i;
 
@@ -428,7 +432,7 @@ genotype **a, **b;
  * summgene: Summarize a single genotype
  */
 
-static summgene (f, gene)
+static int summgene (f, gene)
 register FILE *f;
 register genotype *gene;
 { fprintf (f, "%3d age %2d, created %4d, ",
@@ -442,7 +446,7 @@ register genotype *gene;
  * Birth: Summarize Record the birth of a genotype.
  */
 
-static birth (f, gene)
+static void birth (f, gene)
 register FILE *f;
 register genotype *gene;
 {
@@ -464,7 +468,7 @@ register genotype *gene;
  * printdna: Print the genotype of a gene
  */
 
-static printdna (f, gene)
+static int printdna (f, gene)
 FILE *f;
 register genotype *gene;
 { register int i;
@@ -481,7 +485,7 @@ register genotype *gene;
  * cross: Cross two genotypes producing a new genotype
  */
 
-static cross (father, mother, new)
+static int cross (father, mother, new)
 register int father, mother, new;
 { register int cpoint, i;
 
@@ -520,7 +524,7 @@ register int father, mother, new;
  * mutate: mutate a genes producing a new gene
  */
 
-static mutate (father, new)
+static int mutate (father, new)
 register int father, new;
 { register int i;
 
@@ -556,7 +560,7 @@ register int father, new;
  * shift: shift a gene producing a new gene
  */
 
-static shift (father, new)
+static int shift (father, new)
 register int father, new;
 { register int i, offset;
   
@@ -589,7 +593,7 @@ register int father, new;
  * randompool: Initialize the pool to a random starting point
  */
 
-static randompool (m)
+static int randompool (m)
 register int m;
 { register int i, g;
 
@@ -611,7 +615,7 @@ register int m;
  * selectgene: Select a random gene, weighted by mean score.
  */
 
-static selectgene (e1, e2)
+static int selectgene (e1, e2)
 register int e1, e2;
 { register int total=0;
   register int g;
@@ -642,7 +646,7 @@ register int e1, e2;
  * unique: Return false if gene is an exact copy of another gene.
  */
 
-static unique (new)
+static int unique (new)
 register int new;
 { register int g, i, delta, sumsquares;
 
@@ -666,7 +670,7 @@ register int new;
  * greater for older genotypes.
  */
 
-static untested ()
+static int untested ()
 { register int g, y= -1, trials=1e9, newtrials, count=length;
   
   for (g = randint (length); count-- > 0; g = (g+1) % length)
@@ -685,7 +689,7 @@ static untested ()
  * youngest: Return the index of the youngest genotype
  */
 
-static youngest ()
+static int youngest ()
 { register int g, y=0, trials=1e9, newtrials, count=length;
   
   for (g = randint (length); count-- > 0; g = (g+1) % length)
@@ -700,7 +704,7 @@ static youngest ()
  * makeunique: Mutate a genotype until it is unique
  */
 
-static makeunique (new)
+static int makeunique (new)
 register int new;
 { register int i;
 
@@ -715,7 +719,7 @@ register int new;
  * triangle: Return a non-zero triangularly distributed number from -n to n.
  */
 
-static triangle (n)
+static int triangle (n)
 register int n;
 { register int val;
 
@@ -731,7 +735,7 @@ register int n;
  * only consider genotypes dominated by other genotypes.
  */
 
-static badgene (e1, e2)
+static int badgene (e1, e2)
 register int e1, e2;
 { register int g, worst, trials;
   double worstval, bestval, avg, dev, value;

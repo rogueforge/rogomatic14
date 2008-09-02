@@ -4,7 +4,7 @@
 BINARIES=   rogomatic player rgmplot datesub histplot gene
 BINDIR=     /usr/mlm/bin
 PUBDIR=     /usr/mlm/src/rog/rgmpub
-CCFLAGS=    -g
+CCFLAGS=    -g -pedantic
 LDFLAGS=    -g
 OBJS=	    arms.o command.o database.o debug.o explore.o io.o learn.o\
 	    ltm.o main.o mess.o monsters.o pack.o rand.o replay.o rooms.o\
@@ -51,7 +51,7 @@ gene: gene.c rand.o learn.o stats.o utility.o types.h install.h
 histplot: histplot.o utility.o
 	cc $(LDFLAGS) -o histplot histplot.o utility.o
 histplot.o:
-	cc -c histplot.c
+	cc -c $(CCFLAGS) histplot.c
 io.o: types.h globals.h install.h termtokens.h
 	cc -c $(CCFLAGS) io.c
 mess.o: types.h globals.h

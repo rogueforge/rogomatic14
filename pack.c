@@ -6,6 +6,8 @@
  */
 
 # include <curses.h>
+# include <stdlib.h>
+# include <string.h>
 # include "types.h"
 # include "globals.h"
 
@@ -61,7 +63,7 @@ register int i;
  * dumpinv: print the inventory. calls itemstr.
  */
 
-dumpinv (f)
+int dumpinv (f)
 register FILE *f;
 { register int i; 
 
@@ -82,7 +84,7 @@ register FILE *f;
  * removeinv: remove an item from the inventory.
  */
 
-removeinv (pos)
+int removeinv (pos)
 int pos;
 { 
   if (--(inven[pos].count) == 0)
@@ -100,7 +102,7 @@ int pos;
  * things can be dropped all at once.
  */
 
-deleteinv (pos)
+int deleteinv (pos)
 int pos;
 { 
   if (--(inven[pos].count) == 0 || inven[pos].type == missile)
@@ -116,7 +118,7 @@ int pos;
  * clearpack: zero out slot in pack.  DR UTexas 01/05/84
  */
 
-clearpack (pos)
+void clearpack (pos)
 int pos;
 {
   if (pos >= MAXINV) return;
@@ -135,7 +137,7 @@ int pos;
  * the pack.
  */
 
-rollpackup (pos)
+void rollpackup (pos)
 register int pos;
 { register char *savebuf;
   register int i;
@@ -166,7 +168,7 @@ register int pos;
  * objects behind that position.
  */
 
-rollpackdown (pos)
+void rollpackdown (pos)
 register int pos;
 { register char *savebuf;
   register int i;
@@ -192,7 +194,7 @@ register int pos;
  * doresetinv, which is called by a demon in the command handler.
  */
 
-resetinv()
+int resetinv()
 { 
   if (!replaying) command (T_OTHER, "i");
 }
@@ -201,7 +203,7 @@ resetinv()
  * doresetinv: reset the inventory.  DR UTexas 01/05/84
  */
 
-doresetinv ()
+int doresetinv ()
 { int i;
   static char space[MAXINV][80]; 
 
@@ -225,7 +227,7 @@ doresetinv ()
 
 # define xtr(w,b,e,k) {what=(w);xbeg=mess+(b);xend=mend-(e);xknow|=(k);}
 
-inventory (msgstart, msgend)
+int inventory (msgstart, msgend)
 char *msgstart, *msgend;
 { register char *p, *q, *mess = msgstart, *mend = msgend;
   char objname[100], *realname();
@@ -445,7 +447,7 @@ char *msgstart, *msgend;
  * countpack: Count objects, missiles, and food in the pack.
  */
  
-countpack ()
+int countpack ()
 { register int i, cnt;
 
   for (objcount=0, larder=0, ammo=0, i=0; i<invcount; i++)

@@ -7,6 +7,8 @@
  */
 
 # include <stdio.h>
+# include <stdlib.h>
+# include <string.h>
 # define WIDTH 50
 # define AVLEN 7
 # define SCALE(n) (((n)+100)/200)
@@ -18,13 +20,16 @@ char *month[] =
 
 int doavg = 0, cheat = 0, min = -1;
 
-main (argc, argv)
+extern int stlmatch (char *, char *);
+extern int getscore (int *, int *, int *, char *, int *, char *);
+
+int main (argc, argv)
 int argc;
 char *argv[];
 { int mm, dd, yy, score = 0, lastday = -1, lastmon = -1, lastyy = -1, h;
   int sumscores = 0, numscores = 0, i;
   int sum[AVLEN], num[AVLEN], rsum, rnum, davg, ravg;
-  char player[100], plot[128], cheated;  
+  char player[100], plot[128], buf[15], cheated;  
 
   /* Clear out the rolling average statistics */
   for (i = 0; i < AVLEN; i++)
@@ -87,7 +92,7 @@ char *argv[];
     }
     
     if (score > EOF)
-    { if ((h = SCALE(score)) >= WIDTH)  sprintf (plot, "%s %d", plot, score);
+    { if ((h = SCALE(score)) >= WIDTH) { sprintf (buf, " %d", score);  strcat(plot, buf); }
       else if (plot[h] == '9')          ;
       else if (isdigit(plot[h]))        plot[h]++;
       else                              plot[h] = '1';
@@ -119,7 +124,7 @@ char *argv[];
 }
 
 
-getlin (s)
+int getlin (s)
 char *s;
 { int ch, i;
   static int endfile = 0;
@@ -140,7 +145,7 @@ char *s;
   return (i);
 }
 
-getscore (mm, dd, yy, player, score, cheated)
+int getscore (mm, dd, yy, player, score, cheated)
 int *mm, *dd, *yy, *score;
 char *player, *cheated;
 { char line[128], reason[32];

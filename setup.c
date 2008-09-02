@@ -7,6 +7,12 @@
 
 # include <stdio.h>
 # include <signal.h>
+# include <stdlib.h>
+# include <fcntl.h>
+# include <sys/ioctl.h>
+# include <unistd.h>
+# include "types.h"
+# include "globals.h"
 # include "install.h"
 
 # define READ    0
@@ -16,10 +22,10 @@
 
 # define ROGUETERM "rg|rterm:am:bs:ce=^[^S:cl=^L:cm=^[a%+ %+ :co#80:li#24:so=^[D:se=^[d:pt:ta=^I:up=^[;:db:xn:"
 
-int   frogue, trogue;
+int   rfrogue, rtrogue;
 extern char *getname();
 
-main (argc, argv)
+int main (argc, argv)
 int   argc;
 char *argv[];
 
@@ -28,7 +34,7 @@ char *argv[];
   int   cheat = 0, noterm = 1, echo = 0, nohalf = 0, replay = 0;
   int   emacs = 0, rf = 0, terse = 0, user = 0, quitat = 2147483647;
   char  *rfile = "", *rfilearg = "", options[32];
-  char  ropts[128], roguename[128];
+  char  ropts[256], roguename[128];
 
   while (--argc > 0 && (*++argv)[0] == '-')
   { while (*++(*argv))
@@ -95,8 +101,8 @@ char *argv[];
     exit (1);
   }
 
-  trogue = ptc[WRITE];
-  frogue = ctp[READ];
+  rtrogue = ptc[WRITE];
+  rfrogue = ctp[READ];
 
   if ((child = fork ()) == 0)
   { close (0);
@@ -104,30 +110,36 @@ char *argv[];
     close (1);
     dup (ctp[WRITE]);
 
+#if !defined(BSD41) && !defined(BSD42)
+    setenv ("TERMCAP", ROGUETERM, 1);
+    setenv ("TERM", "rg", 1);
+    setenv ("ROGUEOPTS", ropts, 1);
+    setenv ("LINES","24", 1);
+    setenv ("COLUMNS","80", 1);
+#else
     putenv ("TERMCAP", ROGUETERM);
     putenv ("TERM", "rg");
     putenv ("ROGUEOPTS", ropts);
-    putenv ("LINES", "24");
-    putenv ("COLUMNS", "80");
-    if (oldgame)  execl (rfile, rfile, "-r", 0);
-    if (argc)     execl (rfile, rfile, argv[0], 0);
-    execl (rfile, rfile, 0);
+#endif
+    if (oldgame)  execl (rfile, rfile, "-r", NULL);
+    if (argc)     execl (rfile, rfile, argv[0], NULL);
+    execl (rfile, rfile, NULL);
     _exit (1);
   }
 
   else
   { /* Encode the open files into a two character string */
 
-    char ft[3] = "aa", rp[32]; ft[0] += frogue; ft[1] += trogue;
+    char ft[3] = "aa", rp[32]; ft[0] += rfrogue; ft[1] += rtrogue;
 
     /* Pass the process ID of the Rogue process as an ASCII string */
     sprintf (rp, "%d", child);
 
     if (!author ()) nice (4);
 
-    execl ("player", "player", ft, rp, options, roguename, 0);
+    execl ("player", "player", ft, rp, options, roguename, NULL);
 # ifdef PLAYER
-    execl (PLAYER, "player", ft, rp, options, roguename, 0);
+    execl (PLAYER, "player", ft, rp, options, roguename, NULL);
 # endif
     printf ("Rogomatic not available, 'player' binary missing.\n");
     kill (child, SIGKILL);
@@ -137,15 +149,15 @@ char *argv[];
 /* 
  * replaylog: Given a log file name and an options string, exec the player
  * process to replay the game.  No Rogue process is needed (since we are
- * replaying an old game), so the frogue and trogue file descrptiors are
+ * replaying an old game), so the rfrogue and rtrogue file descrptiors are
  * given the fake value 'Z'.
  */
 
-replaylog (fname, options)
+int replaylog (fname, options)
 char *fname, *options;
-{ execl ("player", "player", "ZZ", "0", options, fname, 0);
+{ execl ("player", "player", "ZZ", "0", options, fname, NULL);
 # ifdef PLAYER
-  execl (PLAYER, "player", "ZZ", "0", options, fname, 0);
+  execl (PLAYER, "player", "ZZ", "0", options, fname, NULL);
 # endif
   printf ("Replay not available, 'player' binary missing.\n");
   exit (1);
@@ -156,7 +168,7 @@ char *fname, *options;
  *	See if a user is an author of the program
  */
 
-author()
+int author()
 {
   switch (getuid())
   { case 1337:	/* Fuzzy */

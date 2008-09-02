@@ -11,10 +11,15 @@
 
 # include <sgtty.h>
 # include <stdio.h>
+# include <stdlib.h>
+# include <stdarg.h>
+# include <string.h>
 # include <signal.h>
+# include <pwd.h>
+# include <unistd.h>
+# include <fcntl.h>
 # include <sys/types.h>
 # include <sys/stat.h>
-# include <stdarg.h>
 
 # include "install.h"
 
@@ -32,7 +37,7 @@
  */
 
 #if defined(BSD41) || defined(BSD42)
-baudrate ()
+int baudrate ()
 { static short  baud_convert[] =
   { 0, 50, 75, 110, 135, 150, 200, 300, 600, 1200, 1800, 2400, 4800, 9600 };
   static struct sgttyb  sg;
@@ -52,15 +57,15 @@ baudrate ()
  */
 
 char *getname ()
-{ static char name[100];
-  int   i;
+{ static char name[100] = "";
+  struct passwd *pw;
 
+  pw = getpwuid(getuid());
 
-  getpw (getuid (), name);
-  i = 0;
-  while (name[i] != ':' && name[i] != ',')
-    i++;
-  name[i] = '\0';
+  if (pw != NULL)
+      strncpy(name, pw->pw_name, 100);
+
+  name[99] = 0;
 
   return (name);
 }
@@ -85,7 +90,7 @@ char *fname, *mode;
  * fexists: return a boolean if the named file exists
  */
 
-fexists (fn)
+int fexists (fn)
 char *fn;
 { struct stat pbuf;
 
@@ -110,9 +115,9 @@ char *f;
  * critical: Disable interrupts
  */
 
-static int   (*hstat)(), (*istat)(), (*qstat)(), (*pstat)();
+static void   (*hstat)(), (*istat)(), (*qstat)(), (*pstat)();
 
-critical ()
+int critical ()
 {
   hstat = signal (SIGHUP, SIG_IGN);
   istat = signal (SIGINT, SIG_IGN);
@@ -124,7 +129,7 @@ critical ()
  * uncritical: Enable interrupts
  */
 
-uncritical ()
+int uncritical ()
 {
   signal (SIGHUP, hstat);
   signal (SIGINT, istat);
@@ -136,7 +141,7 @@ uncritical ()
  * reset_int: Set all interrupts to default
  */
 
-reset_int ()
+int reset_int ()
 {
   signal (SIGHUP, SIG_DFL);
   signal (SIGINT, SIG_DFL);
@@ -148,8 +153,8 @@ reset_int ()
  * int_exit: Set up a function to call if we get an interrupt
  */
 
-int_exit (exitproc)
-int (*exitproc)();
+int int_exit (exitproc)
+void (*exitproc)();
 {
   if (signal (SIGHUP, SIG_IGN) != SIG_IGN)  signal (SIGHUP, exitproc);
   if (signal (SIGINT, SIG_IGN) != SIG_IGN)  signal (SIGINT, exitproc);
@@ -164,7 +169,7 @@ int (*exitproc)();
 
 # define NOWRITE 0
 
-lock_file (lokfil, maxtime)
+int lock_file (lokfil, maxtime)
 char *lokfil;
 int maxtime;
 { int try;
@@ -199,7 +204,7 @@ int maxtime;
  * unlock_file: Unlock a lock file.
  */
 
-unlock_file (lokfil)
+int unlock_file (lokfil)
 char *lokfil;
 { unlink (lokfil);
 }
@@ -210,7 +215,7 @@ char *lokfil;
  */
 
 /* VARARGS2 */
-quit (int code, char *fmt, ...)
+int quit (int code, char *fmt, ...)
 { va_list ap;
   va_start (ap, fmt);
   vfprintf (stderr, fmt, ap);
@@ -251,6 +256,7 @@ char *small, *big;
 }
 # endif
 
+#if defined(BSD41) || defined(BSD42)
 /*
  *  putenv  --  put value into environment
  *
@@ -402,3 +408,4 @@ static int  moreenv ()
   envsize = esize;
   return (0);
 }
+#endif

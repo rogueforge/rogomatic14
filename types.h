@@ -99,6 +99,7 @@ extern char	*_unctrl[];
 # define DOORW		(-2)
 # define CORNERW	(-3)
 
+# undef INFINITY
 # define INFINITY	(10000)
 
 # define NOTAMOVE	(-1)

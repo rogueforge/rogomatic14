@@ -10,8 +10,10 @@
  */
 
 # include <stdio.h>
+# include <stdlib.h>
 # include <sys/types.h>
 # include <sys/stat.h>
+# include <unistd.h>
 # include "types.h"
 # include "globals.h"
 # include "install.h"
@@ -28,7 +30,7 @@ static char lokfil[100];
  * score file and catching interrupts and things.
  */
 
-add_score (new_line, vers, ntrm)
+void add_score (new_line, vers, ntrm)
 char *new_line, *vers;
 int ntrm;
 { 
@@ -78,12 +80,13 @@ int ntrm;
  * dumpscore: Print out the scoreboard.
  */
 
-dumpscore (vers)
+int dumpscore (vers)
 char *vers;
 { 
-  char  ch, scrfil[100], delfil[100], newfil[100], allfil[100], cmd[256];
+  char  ch, scrfil[100], delfil[100], newfil[100], allfil[100], cmd[550];
   FILE *scoref, *deltaf;
-  int   oldmask, intrupscore ();
+  int   oldmask;
+  void intrupscore ();
 
   sprintf (lokfil, "%s %s", LOCKFILE, vers);
   sprintf (scrfil, "%s/rgmscore%s", RGMDIR, vers);
@@ -170,7 +173,7 @@ char *vers;
  * intrupscore: We have an interrupt, clean up and unlock the score file.
  */
 
-intrupscore ()
+void intrupscore ()
 { unlock_file (lokfil);
   exit (1);
 }

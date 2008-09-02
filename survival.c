@@ -45,7 +45,8 @@
  * runaway code.
  */
 
-markcycles (print)
+int markcycles (print)
+int print;
 { short mark[1920];
   struct {short where,door,dirs;} st[1000];
   register int sp,newsquare; int *Scr; int whichdir; int D;
@@ -126,7 +127,7 @@ markcycles (print)
  * Added: 3/7/87 by mlm
  */
 
-markchokepts ()
+int markchokepts ()
 { register int *Scr, *ScrEnd, loc;
 
   for (Scr = scrmap[0], ScrEnd = &Scr[1920]; Scr<ScrEnd; Scr++) 

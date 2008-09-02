@@ -7,7 +7,9 @@
  */
 
 # include <curses.h>
+# include <string.h>
 # include <math.h>
+# include <time.h>
 # include "types.h"
 # include "globals.h"
 # include "install.h"
@@ -19,8 +21,9 @@ static char ltmnam[100];	/* Long term memory file name */
  * mapcharacter: Read a character help message
  */
 
-mapcharacter (ch, str)
-char ch, *str;
+int mapcharacter (ch, str)
+int ch;
+char *str;
 {
   dwait (D_CONTROL, "mapcharacter called: '%c' ==> '%s'", ch, str);  
 
@@ -81,7 +84,7 @@ char *monster;
  * access to the output file.
  */
 
-saveltm (score)
+void saveltm (score)
 int score;
 { register int m;
   register FILE *ltmfil;
@@ -128,7 +131,7 @@ int score;
  * restoreltm: Read the long term memory file.
  */
 
-restoreltm ()
+int restoreltm ()
 {
   sprintf (ltmnam, "%s/ltm%d", RGMDIR, version);
   dwait (D_CONTROL, "Restoreltm called, reading file '%s'", ltmnam);
@@ -166,7 +169,7 @@ restoreltm ()
  * into storage.  Be careful about serializing access to the file.
  */
 
-readltm ()
+int readltm ()
 { char buf[BUFSIZ];
   register FILE *ltmfil;
   
@@ -194,7 +197,7 @@ readltm ()
  * parsemonster: parse one line from the ltm file.
  */
 
-parsemonster (monster)
+void parsemonster (monster)
 char *monster;
 { register char *attrs;
   char *index();
@@ -220,7 +223,7 @@ char *monster;
  * clearltm: Clear a whole long term memory array.
  */
 
-clearltm (ltmarr)
+int clearltm (ltmarr)
 register ltmrec *ltmarr;
 { register int i;
 
@@ -239,7 +242,7 @@ register ltmrec *ltmarr;
  * dumpmonstertable: Format and print the monster table on the screen
  */
 
-dumpmonstertable ()
+int dumpmonstertable ()
 { register int m;
   char monc;
 
@@ -266,7 +269,7 @@ dumpmonstertable ()
  * analyzeltm: Set the monatt array based on current long term memory.
  */
 
-analyzeltm ()
+int analyzeltm ()
 { register int m, i;
   double avg_dam = 0.6*Level+3, max_dam = 7.0+Level, avg_arr = 4.0;
   double phit, mean_dam, stdev_dam, three_dev;

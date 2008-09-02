@@ -1,6 +1,9 @@
 # include <stdio.h>
+# include "types.h"
+# include "globals.h"
 
-main (argc, argv)
+int main (argc, argv)
+int argc;
 char *argv[];
 {
   if (argc != 3)

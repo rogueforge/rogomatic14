@@ -11,6 +11,8 @@
  */
 
 # include <stdio.h>
+# include <stdlib.h>
+# include <string.h>
 # define SKIPARG	while (*++(*argv)); --(*argv)
 
 # define BWIDTH 200
@@ -21,7 +23,10 @@
 
 int cheat = 0;
 
-main (argc, argv)
+extern int getscore (int *, char *, int *);
+extern int stlmatch (char *, char *);
+
+int main (argc, argv)
 int argc;
 char *argv[];
 { int score = 0, maxfreq = 0, lowscore = 0, min = 200, killnum = 0;
@@ -154,7 +159,7 @@ char *argv[];
 
 # define LEVELPOS 47
 
-getscore (score, killer, level)
+int getscore (score, killer, level)
 int *score, *level;
 char *killer;
 { int dd, yy;

@@ -99,7 +99,11 @@
 # include <ctype.h>
 # include <signal.h>
 # include <setjmp.h>  
+# include <stdlib.h>
+# include <string.h>
+# include <unistd.h>
 # include "types.h"
+# include "globals.h"
 # include "termtokens.h"
 # include "install.h"
 
@@ -236,7 +240,8 @@ int   zone = NONE;		/* Current screen zone, 0..8 */
 int   zonemap[9][9];		/* Map of zones connections */
 
 /* Functions */
-int (*istat)(), onintr ();
+void (*istat)(int);
+void onintr (int);
 char getroguetoken (), *getname();
 FILE *openlog();
 
@@ -336,10 +341,10 @@ jmp_buf  commandtop;
  * Main program
  */
 
-main (argc, argv)
+int main (argc, argv)
 int   argc;
 char *argv[];
-{ char  ch, *s, *getenv(), *statusline(), msg[128];
+{ char  ch, *s, *getenv(), *statusline(), msg[350];
   int startingup = 1;
   register int  i;
 
@@ -347,11 +352,11 @@ char *argv[];
    * Initialize some storage
    */
   
-  sprintf (genocided, "");
+  strcpy(genocided, "");
   sprintf (lastcmd, "i");
   sprintf (ourkiller, "unknown");
-  sprintf (sumline, "");
-  sprintf (versionstr, "");
+  strcpy(sumline, "");
+  strcpy(versionstr, "");
   for (i = 80 * 24; i--; ) screen[0][i] = ' ';
  
   /* 
@@ -704,7 +709,7 @@ char *argv[];
   { char lognam[128];
 
     /* Make up a new log file name */
-    sprintf (lognam, "%0.4s.%d.%d", ourkiller, MaxLevel, ourscore);
+    sprintf (lognam, "%.4s.%d.%d", ourkiller, MaxLevel, ourscore);
 
     /* Close the open file */
     toggleecho ();
@@ -727,7 +732,8 @@ char *argv[];
  * and reset some goal variables.
  */
 
-onintr ()
+void onintr (signum)
+int signum;
 { sendnow ("n\033");            /* Tell Rogue we don't want to quit */
   if (logging) fflush (fecho);  /* Print out everything */
   refresh ();                   /* Clear terminal output */
@@ -744,7 +750,7 @@ onintr ()
  * test this game, and set the parameters (or "knobs") accordingly.
  */
 
-startlesson ()
+int startlesson ()
 { sprintf (genelog, "%s/GeneLog%d", RGMDIR, version);
   sprintf (genepool, "%s/GenePool%d", RGMDIR, version);
   sprintf (genelock, "%s/GeneLock%d", RGMDIR, version);
@@ -780,7 +786,7 @@ startlesson ()
  * evaluate the performance of this genotype and save in genepool.
  */
 
-endlesson ()
+int endlesson ()
 { if (geneid > 0 &&
       (stlmatch (termination, "perditus") ||
        stlmatch (termination, "victorius") ||

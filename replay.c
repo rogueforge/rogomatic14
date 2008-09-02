@@ -7,6 +7,7 @@
  */
 
 # include <curses.h>
+# include <string.h>
 # include <ctype.h>
 # include "types.h"
 # include "globals.h"
@@ -22,13 +23,16 @@ struct levstruct {
 } levpos[MAXNUMLEV];
 int numlev = 0;
 
+extern void fillstruct (FILE *, struct levstruct *);
+extern int findlevel (FILE *, struct levstruct *, int *, int);
+
 /* 
  * positionreplay: Called when user has typed the 'R' command, it fills
  * the level table by calling findlevel if necessary, and then positions
  * the log file to the level requested by the user.
  */
 
-positionreplay ()
+void positionreplay ()
 { int curlev;
   long curpos;
   char cmd;
@@ -89,7 +93,7 @@ positionreplay ()
  *             Rog-O-Matic log file.
  */
 
-findlevel (f, lvpos, nmlev, maxnum)
+int findlevel (f, lvpos, nmlev, maxnum)
 FILE *f;
 struct levstruct *lvpos;
 int *nmlev, maxnum;
@@ -128,7 +132,7 @@ int *nmlev, maxnum;
  * fields of a levstruct.
  */
 
-fillstruct (f, lev)
+void fillstruct (f, lev)
 FILE *f;
 struct levstruct *lev;
 { 

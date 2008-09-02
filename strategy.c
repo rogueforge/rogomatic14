@@ -8,6 +8,7 @@
 # include <stdio.h>
 # include <ctype.h>
 # include <curses.h>
+# include <string.h>
 # include "types.h"
 # include "globals.h"
 # include "install.h"
@@ -403,7 +404,7 @@ int   tomonster ()
  * Some monsters are included here because we want to shoot arrows at them.
  */
 
-wanttowake(c) 
+int wanttowake(c) 
 char c;
 { char *monster = monname (c);
 
@@ -437,7 +438,7 @@ char c;
  *		Also rest if we are critically weak and have some food.
  */
 
-aftermelee ()
+int aftermelee ()
 { 
   if (foughtmonster > 0)
   { lyinginwait = 1;  
@@ -466,7 +467,7 @@ aftermelee ()
 # define die_in(n)	(Hp/n < danger*50/(100-k_run))
 # define live_for(n)	(! die_in(n))
 
-battlestations (m, monster, mbad, danger, mdir, mdist, alert, adj)
+int battlestations (m, monster, mbad, danger, mdir, mdist, alert, adj)
 int m;			/* Monster index */
 char *monster;          /* What is it? */
 int mbad;               /* How bad is it? */
@@ -983,7 +984,7 @@ int tostuff ()
  * fightinvisible: being hounded by unseen beasties, try something clever.
  */
 
-fightinvisible ()
+int fightinvisible ()
 { char cmd[20]; register int dir, liberties = 0, lastdir, obj;
 
   /* Count down the time since we were last hit by a stalker */
@@ -1070,7 +1071,7 @@ fightinvisible ()
  * Note: some monsters are to wimpy archery, and some too mean.     MLM
  */
 
-archery ()
+int archery ()
 { register int m, mtk;
   char *monster;
 
@@ -1119,7 +1120,7 @@ archery ()
  * Bug:		Sometimes goes the long way around and doesnt see things.
  */
 
-pickupafter ()
+int pickupafter ()
 { /* If no goal */
   if (agoalr < 0 || agoalc < 0)
     return (0);
@@ -1143,7 +1144,7 @@ pickupafter ()
  *           and mistake them for fresh wands.
  */
 
-dropjunk ()
+int dropjunk ()
 { int obj;
 
   if ((obj = haveuseless ()) != NONE && (gotocorner () || throw (obj, 7)))
@@ -1163,7 +1164,7 @@ dropjunk ()
  * Assumes a 10 percent death tax.
  */
 
-quitforhonors ()
+int quitforhonors ()
 {
   if (Gold > quitat && (Gold-Gold/10) <= quitat)
   { quitrogue ("quit (scoreboard)", Gold, 0);

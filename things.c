@@ -7,6 +7,7 @@
 
 # include <ctype.h>
 # include <curses.h>
+# include <string.h>
 # include "types.h"
 # include "globals.h"
 
@@ -14,7 +15,7 @@
  * wear: This primitive function issues a command to put on armor.
  */
 
-wear (obj)
+int wear (obj)
 int obj;
 {
   if (currentarmor != NONE)
@@ -33,7 +34,7 @@ int obj;
  * takeoff: Remove the current armor.
  */
 
-takeoff ()
+int takeoff ()
 {
   if (currentarmor == NONE)
   { dwait (D_ERROR, "Trying to take off armor we don't have on!");
@@ -51,7 +52,7 @@ takeoff ()
  * wield: This primitive function issues a command to wield a weapon.
  */
 
-wield (obj)
+int wield (obj)
 int obj;
 {
   if (cursedweapon) return (0);
@@ -71,7 +72,7 @@ int obj;
  * the USELESS bit for that square.
  */
 
-drop (obj)
+int drop (obj)
 int obj;
 {
   /* Cant if not there, in use, or on something else */
@@ -118,7 +119,7 @@ int obj;
  * quaff: build and send a quaff potion command.
  */
 
-quaff (obj)
+int quaff (obj)
 int obj;
 {
   if (inven[obj].type != potion)
@@ -135,7 +136,7 @@ int obj;
  * reads: build and send a read scroll command.
  */
 
-reads (obj)
+int reads (obj)
 int obj;
 {
   if (inven[obj].type != rscroll)
@@ -152,7 +153,7 @@ int obj;
  * build and send a point with wand command.
  */
 
-point (obj, dir)
+int point (obj, dir)
 int obj, dir;
 {
   if (inven[obj].type != wand)
@@ -170,7 +171,7 @@ int obj, dir;
  * throw: build and send a throw object command.
  */
 
-throw (obj, dir)
+int throw (obj, dir)
 int obj, dir;
 {
   if (obj < 0 || obj >= invcount)
@@ -186,7 +187,7 @@ int obj, dir;
  * puton: build and send a command to put on a ring.
  */
 
-puton (obj)
+int puton (obj)
 int obj;
 {
   if (leftring == NONE && rightring == NONE)
@@ -202,7 +203,7 @@ int obj;
  * removering: build a command to remove a ring. It is left in the pack.
  */
 
-removering (obj)
+int removering (obj)
 int obj;
 {
   if (leftring != NONE && rightring != NONE && leftring == obj)
@@ -221,7 +222,7 @@ int obj;
  * initstufflist: clear the list of objects on this level.
  */
 
-initstufflist ()
+int initstufflist ()
 { slistlen = 0;
 }
 
@@ -229,8 +230,8 @@ initstufflist ()
  * addstuff: add an item to the list of items on this level.
  */
 
-addstuff (ch, row, col)
-char  ch;
+int addstuff (ch, row, col)
+int  ch;
 int   row, col;
 { /* if (seerc ('@', row, col)) return (0); */ /* Removed MLM 10/28/83 */
   if (onrc (STUFF, row, col))
@@ -246,7 +247,7 @@ int   row, col;
  * deletestuff: remove the object from the stuff list at location (x,y)
  */
 
-deletestuff (row, col)
+int deletestuff (row, col)
 int   row, col;
 { register int   i;
   unsetrc (STUFF, row, col);
@@ -261,7 +262,7 @@ int   row, col;
  * dumpstuff: (debugging) dump the list of objects on this level.
  */
 
-dumpstuff ()
+int dumpstuff ()
 { register int   i;
   at (1, 0);
   for (i = 0; i < slistlen; ++i)
@@ -276,7 +277,7 @@ dumpstuff ()
  * display: Print a message on line 1 of the screen.
  */
 
-display (s)
+int display (s)
 char *s;
 { saynow (s);
   msgonscreen=1;
@@ -286,7 +287,7 @@ char *s;
  * prepareident: Set nextid and afterid to proper values
  */
 
-prepareident (obj, iscroll)
+int prepareident (obj, iscroll)
 int obj, iscroll;
 { nextid = LETTER (obj);
   afterid = (iscroll > obj || inven[iscroll].count > 1) ? nextid : nextid-1;
@@ -431,7 +432,7 @@ char *name;
  * wearing: Return the index if wearing a ring with this title
  */
 
-wearing (name)
+int wearing (name)
 char *name;
 { register int result = NONE;
 
@@ -502,7 +503,7 @@ int haveuseless ()
  * willrust: return true if a suit of armor can rust
  */
 
-willrust (obj)
+int willrust (obj)
 int obj;
 { return (! (protected ||
 	     armorclass (obj) > 8 || armorclass (obj) < -5 ||
@@ -514,7 +515,7 @@ int obj;
  * wielding: return true if we are wielding an object of type 'otype'
  */
 
-wielding (otype)
+int wielding (otype)
 stuff otype;
 { 
   return (inven[currentweapon].type == otype);
@@ -524,21 +525,21 @@ stuff otype;
  * hungry: return true if we are hungry, weak, or fainting
  */
 
-hungry ()
+int hungry ()
 { return (*Ms == 'H' || *Ms == 'W' || *Ms == 'F'); }
 
 /* 
  * weak: return true if we are weak or fainting
  */
 
-weak ()
+int weak ()
 { return (*Ms == 'W' || *Ms == 'F'); }
 
 /* 
  * fainting: return true if we are fainting
  */
 
-fainting ()
+int fainting ()
 { return (*Ms == 'F'); }
 
 /*

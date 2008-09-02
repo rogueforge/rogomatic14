@@ -17,6 +17,7 @@
  */
 
 # include <curses.h>
+# include <string.h>
 # include <setjmp.h>  
 # include "types.h"
 # include "globals.h"
@@ -30,7 +31,7 @@
  */
 
 /* VARARGS2 */
-dwait(int msgtype, char *f, ...)
+int dwait(int msgtype, char *f, ...)
 { char msg[128];
   int r, c;
   va_list ap;
@@ -104,7 +105,7 @@ dwait(int msgtype, char *f, ...)
  * promptforflags: Prompt the user for a location and dump its flags.
  */
 
-promptforflags ()
+int promptforflags ()
 { int r, c;
 
   if (getscrpos ("flags", &r, &c))
@@ -129,7 +130,7 @@ char *fnames[] =
   "boundry", "sleeper",  "everclr"
 };
 
-dumpflags (r, c)
+int dumpflags (r, c)
 int   r, c;
 { char **f; int b;
 
@@ -143,11 +144,12 @@ int   r, c;
  * Timehistory: print a time analysis of the game.
  */
 
-timehistory (f, sep)
+int timehistory (f, sep)
 FILE *f;
-char sep;
+int sep;
 { register int i, j;
   char s[2048];
+  char s2[20];
 
   timespent[0].timestamp = 0;
 
@@ -156,11 +158,16 @@ char sep;
            sep, sep);
 
   for (i=1; i<=MaxLevel; i++)
-  { sprintf (s, "%slevel %2d:     ", s, i);
+  { sprintf (s2, "level %2d:     ", i);
+    strcat(s,s2);
     for (j = T_OTHER; j < T_LISTLEN; j++)
-      sprintf (s, "%s%5d", s, timespent[i].activity[j]);
-    sprintf (s, "%s%6d%c",
-             s, timespent[i].timestamp - timespent[i-1].timestamp, sep);
+    {
+      sprintf (s2, "%5d", timespent[i].activity[j]);
+      strcat(s,s2);
+    }
+    sprintf (s2, "%6d%c",
+             timespent[i].timestamp - timespent[i-1].timestamp, sep);
+    strcat(s,s2);
   }
 
   if (f == NULL)
@@ -173,7 +180,7 @@ char sep;
  * toggledebug: Set the value of the debugging word.
  */
 
-toggledebug ()
+int toggledebug ()
 { char debugstr[100];
   int type = debugging & ~(D_FATAL | D_ERROR | D_WARNING);
 
@@ -210,7 +217,7 @@ toggledebug ()
  * getscrpos: Prompt the user for an x,y coordinate on the screen.
  */
 
-getscrpos (msg, r, c)
+int getscrpos (msg, r, c)
 char *msg;
 int *r, *c;
 { char buf[256];

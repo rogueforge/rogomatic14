@@ -32,7 +32,7 @@
  * clearprob: zero a probability structure.
  */
 
-clearprob (p)
+int clearprob (p)
 register  probability *p;
 { p->fail = p->win = 0;
 }
@@ -41,7 +41,7 @@ register  probability *p;
  * addprob: Add a data point to a probability
  */
 
-addprob (p, success)
+int addprob (p, success)
 register probability *p;
 register int success;
 { 
@@ -65,7 +65,7 @@ register probability *p;
  * parseprob: Parse a probability structure from buffer 'buf'
  */
 
-parseprob (buf, p)
+int parseprob (buf, p)
 register char *buf;
 register probability *p;
 { p->win = p->fail = 0;
@@ -76,7 +76,7 @@ register probability *p;
  * writeprob. Write the value of a probability structure to file 'f'.
  */
 
-writeprob (f, p)
+int writeprob (f, p)
 register FILE *f;
 register probability *p;
 { fprintf (f, "%d %d", p->fail, p->win);
@@ -86,7 +86,7 @@ register probability *p;
  * clearstat: zero a statistic structure.
  */
 
-clearstat (s)
+int clearstat (s)
 register  statistic * s;
 { s->count = 0;
   s->sum = s->sumsq = s->low = s->high = 0.0;
@@ -96,7 +96,7 @@ register  statistic * s;
  * addstat: Add a data point to a statistic
  */
 
-addstat (s, datum)
+int addstat (s, datum)
 register statistic *s;
 register int datum;
 { double d = (double) datum;
@@ -127,7 +127,7 @@ register statistic *s;
 
 double stdev (s)
 register statistic *s;
-{ register n = s->count;
+{ register int n = s->count;
 
   if (n < 2)	return (0.0);
   else		return (sqrt ((n * s->sumsq - s->sum * s->sum) / (n * (n-1))));
@@ -137,7 +137,7 @@ register statistic *s;
  * parsestat: Parse a statistic structure from buffer 'buf'
  */
 
-parsestat (buf, s)
+int parsestat (buf, s)
 register char *buf;
 register statistic *s;
 { s->count = 0;
@@ -150,7 +150,7 @@ register statistic *s;
  * writestat. Write the value of a statistic structure to file 'f'.
  */
 
-writestat (f, s)
+int writestat (f, s)
 register FILE *f;
 register statistic *s;
 { fprintf (f, "%d %lg %lg %lg %lg",
