@@ -109,6 +109,8 @@ char *argv[];
     dup (ptc[READ]);
     close (1);
     dup (ctp[WRITE]);
+    close (ptc[WRITE]); /* Close parent's (player's) unused end of the pipes */
+    close (ctp[READ]);
 
 #if !defined(BSD41) && !defined(BSD42)
     setenv ("TERMCAP", ROGUETERM, 1);
@@ -131,6 +133,9 @@ char *argv[];
   { /* Encode the open files into a two character string */
 
     char ft[3] = "aa", rp[32]; ft[0] += rfrogue; ft[1] += rtrogue;
+
+    close (ptc[READ]); /* Close child's (rogue's) unused end of the pipes */
+    close (ctp[WRITE]);
 
     /* Pass the process ID of the Rogue process as an ASCII string */
     sprintf (rp, "%d", child);
