@@ -28,7 +28,7 @@ char *argv[];
   int   cheat = 0, noterm = 1, echo = 0, nohalf = 0, replay = 0;
   int   emacs = 0, rf = 0, terse = 0, user = 0, quitat = 2147483647;
   char  *rfile = "", *rfilearg = "", options[32];
-  char  ropts[128], roguename[128];
+  char  ropts[256], roguename[128];
 
   while (--argc > 0 && (*++argv)[0] == '-')
   { while (*++(*argv))

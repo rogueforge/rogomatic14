@@ -341,7 +341,7 @@ jmp_buf  commandtop;
 main (argc, argv)
 int   argc;
 char *argv[];
-{ char  ch, *s, *getenv(), *statusline(), msg[128];
+{ char  ch, *s, *getenv(), *statusline(), msg[350];
   int startingup = 1;
   register int  i;
 
