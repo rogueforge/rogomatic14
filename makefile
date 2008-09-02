@@ -26,11 +26,11 @@ all: $(BINARIES)
 #
 # General makefile stuff:
 #
-arms.o: types.h globals.h
+arms.o: types.h globals.h arms.c
 	cc -c $(CCFLAGS) arms.c
-command.o: types.h globals.h
+command.o: types.h globals.h command.c
 	cc -c $(CCFLAGS) command.c
-database.o: types.h globals.h
+database.o: types.h globals.h database.c
 	cc -c $(CCFLAGS) database.c
 datesub.c: datesub.l
 	lex datesub.l
@@ -39,39 +39,39 @@ datesub.o: datesub.c
 	cc -c $(CCFLAGS) datesub.c
 datesub: datesub.o
 	cc $(LDFLAGS) -o datesub datesub.o
-debug.o: types.h globals.h install.h
+debug.o: types.h globals.h install.h debug.c
 	cc -c $(CCFLAGS) debug.c
-explore.o: types.h globals.h
+explore.o: types.h globals.h explore.c
 	cc -c $(CCFLAGS) explore.c
-findscore.o: install.h
+findscore.o: install.h findscore.c
 	cc -c $(CCFLAGS) findscore.c
 gene: gene.c rand.o learn.o stats.o utility.o types.h install.h
 	cc $(CCFLAGS) $(LDFLAGS) -o gene gene.c \
 		rand.o learn.o stats.o utility.o -lm
 histplot: histplot.o utility.o
 	cc $(LDFLAGS) -o histplot histplot.o utility.o
-histplot.o:
+histplot.o: histplot.c
 	cc -c $(CCFLAGS) histplot.c
-io.o: types.h globals.h install.h termtokens.h
+io.o: types.h globals.h install.h termtokens.h io.c
 	cc -c $(CCFLAGS) io.c
-mess.o: types.h globals.h
+mess.o: types.h globals.h mess.c
 	cc -c $(CCFLAGS) mess.c
-learn.o: types.h  install.h
+learn.o: types.h  install.h learn.c
 	cc -c $(CCFLAGS) learn.c
-ltm.o: types.h globals.h install.h
+ltm.o: types.h globals.h install.h ltm.c
 	cc -c $(CCFLAGS) ltm.c
-main.o: install.h termtokens.h types.h globals.h
+main.o: install.h termtokens.h types.h globals.h main.c
 	cc -c $(CCFLAGS) main.c
-monsters.o: types.h globals.h
+monsters.o: types.h globals.h monsters.c
 	cc -c $(CCFLAGS) monsters.c
-pack.o: types.h globals.h
+pack.o: types.h globals.h pack.c
 	cc -c $(CCFLAGS) pack.c
 player: $(OBJS)
 	cc $(LDFLAGS) -o player $(OBJS) -lm -lcurses -ltermcap
 	size player
 rand.o: rand.c
 	cc -c $(CCFLAGS) rand.c
-replay.o: types.h globals.h
+replay.o: types.h globals.h replay.c
 	cc -c $(CCFLAGS) replay.c
 rgmplot.o: rgmplot.c
 	cc -c $(CCFLAGS) rgmplot.c
@@ -80,33 +80,33 @@ rgmplot: rgmplot.o utility.o
 rogomatic: setup.o findscore.o scorefile.o utility.o
 	cc $(LDFLAGS) -o rogomatic setup.o findscore.o scorefile.o utility.o
 	size rogomatic
-rooms.o: types.h globals.h
+rooms.o: types.h globals.h rooms.c
 	cc -c $(CCFLAGS) rooms.c
-scorefile.o: types.h globals.h install.h
+scorefile.o: types.h globals.h install.h scorefile.c
 	cc -c $(CCFLAGS) scorefile.c
-search.o: types.h globals.h
+search.o: types.h globals.h search.c
 	cc -c $(CCFLAGS) search.c
-setup.o: install.h
+setup.o: install.h setup.c
 	cc -c $(CCFLAGS) setup.c
-stats.o: types.h
+stats.o: types.h stats.c
 	cc -c $(CCFLAGS) stats.c
-strategy.o: types.h globals.h install.h
+strategy.o: types.h globals.h install.h strategy.c
 	cc -c $(CCFLAGS) strategy.c
-survival.o: types.h globals.h
+survival.o: types.h globals.h survival.c
 	cc -c $(CCFLAGS) survival.c
-tactics.o: types.h globals.h install.h
+tactics.o: types.h globals.h install.h tactics.c
 	cc -c $(CCFLAGS) tactics.c
 testfind: testfind.o findscore.o utility.o
 	cc $(LDFLAGS) -o testfind testfind.o findscore.o utility.o
-things.o: types.h globals.h
+things.o: types.h globals.h things.c
 	cc -c $(CCFLAGS) things.c
-titlepage.o: titlepage.c
+titlepage.o: titlepage.c titlepage.c
 	cc -c $(CCFLAGS) titlepage.c
 titler.o: titler.c
 	cc -c titler.c
-utility.o: install.h
+utility.o: install.h utility.c
 	cc -c $(CCFLAGS) utility.c
-worth.o: types.h globals.h
+worth.o: types.h globals.h worth.c
 	cc -c $(CCFLAGS) worth.c
 #
 # Miscellaneous useful pseduo-makes
@@ -117,7 +117,7 @@ backup:
 	chmod ugo-w backup.tar
 clean:
 	rm -f *.CKP *.o datesub.c core
-	strip $(BINARIES)
+	rm -f $(BINARIES)
 install:
 	rm -f $(BINDIR)/player
 	ln player $(BINDIR)/player
