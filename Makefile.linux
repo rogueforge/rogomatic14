@@ -1,0 +1,100 @@
+#
+# Makefile for building Rog-O-Matic XIV with gcc or clang on Linux
+#
+# CFLAGS may be replaced, with a distribution's own flags for one.
+# REQUIRED comes after it, so that nothing in CFLAGS undoes it, and
+# lets the compiler build the 1987 source as it stands:
+#
+#   -std=gnu89
+#	The source is C from before the 1989 standard: old-style
+#	function definitions, functions called without being declared
+#	and types left to default to int.  Later standards do not
+#	allow these.
+#   -w
+#	Silence the warnings that style draws.
+#   -fsigned-char
+#	The source reads a character into a char and then compares it
+#	with EOF, and takes it that a char can be negative, as it
+#	could on a VAX.  On ARM and several other machines it cannot
+#	unless the compiler is told.
+#   -fwrapv
+#	The random number generator shifts a number left past the top
+#	of an int.  gcc otherwise assumes that signed arithmetic
+#	never overflows.
+#   -fno-strict-aliasing
+#	At -O2 gcc assumes that pointers to different types never
+#	point at the same storage.  The source was written before
+#	that rule.
+#   -U_FORTIFY_SOURCE
+#	The source adds to a string with sprintf (s, "%s...", s, ...),
+#	which works as long as sprintf() copies the old text onto
+#	itself.  Ubuntu's gcc defines _FORTIFY_SOURCE when it
+#	optimizes, and the sprintf() that checks buffer sizes for
+#	it empties the buffer first: the list of genocided monsters
+#	and the line for the scoreboard, among others, lose what
+#	they held.
+#
+# gcc and clang do not take all the same flags, and not every version
+# of either takes them all, so each of these is used only if $(CC)
+# accepts it:
+#
+#   -Wno-error=return-type
+#	Functions with no declared type return without a value,
+#	which clang makes an error.
+#   -Wno-error=incompatible-pointer-types
+#   -Wno-error=incompatible-function-pointer-types
+#	Signal handlers are functions with no declared type, which
+#	makes them int and not void.  Newer compilers make that an
+#	error too, under one name or the other.
+#
+CC=	gcc
+LEX=	flex
+CFLAGS=	-O2 -g
+REQUIRED= -std=gnu89 -w -fsigned-char -fwrapv -fno-strict-aliasing \
+	-U_FORTIFY_SOURCE $(ACCEPTED) $(DEFS)
+accepts= $(shell $(CC) -Werror $(1) -E -x c /dev/null >/dev/null 2>&1 \
+	&& echo $(1))
+ACCEPTED:= $(call accepts,-Wno-error=return-type) \
+	$(call accepts,-Wno-error=incompatible-pointer-types) \
+	$(call accepts,-Wno-error=incompatible-function-pointer-types)
+CRLIB=	-lcurses
+LINK=	$(CC) $(CFLAGS) $(REQUIRED) $(LDFLAGS)
+BINARIES= rogomatic player rgmplot datesub histplot gene
+OBJS=	arms.o command.o database.o debug.o explore.o io.o learn.o \
+	ltm.o main.o mess.o monsters.o pack.o rand.o replay.o rooms.o \
+	scorefile.o search.o stats.o strategy.o survival.o tactics.o \
+	things.o titlepage.o utility.o worth.o
+SETUP=	setup.o findscore.o scorefile.o utility.o
+OTHERS=	setup.o findscore.o gene.o histplot.o rgmplot.o
+
+all: $(BINARIES)
+
+player: $(OBJS)
+	$(LINK) -o player $(OBJS) -lm $(CRLIB)
+
+rogomatic: $(SETUP)
+	$(LINK) -o rogomatic $(SETUP)
+
+gene: gene.o rand.o learn.o stats.o utility.o
+	$(LINK) -o gene gene.o rand.o learn.o stats.o utility.o -lm
+
+histplot: histplot.o utility.o
+	$(LINK) -o histplot histplot.o utility.o
+
+rgmplot: rgmplot.o utility.o
+	$(LINK) -o rgmplot rgmplot.o utility.o
+
+datesub: datesub.o
+	$(LINK) -o datesub datesub.o
+
+datesub.o: datesub.l
+	$(LEX) -t datesub.l > datesub.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(REQUIRED) -c datesub.c
+
+.c.o:
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(REQUIRED) -c $<
+
+$(OBJS) $(OTHERS): types.h globals.h install.h termtokens.h
+
+clean:
+	rm -f *.o datesub.c $(BINARIES)
