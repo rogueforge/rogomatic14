@@ -833,11 +833,12 @@ int getrogver ()
   }
 
   else					/* Execute the version command */
-  { sendnow ("v");
-    waitfor ("ersion ");
+  { sendnow ("v;");
+    getrogue ("ersion ", 0);
 
     while ((ch = getroguetoken ()) != ' ') *(vstr++) = ch;
     *--vstr = '\0';
+    getrogue (ill, 2);
   }
 
   if (stlmatch (versionstr, "3.6"))		version = RV36B;
