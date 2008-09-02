@@ -687,7 +687,7 @@ char *argv[];
 
   /* Print termination messages */
   at (23, 0); clrtoeol (); refresh ();
-  endwin (); nocrmode (); noraw (); echo ();
+  nocrmode (); noraw (); echo (); endwin ();
   
   if (emacs)  
   { if (*sumline) fprintf (realstdout, " %s", sumline);
