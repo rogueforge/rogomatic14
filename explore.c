@@ -437,6 +437,7 @@ int r, c, depth, *val, *avd, *cont;
       onrc ((DOOR | MONSTER), r, c) == DOOR &&
       ((r - atrow) * (r - atrow) + (c - atcol) * (c - atcol)) <= 1)
     *avd -= 1;
+  return (1);
 }
 
 /*
@@ -494,6 +495,7 @@ int *val, *avd, *cont;
   else				{ *val = 0;}
 
   *avd += avdmonsters[r][c];
+  return (1);
 }
 
 /*
