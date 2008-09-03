@@ -487,7 +487,12 @@ int adj;		/* How many attackers are there? */
   turns = hasted ? (mdist-1)*2 : (mdist-1);
 
   /* No point in wasting resources when we are invulnerable */
-  if (on (SCAREM) && (turns > 0 || confused) && !streq(monster, "dragon"))
+  /* Don't rest when the monster is asleep, as we would wait forever. */
+  /* Don't rest when we are arching, as we would wait forever, */
+  /* as archmonster marks it as awake although it is really asleep. */
+  if (on (SCAREM) && (turns > 0 || confused) &&
+      (m == NONE || mlist[m].q != ASLEEP) &&
+      (targetmonster == 0 || turns < 2) && !streq(monster, "dragon"))
   { command (T_RESTING, "s");
     display ("Resting on scare monster");
     dwait (D_BATTLE, "Battlestations: resting, on scaremonster.");

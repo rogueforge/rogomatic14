@@ -251,7 +251,7 @@ stuffrec slist[MAXSTUFF]; 	int slistlen=0;
 /* Monster list, list of monsters on this level */
 monrec mlist[MAXMONST];		int mlistlen=0;
 
-char targetmonster = '@';	/* Monster we are arching at */
+char targetmonster = 0;		/* Monster we are arching at */
 
 /* Monster attribute and Long term memory arrays */
 attrec monatt[26];		/* Monster attributes */
