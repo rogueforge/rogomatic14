@@ -432,6 +432,11 @@ int r, c, depth, *val, *avd, *cont;
     { *val = 0; }
 
   *avd += avdmonsters[r][c];
+  /* Inhibit blocking of door near player by sleeping monster. */
+  if (avdmonsters[r][c] == INFINITY &&
+      onrc ((DOOR | MONSTER), r, c) == DOOR &&
+      ((r - atrow) * (r - atrow) + (c - atcol) * (c - atcol)) <= 1)
+    *avd -= 1;
 }
 
 /*
