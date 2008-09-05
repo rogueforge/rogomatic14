@@ -847,6 +847,7 @@ int getrogver ()
   if (stlmatch (versionstr, "3.6"))		version = RV36B;
   else if (stlmatch (versionstr, "5.2"))	version = RV52A;
   else if (stlmatch (versionstr, "5.3"))	version = RV53A;
+  else if (stlmatch (versionstr, "5.4"))	version = RV54A;
   else saynow ("What a strange version of Rogue! ");
 }
 
