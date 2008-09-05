@@ -145,7 +145,7 @@ register char *mess, *mend;
       if (MATCH("defeated the *")) { echoit=0; killed(res1); }
       else if (MATCH("defeated it")) { echoit=0; killed("it"); }
       else if (MATCH("defeated *")) { echoit=0; killed(res1); }
-      else if (MATCH("drop what*")) echoit=0;
+      else if (MATCH("drop what*")) { echoit=0; dropreply(); }
       else if (MATCH("dropped *")) ;
       else unknown++;
       break;
@@ -294,7 +294,7 @@ register char *mess, *mend;
       else if (MATCH("the * bounces")) ;
       else if (MATCH("the * vanishes as it hits the ground"))
       { darkturns = 0; darkdir = NONE; targetmonster = 0; echoit=0; }
-      else if (MATCH("there is something here*")) { usesynch=0; set(STUFF); }
+      else if (MATCH("there is something there*")) ;
       else if (MATCH("the munchies are interfering*")) ;
       else if (MATCH("the monsters around you freeze")) holdmonsters ();
       else if (MATCH("the monster freezes")) holdmonsters ();
@@ -535,6 +535,30 @@ char *name;
   }
 
   newring = newweapon = 1; afterid = nextid = '\0';
+}
+
+/*
+ * dropreply: issue reply for drop request
+ */
+
+int dropreply ()
+{
+  if (!replaying &&
+      (dropid < LETTER (0) || dropid > LETTER (invcount)))
+  { dwait (D_FATAL, "Dropreply: dropid %d, invcount %d.",
+           dropid, invcount); }
+
+  /* nextid and afterid are not setup during replay. */
+  if (!replaying)
+  {
+    waitfor ("--More--");
+    sendnow(" ");
+    waitfor ("(* for list):");
+    sendnow ("%c;", dropid);          /* Drop it */
+  }
+
+  setrc (STUFF | USELESS, atrow, atcol);
+  deleteinv (OBJECT (dropid));
 }
 
 /*

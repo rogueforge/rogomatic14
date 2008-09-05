@@ -166,6 +166,9 @@ int   onat;                             /* 0 ==> Wait for waitstr
         break;
 
       case CR_TOK: 
+	if (row == 0
+	    && (stlmatch (&screen[0][0], "drop what") || stlmatch (&screen[0][0], "Drop what")))
+          terpmes ();
 	/* Handle missing '--more--' between inventories  MLM 24-Jun-83 */
 	if (row==0 && screen[0][1]==')' && screen[0][col-1] != '-')
           terpmes ();

@@ -162,9 +162,7 @@ char *cmd;
   int neww, obj;
 
   switch (functionchar (cmd))
-  { case 'd':	setrc (STUFF | USELESS, atrow, atcol);
-		deleteinv (OBJECT (commandarg (cmd, 1)));
-		break;
+  { case 'd':	break;
 
     case 'e':   removeinv (OBJECT (commandarg (cmd, 1)));
                 Ms[0] = 'X'; newring = 1;

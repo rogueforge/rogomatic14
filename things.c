@@ -111,7 +111,8 @@ int obj;
       quaff (obj))
   { return (1); }
 
-  command (T_HANDLING, "d%c", LETTER (obj));
+  dropid = LETTER (obj);
+  command (T_HANDLING, "d");
   return (1);
 }
 
