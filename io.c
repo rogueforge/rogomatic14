@@ -282,6 +282,19 @@ int   onat;                             /* 0 ==> Wait for waitstr
 	  setnewgoal ();		         /* invalidate the map.    */
 	}
 
+  /* Avoid endless moves when in corridor area and blinded. */
+  /* If the move did not succeed, assume that we can't go there. */
+  if (blinded && !confused && !moved && !didfight && movedir != NOTAMOVE)
+  {
+    r = atdrow(movedir);
+    c = atdcol(movedir);
+    if (onrc(CANGO, r, c))
+    {
+      unsetrc (CANGO | SAFE, r, c);	/* Infer cant go and...   */
+      setnewgoal ();			/* invalidate the map.    */
+    }
+  }
+
   at (row, col); 
   if (!emacs && !terse) refresh ();
 }

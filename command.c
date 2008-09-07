@@ -76,6 +76,7 @@ int command (int tmode, char *f, ...)
     case 'N': movedir = 7; wakemonster (movedir); break;
     default:  movedir = NOTAMOVE;
   }
+  didfight = 0;
   
   /* If in a real game (not replaying), then check for looping */
   if (!replaying)
