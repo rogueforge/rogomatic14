@@ -639,11 +639,12 @@ int infer (objname)
 char *objname;
 { register int i;
 
-  if (*lastname && *objname && !stlmatch (objname, lastname))
+  /* Use streq so `tan' and `tangerine' are different. */
+  if (*lastname && *objname && !streq (objname, lastname))
   { infername (lastname, objname);
   
     for (i=0; i<MAXINV; i++)
-      if (stlmatch (inven[i].str, lastname))
+      if (streq (inven[i].str, lastname))
       { strcpy (inven[i].str, objname);
         remember (i, KNOWN);
       }
