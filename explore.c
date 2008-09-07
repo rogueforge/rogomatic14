@@ -1097,10 +1097,15 @@ int archeryinit ()
     for (dist = 1, r = archrow+dr, c = archcol+dc;
          onrc (CANGO | HALL | MONSTER, r, c) == CANGO;
 	 r += dr, c += dc, dist++)
+    {
       if (dist > archturns && !onrc (TRAP, r, c))
       { archval[r][c] = dist - 1; /* number of arrows we get to shoot */
         if (debug (D_SCREEN)) { at (r, c); addch ('=');  at (row, col); }
       }
+      /* Stop at door. */
+      if (onrc (DOOR, r, c))
+        break;
+    }
   }
 
   expavoidval = avoid();
