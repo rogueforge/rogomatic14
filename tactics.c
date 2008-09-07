@@ -166,8 +166,10 @@ int quaffpotion ()
   if (Hp == Hpmax &&
       ((obj = havemult (potion, "healing", 2)) != NONE ||
        (obj = havemult (potion, "extra healing", 2)) != NONE ||
-       know ("blindness") && (obj = havenamed (potion, "healing")) != NONE ||
-       know ("blindness") && (know ("hallucination") || version < RV53A)  &&
+       know (potion, "blindness") &&
+	(obj = havenamed (potion, "healing")) != NONE ||
+       know (potion, "blindness") &&
+	(know (potion, "hallucination") || version < RV53A)  &&
         Level < 15 && (obj = havenamed (potion, "extra healing")) != NONE) &&
       quaff (obj))
     return (1);
@@ -272,18 +274,20 @@ int readscroll ()
       ((currentweapon != NONE) &&
        (Level >= (k_exper/10) || objcount >= maxobj ||
         cursedarmor || cursedweapon) &&
-       (exploredlevel || Level > 18 || know ("aggravate monsters")) &&
+       (exploredlevel || Level > 18 || know (rscroll, "aggravate monsters")) &&
        (obj = unknown (rscroll)) != NONE))
   { prepareident (pickident (), obj);
 
     /* Go to a corner to read the scroll */
-    if (version <= RV36B && !know ("create monster") && gotocorner ())
+    if (version <= RV36B && !know (rscroll, "create monster") && gotocorner ())
       return (1);
 
     /* Must put on our good armor first */
     if (!cursedarmor && 
-        (!know("enchant armor") || stlmatch(inven[obj].str, "enchant armor") ||
-         !know("protect armor") || stlmatch(inven[obj].str, "protect armor")))
+        (!know(rscroll, "enchant armor") ||
+	 stlmatch(inven[obj].str, "enchant armor") ||
+         !know(rscroll, "protect armor") ||
+	 stlmatch(inven[obj].str, "protect armor")))
     { int obj2 = havearmor (1, NOPRINT, ANY); /* Pick our best armor */
 
       if (obj2 == currentarmor);
@@ -703,9 +707,9 @@ int restup ()
   if (Hp < Level+10 && Hp < Hpmax/3 &&
       ((obj = havemult (potion, "extra healing", 2)) != NONE ||
        (obj = havemult (potion, "healing", 2)) != NONE ||
-       (know ("hallucination") &&
+       (know (potion, "hallucination") &&
         (obj = havenamed (potion, "extra healing")) != NONE) ||
-       (know ("blindness") &&
+       (know (potion, "blindness") &&
         (obj = havenamed (potion, "healing")) != NONE)) &&
       quaff (obj))
   { return (1); }

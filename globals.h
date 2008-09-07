@@ -33,7 +33,7 @@ extern char versionstr[];	/* Version of Rogue we are playing */
 /* character and string functions */
 extern int getlogtoken();
 extern char *getname(), *itemstr();
-extern char logchar(), *monname(), *realname();
+extern char logchar(), *monname(), *realname(stuff, char *);
 
 /* double precision floating point functions */
 double prob(), mean(), stdev();	/* For stats.c */
@@ -222,7 +222,7 @@ extern char commandarg (char *, int);
 extern int deleteinv (int);
 extern int removeinv (int);
 extern int usemsg (char *, int);
-extern int useobj (char *);
+extern int useobj (stuff, char *);
 extern int setbonuses ();
 extern int getoldcommand (char *);
 extern int at (int, int);
@@ -317,7 +317,7 @@ extern int didhit ();
 extern int didmiss ();
 extern void curseditem ();
 extern int wasmissed (char *);
-extern int infer (char *);
+extern int infer (stuff, char *);
 extern int washit (char *);
 extern int findstairs (int, int);
 extern void nametrap (int, int);
@@ -334,7 +334,7 @@ extern int mapcharacter (int, char *);
 extern int monsternum (char *);
 extern int killed (char *);
 extern int smatch (char *, char *, char **);
-extern int infername (char *, char *);
+extern int infername (stuff, int, char *, char *);
 extern int getmonhist (char *, int);
 extern int parsemsg (char *, char *);
 extern int inventory (char *, char *);
@@ -342,7 +342,7 @@ extern int countpack ();
 extern void clearpack (int);
 extern void rollpackup (int);
 extern int worth (int);
-extern int used (char *);
+extern int used (stuff, char *);
 extern int avoid ();
 extern int expinit ();
 extern int canbedoor (int, int);
@@ -453,7 +453,7 @@ extern int archmonster (int, int);
 extern int move1 (int);
 extern int markchokepts ();
 extern int wear (int);
-extern int know (char *);
+extern int know (stuff, char *);
 extern int prepareident (int, int);
 extern int findsafe ();
 extern int waitaround ();
