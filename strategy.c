@@ -331,6 +331,16 @@ int   tomonster ()
   { dist = max (abs (mlist[i].mrow - atrow), abs (mlist[i].mcol - atcol));
     monchar = mlist[i].chr;
 
+    /* Handle teleporter scroll after hold monster scroll, */
+    /* the monster is still shown on the screen at the old location. */
+    /* Do not consider this monster after teleport. */
+    { int atroom = whichroom (atrow, atcol);
+      int mroom = whichroom (mlist[i].mrow, mlist[i].mcol);
+      if (atroom != NONE && mroom != NONE && atroom != mroom &&
+	  (version < RV53A || mlist[i].q == HELD) && dist > 2)
+	continue;
+    }
+
     /* 
      * IF   we are not using a magic arrow OR
      *      we want to wake this monster up AND we can beat him OR
