@@ -479,7 +479,8 @@ int haveminus ()
   for (i=0; i<invcount; ++i)
     if (inven[i].count &&
         inven[i].phit != UNKNOWN &&
-        inven[i].phit < 0)
+        inven[i].phit < 0 &&
+        !itemis (i, INUSE))
       return (i);
 
   return (NONE);
