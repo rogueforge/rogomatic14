@@ -32,6 +32,7 @@ extern int genericinit(), sleepvalue();	/* From explore.c */
 
 int   strategize ()
 {
+  char msg[128];
   dwait (D_CONTROL, "Strategizing...");
 
   /* If replaying, instead of making an action, return the old one */
@@ -170,7 +171,13 @@ int   strategize ()
    */
   
   while (attempt++ < MAXATTEMPTS)
-  { timestosearch += max (3, k_door / 5);
+  { int newsearch = timestosearch + max (3, k_door / 5);
+    /* Avoid char overflow */
+    attempttosearch = timestosearch;
+    timestosearch = min (newsearch, 127);
+    sprintf(msg, "Secret door attempt %d, timestosearch %d",
+	    attempt, timestosearch);
+    display(msg);
     foundnew ();
     if (doorexplore ()) return (1);
   }

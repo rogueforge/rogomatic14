@@ -187,6 +187,12 @@ int r, c;
  * Modified to understand maze room secret doors.		MLM.   10/83
  */
 
+/* Fix timessearched for attempt specific checks, assume that */
+/* the previous attempt did the required number of searches. */
+# define FIXATTEMPT(r,c) \
+  { if (timessearched[r][c] < attempttosearch) \
+      timessearched[r][c] = attempttosearch; }
+
 int setpsd (print)
 int print;
 { register int i, j, k, whereto, numberpsd=0;
@@ -203,12 +209,12 @@ int print;
     /* If attempt > 3, allow ANYTHING to be a secret door! */
     if (attempt > 3 && ! onrc (BEEN|DOOR|HALL|ROOM|WALL|STAIRS, i, j) &&
         nextto (CANGO, i, j))
-    { if (!onrc (PSD, i, j)) numberpsd++; setrc(PSD,i,j); }
+    { if (!onrc (PSD, i, j)) numberpsd++; setrc(PSD,i,j); FIXATTEMPT (i,j); }
 
     /* Set Possible Secret Door for maze room secret doors */
     else if (attempt > 0 && ! onrc (BEEN|DOOR|HALL|ROOM|WALL|STAIRS, i, j) &&
         mazedoor (i, j))
-    { if (!onrc (PSD, i, j)) numberpsd++; setrc(PSD,i,j); }
+    { if (!onrc (PSD, i, j)) numberpsd++; setrc(PSD,i,j); FIXATTEMPT (i,j); }
 
     /* Set Possible Secret Door for corridor secret door */
     else if (version >= RV53A &&
@@ -255,6 +261,7 @@ int print;
 	      (attempt > 1 || room[whereto] == 0))
 	  { if (!onrc (PSD, i, j)) numberpsd++;
 	    setrc (PSD,i,j);
+	    if (attempt > 1) { FIXATTEMPT (i,j); }
 	  }
 	}
       }

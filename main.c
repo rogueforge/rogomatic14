@@ -286,7 +286,7 @@ char *knob_name[MAXKNOB] = {
 	"hoarding food:    "
 };
 /* Door search map */
-char timessearched[24][80], timestosearch;
+char timessearched[24][80], timestosearch, attempttosearch;
 int  searchstartr = NONE, searchstartc = NONE, reusepsd=0;
 int  new_mark=1, new_findroom=1, new_search=1, new_stairs=1, new_arch=1;
 
