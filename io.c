@@ -258,7 +258,7 @@ int   onat;                             /* 0 ==> Wait for waitstr
   { command (T_OTHER, "Iz"); checkrange = 0; }
  
   /* If mapping status has changed */
-  if (wasmapped != didreadmap)
+  if (didreadmap && wasmapped != didreadmap)
   { dwait (D_CONTROL | D_SEARCH, "wasmapped: %d   didreadmap: %d",
            wasmapped, didreadmap);
 

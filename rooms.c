@@ -45,6 +45,7 @@ int newlevel ()
   compression = Level < 13;		/* Set move compression */
   newarmor = newweapon = newring = 1;	/* Reevaluate our items */
   foundnew ();				/* Reactivate all rules */
+  didreadmap = 0;			/* No magic mapping yet  */
 
   /*
    * Clear the highlevel map

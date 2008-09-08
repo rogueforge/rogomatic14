@@ -179,8 +179,13 @@ int   strategize ()
    * Don't give up, start all over!
    */
 
-  newlevel ();
-  display ("I would give up, but I am too stubborn, starting over...");
+  {
+    /* Preserve didreadmap */
+    int wasmapped = didreadmap;
+    newlevel ();
+    display ("I would give up, but I am too stubborn, starting over...");
+    didreadmap = wasmapped;
+  }
   return (grope (10));
 }
 
