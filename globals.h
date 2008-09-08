@@ -466,7 +466,7 @@ extern int waitaround ();
 extern int removering (int);
 extern int haveother (stuff, int);
 extern int haveminus ();
-extern int pickident ();
+extern int pickident (int);
 extern int unidentified (stuff);
 extern int useless (int);
 extern int analyzepool (int);

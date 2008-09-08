@@ -279,7 +279,8 @@ register char *mess, *mend;
       else if (MATCH("the corridor glows*")) { infer (wand, "light"); }
       else if (MATCH("the * has confused you")) confused = 1;
       else if (MATCH("this scroll is an * scroll"))
-      { if (stlmatch (res1, "identify")) readident (res1); }
+      { infer(rscroll, res1);
+        if (stlmatch (res1, "identify")) readident (res1); }
       else if (MATCH("that's not a valid item"))
       { echoit = justreadid < 1; if (justreadid-- == 0) sendnow (" *");
         if (justreadid < -50) dwait (D_FATAL, "Caught in invalid item loop"); }
