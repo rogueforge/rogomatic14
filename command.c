@@ -291,6 +291,8 @@ int bumpsearchcount ()
 { register int dr, dc;
   for (dr = -1; dr <= 1; dr++)
     for (dc = -1; dc <= 1; dc++)
+      /* Avoid char overflow */
+      if (timessearched[atrow+dr][atcol+dc] < 127)
       timessearched[atrow+dr][atcol+dc]++;
 }
 
