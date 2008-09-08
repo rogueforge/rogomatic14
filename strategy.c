@@ -949,14 +949,17 @@ int tostuff ()
    * NOTE: Dont pick up the scaremonster scroll!!!    MLM
    */
 
-  for (i = 0, which = NONE, closest = 999; i < slistlen; i++)
+  for (i = 0, which = NONE, closest = 99999; i < slistlen; i++)
   { if (!onrc (USELESS, slist[i].srow, slist[i].scol) ||
         (droppedscare && objcount < maxobj &&
          !onrc (SCAREM, slist[i].srow, slist[i].scol)))
-    { dist = max (abs (slist[i].srow - atrow), abs (slist[i].scol - atcol));
+    { int deltax = slist[i].scol - atcol;
+      int deltay = slist[i].srow - atrow;
+      /* Compute real distance to avoid endless loops, max dist is 7000. */
+      dist = deltax * deltax + deltay * deltay;
 
       /* Make junk look farther away, but not farther than infinity */
-      if (onrc (USELESS, slist[i].srow, slist[i].scol)) dist += 500;
+      if (onrc (USELESS, slist[i].srow, slist[i].scol)) dist += 10000;
 
       /* If this is the closest item, save its distance and index */
       if (dist < closest)
