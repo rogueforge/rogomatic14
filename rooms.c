@@ -662,7 +662,24 @@ int mapinfer()
 
   dwait (D_CONTROL, "Map read: inferring rooms.");
   for (r=1; r<23; r++)
-  { inroom = 0;
+  { int doormaybehidden = 0;
+    inroom = 0;
+    /* It could happen that the player is on a door, causing us */
+    /* to miss the door and computing wrong information. */
+    /* We do a sanity check first and skip the row for this case. */
+    for (c=0; c<80; c++)
+    { if (seerc ('|', r, c) || (seerc ('+', r, c) && !seerc('-', r, c-1)))
+      { inroom = !inroom; }
+      if (seerc ('@', r, c) || isupper(screen[r][c]))
+	doormaybehidden = 1;
+    }
+    if (inroom)
+    {
+      if (doormaybehidden == 0)
+        dwait (D_WARNING, "Inconsistent mapinfer row %d", r);
+      continue;
+    }
+    inroom = 0;
     for (c=0; c<80; c++)
     { if (seerc ('|', r, c) || (seerc ('+', r, c) && !seerc('-', r, c-1)))
       { inroom = !inroom; }
