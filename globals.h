@@ -472,5 +472,5 @@ extern int useless (int);
 extern int analyzepool (int);
 extern FILE * openlog (char *);
 extern int dropreply ();
-
+extern char functionchar (char *);
 
