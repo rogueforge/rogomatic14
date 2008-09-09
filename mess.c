@@ -103,6 +103,7 @@ register char *mess, *mend;
       { infer (potion, "blindness"); blinded=1; }
       else if (MATCH("a teleport trap")) nametrap (TELTRAP,NEAR);
       else if (MATCH("a trapdoor")) nametrap (TRAPDOR,NEAR);
+      else if (MATCH("an arrow killed you")) ;
       else if (MATCH("an arrow shoots *"))
       { arrowshot=1; nametrap(ARROW,HERE); }
       else if (MATCH("an arrow trap")) nametrap (ARROW,NEAR);
@@ -111,6 +112,7 @@ register char *mess, *mend;
       else if (MATCH("a sleeping gas trap")) nametrap (GASTRAP,NEAR);
       else if (MATCH("a small dart *")) nametrap (DARTRAP,HERE);
       else if (MATCH("a dart trap")) nametrap (DARTRAP,NEAR);
+      else if (MATCH("a poisoned dart killed you")) ;
       else if (MATCH("a poison dart trap")) nametrap (DARTRAP,NEAR);
       else if (MATCH("a rust trap")) nametrap (WATERAP,NEAR);
       else if (MATCH("a gush of water hits you on the head")) gushed++;
@@ -121,8 +123,11 @@ register char *mess, *mend;
       else if (MATCH("a staff *")) ;
       else if (MATCH("a scroll *")) ;
       else if (MATCH("a potion *")) ;
+      else if (MATCH("an apricot")) ;
       else if (MATCH("a +*")) ;
       else if (MATCH("a -*")) ;
+      else if (MATCH("an +*")) ;
+      else if (MATCH("an -*")) ;
       else unknown++;
       break;
 
@@ -255,6 +260,7 @@ register char *mess, *mend;
     case 's':
       if (MATCH("she stole *")) usesynch = 0;
       else if (MATCH("sting has no effect")) ;
+      else if (MATCH("some food")) ;
       else unknown++;
       break;
 
