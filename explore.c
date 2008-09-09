@@ -960,6 +960,7 @@ int exploreroom ()
 
 int doorexplore()
 { static int searchcount = 0;
+  char msg[128];
   int secretinit(), secretvalue();
 
   /* If no new squares or read map, dont bother */
@@ -969,13 +970,21 @@ int doorexplore()
   if (makemove (SECRETDOOR, secretinit, secretvalue, REUSE))  /* move */
   { searchcount = 0; return (1); }
 
-  if (searchcount > 20)
-  { new_search = 0; return (0); }
+  if (searchcount > 40)
+  {
+    display("Giving up on search");
+    new_search = 0; searchcount = 0; return (0);
+  }
 
   if (ontarget)  /* Moved to a possible secret door, search it */
   { searchcount++;
-    saynow ("Searching square (%d,%d) for the %d%s time...", 
-            atrow, atcol, searchcount, ordinal (searchcount));
+    sprintf(msg, "Searching square (%d,%d) [%d] for the %d%s time...",
+            atrow, atcol, timessearched[atrow][atcol],
+	    searchcount, ordinal (searchcount));
+    if (attempt > 0)
+      display(msg);
+    else
+      saynow (msg);
     command (T_DOORSRCH, "s");
     return (1);
   }
