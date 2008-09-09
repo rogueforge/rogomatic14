@@ -182,6 +182,12 @@ int traptype, standingonit;
   setrc (TRAP | traptype, r, c);
 }
 
+#define vertwall(r,c) (seerc ('|',(r),(c)) || seerc ('-',(r),(c)))
+#define doorat(r,c) \
+	(seerc ('|', (r)-1, (c)) && vertwall ((r)+1, (c)) || \
+	 seerc ('|', (r)+1, (c)) && vertwall ((r)-1, (c)) || \
+         seerc ('-', (r), (c)-1) && seerc ('-', (r), (c)+1))
+
 /*
  * findstairs: Look for STAIRS somewhere and set the stairs to that square.
  */
@@ -196,7 +202,16 @@ int notr, notc;
     for (c = 1; c < 79; c++)
       if ((seerc ('%', r, c) || onrc (STAIRS, r, c)) &&
 	  r != notr && c != notc)
-      { setrc (STAIRS, r, c); stairrow = r; staircol = c; }
+      {
+	/* Handle mimic disguised as stairs on a door. */
+	if (doorat(row, col))
+	{
+	  setrc (DOOR, row, col);
+	  unsetrc (HALL | ROOM, row, col);
+	  continue;
+	}
+	setrc (STAIRS, r, c); stairrow = r; staircol = c;
+      }
 }
 
 /*
@@ -425,8 +440,7 @@ void updateat ()
         rooms++;
     }
 
-    if (seerc ('|', atrow-1, atcol) && seerc ('|', atrow+1, atcol) ||
-        seerc ('-', atrow, atcol-1) && seerc ('-', atrow, atcol+1))
+    if (doorat(atrow, atcol))
     { set (DOOR | SAFE); unset (HALL | ROOM); terrain = "door";
       if ((rm = whichroom (atrow, atcol)) != NONE) levelmap[rm] |= HASROOM;
     }
@@ -560,6 +574,13 @@ register int row, col;
       break;
 
     case '%':
+      /* Handle mimic disguised as stairs on a door. */
+      if (doorat(row, col))
+      {
+	setrc (DOOR, row, col);
+	unsetrc (HALL | ROOM, row, col);
+	break;
+      }
       if (!onrc (STAIRS, row, col)) foundnew ();
       if ((!cosmic || onrc (BEEN, row, col)) && onrc (STUFF, row, col))
         deletestuff (row, col);
