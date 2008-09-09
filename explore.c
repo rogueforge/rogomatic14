@@ -732,7 +732,7 @@ int *val, *avd, *cont;
   { register int nr = r + deltr[k];
     register int nc = c + deltc[k];
     if (nr >= 1 && nr <= 22 &&
-      nc >= 0 && nc <= 80 &&
+      nc >= 0 && nc <= 79 &&
       onrc (PSD, nr, nc) && timessearched[nr][nc] < SEARCHES(nr,nc))
     { /* If adjacent square is on the screen */
       /* and if it has PSD set but has not been searched completely */
