@@ -408,7 +408,10 @@ register char *mess, *mend;
       else if (MATCH("your purse feels lighter")) ;
       else if (MATCH("you suddenly feel weaker")) ;
       else if (MATCH("you must identify something")) ;
-      else if (MATCH("you have a * feeling for a moment, then it passes")) ;
+      else if (MATCH("you have a * feeling for a moment, then it passes"))
+      { if (version == RV52A) { infer (potion, "magic detection"); } }
+      else if (MATCH("you have a * feeling for a moment"))
+      { if (version == RV52A) { infer (potion, "monster detection"); } }
       else if (MATCH("you are transfixed")) ;
       else if (MATCH("you are frozen")) washit ("ice monster");
       else if (MATCH("you faint")) {echoit=0; if (version<RV36B) eat();}
