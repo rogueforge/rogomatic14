@@ -766,7 +766,7 @@ int *val, *avd, *cont;
 
 # define AVOID(r,c,ch) \
   { avdmonsters[r][c] = INFINITY; \
-    if (debug (D_SCREEN)) { at((r),(c)); addch(ch); at(row,col); }}
+    if (debug (D_SCREEN | D_SEARCH)) { at((r),(c)); addch(ch); at(row,col); }}
 
 int avoidmonsters ()
 { register int i, r, c, wearingstealth;
