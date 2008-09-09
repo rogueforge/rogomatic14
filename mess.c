@@ -295,7 +295,8 @@ register char *mess, *mend;
       else if (MATCH("the * bounces")) ;
       else if (MATCH("the * vanishes as it hits the ground"))
       { darkturns = 0; darkdir = NONE; targetmonster = 0; echoit=0; }
-      else if (MATCH("there is something there*")) ;
+      else if (MATCH("there is something there*"))
+      { if (!on (TRAP)) { set (STUFF); unset (USELESS); } }
       else if (MATCH("the munchies are interfering*")) ;
       else if (MATCH("the monsters around you freeze")) holdmonsters ();
       else if (MATCH("the monster freezes")) holdmonsters ();
