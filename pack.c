@@ -400,7 +400,16 @@ char *msgstart, *msgend;
       stlmatch(objname, inven[ipos].str) && 
       inven[ipos].phit == plushit &&
       inven[ipos].pdam == plusdam)
+  {
     inven[ipos].count = n;
+    /* Work around problem with multiple object groups for missiles */
+    /* If we have 11 darts at position r) in the pack and find */
+    /* 12 extra darts at position r), the pack ist out of sync,
+    /* as the extra darts are not added to the pack. */
+    /* Resync inventory for missiles as a workaorund. */
+    if (what == missile)
+      usesynch = 0;
+  }
 
   /* New item, in older Rogues, open up a spot in the pack */
   else
