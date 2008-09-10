@@ -242,10 +242,10 @@ int lightroom ()
   if (blinded || !darkroom ())
     return (0);
 
-  if ((obj = havenamed (rscroll, "light")) >=0 && reads (obj))
+  if ((obj = havenamed (rscroll, "light")) != NONE && reads (obj))
     return (1);
 
-  if ((obj = havewand ("light")) >=0 && point (obj, 0))
+  if ((obj = havewand ("light")) != NONE && point (obj, 0))
     return (1);
 
   return (0);

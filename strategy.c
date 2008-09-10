@@ -559,7 +559,7 @@ int adj;		/* How many attackers are there? */
   if (on(STAIRS) && ((Level>18 && Level<26) || exploredlevel) && !floating &&
       (die_in(5) ||
        ((seeawakemonster ("rattlesnake") || seeawakemonster ("giant ant")) &&
-         (havenamed (ring, "sustain strength") < 0)) ||
+         (havenamed (ring, "sustain strength") == NONE)) ||
        ((seeawakemonster ("aquator") || seeawakemonster ("rust monster")) &&
         turns < 2 && willrust (currentarmor) &&
 	wearing ("maintain armor") == NONE) ||
@@ -630,7 +630,7 @@ int adj;		/* How many attackers are there? */
 
   if (turns > 1 && live_for (2) && leftring != NONE && rightring != NONE &&
       (seemonster ("aquator") || seemonster ("rust monster")) &&
-      wearing ("maintain armor") < 0 &&
+      wearing ("maintain armor")  == NONE &&
       findring ("maintain armor"))
     return (1);
 
@@ -641,7 +641,7 @@ int adj;		/* How many attackers are there? */
   if ((live_for (1) || turns > 0) &&
       (leftring == NONE || rightring == NONE) &&
       (seemonster ("giant ant") || seemonster ("rattlesnake")) &&
-      wearing ("sustain strength") < 0 &&
+      wearing ("sustain strength") == NONE &&
       (obj = havenamed (ring, "sustain strength")) != NONE &&
       puton (obj))
     return (1);
@@ -649,7 +649,7 @@ int adj;		/* How many attackers are there? */
   if ((live_for (2) || turns > 1) &&
       leftring != NONE && rightring != NONE &&
       (seemonster ("giant ant") || seemonster ("rattlesnake")) &&
-      wearing ("sustain strength") < 0 &&
+      wearing ("sustain strength")  == NONE &&
       findring ("sustain strength"))
     return (1);
 
@@ -664,7 +664,7 @@ int adj;		/* How many attackers are there? */
       (leftring == NONE || rightring == NONE) &&
       !(turns == 0 && (streq (monster, "rattlesnake") ||
                        streq (monster, "giant ant"))) &&
-      wearing ("regeneration") < 0 &&
+      wearing ("regeneration") == NONE &&
       (obj = havenamed (ring, "regeneration")) != NONE &&
       puton (obj))
     return (1);
@@ -672,7 +672,7 @@ int adj;		/* How many attackers are there? */
   /* Have a ring and both hands are full, takes two turns */
   if (die_in (4) && (live_for (2) || turns > 1) &&
       leftring != NONE && rightring != NONE &&
-      wearing ("regeneration") < 0 &&
+      wearing ("regeneration") == NONE &&
       findring ("regeneration"))
     return (1);
 
