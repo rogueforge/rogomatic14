@@ -337,8 +337,9 @@ int exprunvalue (r, c, depth, val, avd, cont)
 int r, c, depth, *val, *avd, *cont;
 { if (r == atrow && c == atcol)		/* Current square useless MLM */
     *val = 0;
-  else if (onrc (MONSTER | TRAP, r, c))	/* Added TRAP useless MLM */
-    *val = 0;
+  else if (onrc (MONSTER, r, c)) *val = 0;
+  else if (onrc (TRAP, r, c))	/* TRAP useless MLM; except TEL & TRAPDOR WEL */
+  {if (onrc(TELTRAP|TRAPDOR, r, c)) *avd = 0; else *val = 0; }
   else if (!zigzagvalue (r, c, depth, val, avd, cont))
     return (0);
 
@@ -369,8 +370,9 @@ int expunpinvalue (r, c, depth, val, avd, cont)
 int r, c, depth, *val, *avd, *cont;
 { if (r == atrow && c == atcol)		/* Current square useless MLM */
     *val = 0;
-  else if (onrc (MONSTER | TRAP, r, c))	/* Added TRAP useless MLM */
-    *val = 0;
+  else if (onrc (MONSTER, r, c)) *val = 0;
+  else if (onrc (TRAP, r, c))	/* TRAP useless MLM; except TEL & TRAPDOR WEL */
+  {if (onrc(TELTRAP|TRAPDOR, r, c)) *avd = 0; else *val = 0; }
   else if (!zigzagvalue (r, c, depth, val, avd, cont))
     return (0);
 
@@ -400,6 +402,7 @@ int runinit ()
  *
  * Traps are avoided for a variable number of moves, except for target traps
  * Gave GasTraps and BearTraps infinite avoidance.	MLM 10/11/83
+ * Don't avoid Trapdoors and Teleport Traps 		WEL 12/19/84
  */
 
 int runvalue (r, c, depth, val, avd, cont)
@@ -547,7 +550,7 @@ int *val, *avd, *cont;
 
   a = onrc (SAFE|DOOR|STAIRS|HALL, r, c) ? 0 :
       onrc (ARROW, r, c)   ? 50 :
-      onrc (TRAPDOR, r, c) ? 300 :
+      onrc (TRAPDOR, r, c) ? INFINITY : /* don't try to explore a trapdoor WEL*/
       onrc (TELTRAP, r, c) ? 100 :
       onrc (GASTRAP, r, c) ? 50 :
       onrc (BEARTRP, r, c) ? 50 :
@@ -649,8 +652,8 @@ int *val, *avd, *cont;
 
   a = onrc (SAFE|DOOR|STAIRS|HALL, r, c) ? 0 :
       onrc (ARROW, r, c)   ? 50 :
-      onrc (TRAPDOR, r, c) ? 300 :
-      onrc (TELTRAP, r, c) ? 100 :
+      onrc (TRAPDOR, r, c) ? 0 :
+      onrc (TELTRAP, r, c) ? 0 :
       onrc (GASTRAP, r, c) ? 50 :
       onrc (BEARTRP, r, c) ? 50 :
       onrc (DARTRAP, r, c) ? 200 :
@@ -716,7 +719,7 @@ int *val, *avd, *cont;
   v = 0;	/* establish value of square */
   a = onrc (SAFE, r, c)    ? 0 :
       onrc (ARROW, r, c)   ? 50 :
-      onrc (TRAPDOR, r, c) ? 175 :
+      onrc (TRAPDOR, r, c) ? INFINITY :	/* WEL */
       onrc (TELTRAP, r, c) ? 50 :
       onrc (GASTRAP, r, c) ? 50 :
       onrc (BEARTRP, r, c) ? 50 :
