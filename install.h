@@ -36,7 +36,7 @@
 
 /* 
  * This file is created whenever the Rog-O-Matic score file is accessed to
- * prevent simulatneous accesses. This variable must be defined, but will
+ * prevent simultaneous accesses. This variable must be defined, but will
  * not be used unless RGMDIR is also defined.
  */
 
