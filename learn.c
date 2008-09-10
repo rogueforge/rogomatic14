@@ -678,7 +678,7 @@ static int untested ()
 
     newtrials = trialno - genes[g]->creation;	/* Turns since creation */
 
-    if (TRIALS (genes[g]) < newtrials / (4 * length) + mintrials)
+    if (TRIALS (genes[g]) < newtrials / (4 * mintrials * length) + mintrials)
     { y = g; trials = TRIALS (genes[g]); }
   }
 
