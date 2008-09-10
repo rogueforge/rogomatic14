@@ -1064,7 +1064,7 @@ register int trns;	/* Minimum number of arrows to make it worthwhile */
   if (! new_arch) return (0);
 
   /* Useless without arrows */
-  if (havemult (missile, "", trns) < 0) 
+  if (havemult (missile, "", trns) == NONE) 
   { dwait (D_BATTLE, "archmonster, fewer than %d missiles", trns); 
     return (0); }
 
