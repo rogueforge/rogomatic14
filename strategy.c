@@ -163,7 +163,7 @@ int   strategize ()
    */
   
   if (on (STAIRS) && (atrow != stairrow || atcol != staircol))
-  { dwait (D_ERROR, "Stairs moved!"); findstairs (NONE, NONE); return (1); }
+  { dwait (D_ERROR, "Stairs moved!"); unset (STAIRS); findstairs (NONE, NONE); return (1); }
 
   /* 
    * If we failed to find the stairs, explore each possible secret door
