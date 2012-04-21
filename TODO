@@ -8,17 +8,13 @@ building:
 
 code bugs:
 
- - should find most new messages from rogue5.4.4
-
- - more loop, drop loop, etc. should be taken care
-   of now.
+ - inventory/pack messages are shortened and should not be
+   wrapping around and clobbering the 2nd line of the display.
 
 
 strange happenings:
 
  - pack looks like it is being corrupted
- - message line has previous message leftovers
- - message lines wrap to the 2nd line
  - invalid inferences
    - changed rogue5.4.4 to get around this, i really 
      didn't want to redo the database/inference code

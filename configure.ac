@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.68])
-AC_INIT([rogomatic], [r0.0.2], [ant@anthive.com])
+AC_INIT([rogomatic], [r0.0.3], [ant@anthive.com])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADERS([config.h])
 

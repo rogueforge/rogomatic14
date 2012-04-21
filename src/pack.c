@@ -53,7 +53,7 @@ register int i;
   else if (inven[i].count < 1)
   { sprintf (item, "%c)      nothing", LETTER(i)); }
   else
-  { sprintf (item, "%c) %4d %d*%s:", LETTER(i), worth(i),
+  { sprintf (item, "%c) %4d %d %s:", LETTER(i), worth(i),
              inven[i].count, stuffmess[(int)inven[i].type]);
 
     if (inven[i].phit != UNKNOWN && inven[i].pdam == UNKNOWN)
@@ -64,18 +64,18 @@ register int i;
     if (inven[i].charges != UNKNOWN)
       sprintf (item, "%s [%d]", item, inven[i].charges);
 
-    sprintf (item, "%s %s%s%s%s%s%s%s%s%s.",	  /* DR UTexas */
+    sprintf (item, "%s %s%s%s%s%s%s%s%s%s",	  /* DR UTexas */
             item, inven[i].str, 
-             (itemis (i, KNOWN) ? "" : ", unknown"),
+             (itemis (i, KNOWN) ? "" : ", unk"),
              (used (inven[i].str) ? ", tried" : ""),
-             (itemis (i, CURSED) ? ", cursed" : ""),
-             (itemis (i, UNCURSED) ? ", uncursed" : ""),
-             (itemis (i, ENCHANTED) ? ", enchanted" : ""),
-             (itemis (i, PROTECTED) ? ", protected" : ""),
+             (itemis (i, CURSED) ? ", cur" : ""),
+             (itemis (i, UNCURSED) ? ", unc" : ""),
+             (itemis (i, ENCHANTED) ? ", enc" : ""),
+             (itemis (i, PROTECTED) ? ", pro" : ""),
              (itemis (i, WORTHLESS) ? ", useless" : ""),
              (!itemis (i, INUSE) ? "" :
               (inven[i].type == armor || inven[i].type == ring) ?
-              ", being worn" : ", in hand"));
+              ", on" : ", inhand"));
   }
 
   return (item);
@@ -268,7 +268,6 @@ doresetinv ()
   usesynch = 1;
   checkrange = 0;
 
-  memset (space, '\0', MAXINV*80);
   for(i=0; i<MAXINV; ++i) 
   { inven[i].str = space[i];
     clearpack (i);
@@ -384,9 +383,9 @@ char *msgstart, *msgend;
     xknow = KNOWN;
   }
 
-  /* Undo plurals by removing trailing 's' */
+  /* Undo plurals by removing trailing 's' (but not for "blindne->ss<-") */
   while (mend[-1] == ' ') mend--;
-  if (mend[-1]=='s') mend--;
+  if ((mend[-1]=='s') && (mend[-2] != 's')) mend--;
 
   /* Now find what we have picked up: */
   if (stlmatch(mend-4,"food")) {what=food;xknow=KNOWN;}
