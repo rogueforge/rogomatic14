@@ -1,7 +1,17 @@
 
 most recent changes:
 
-	- more missing messages from rogue 5.4.4 picked up now.
+	- fixed some message line strange happenings.
+
+	- changed resetting of pack contents as that would
+	  erase memory of protected armor, cursed, uncursed
+	  or enchanted items which are very useful things
+	  to know later.
+
+	- added usleep delay to make watching possible 
+	  otherwise it goes too fast on my machine or
+	  the fan speeds up and i don't want to use more 
+	  electricity.
 
 
 -----

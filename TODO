@@ -10,12 +10,12 @@ code bugs:
 
  - should find most new messages from rogue5.4.4
 
- - needs more work yet to run for long
+ - more loop, drop loop, etc. should be taken care
+   of now.
 
 
 strange happenings:
 
- - more loop, drop loop, troubles
  - pack looks like it is being corrupted
  - message line has previous message leftovers
  - message lines wrap to the 2nd line

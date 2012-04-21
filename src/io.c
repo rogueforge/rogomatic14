@@ -33,6 +33,7 @@
 # include <stdlib.h>
 # include <sys/ioctl.h>
 # include <time.h>
+# include <unistd.h>
 # include "install.h"
 # include "types.h"
 # include "globals.h"
@@ -115,7 +116,7 @@ printscreen (void)
 
   for (i=0; i < 24; ++i)
     {
-      debuglog ("%02d",(i));
+      debuglog ("%02d", i);
       if (i >= s_row1 && i <= s_row2)
         {
           debuglog ("*");
@@ -153,6 +154,7 @@ int   onat;                             /* 0 ==> Wait for waitstr
                                            1 ==> Cursor on @ sufficient 
                                            2 ==> [1] + send ';' when ever
                                            we eat a --More-- message */
+
 { int   botprinted = 0, wasmapped = didreadmap, r, c, pending ();
   register int i, j;
   char  ch, *s, *m, *q, *d, *call;
@@ -162,7 +164,7 @@ int   onat;                             /* 0 ==> Wait for waitstr
   newdoors = doorlist;			/* no new doors found yet */
   atrow0 = atrow; atcol0 = atcol;	/* Save our current posistion */
   s = waitstr;				/* FSM to check for the wait msg */
-  m = "More--";				/* FSM to check for '--More--' */
+  m = "re--";				/* FSM to check for '--More--' */
   call = "Call it:";			/* FSM to check for 'Call it:' */
   q = "(* for list): ";			/* FSM to check for prompt */
   d = ")______";			/* FSM to check for tombstone grass */
@@ -170,12 +172,31 @@ int   onat;                             /* 0 ==> Wait for waitstr
   if (moved)				/* If we moved last time, put any */
   { sleepmonster (); moved = 0; }	/* Old monsters to sleep */
 
+  /* debugging info */
+  if debug(D_MESSAGE) {
+    at (28,0);
+    clrtoeol ();
+    at (27,0);
+    clrtoeol ();
+    printw("getrogue: waitstr ->%s<-  onat %d.",
+      waitstr, onat);
+    at (row, col);
+    refresh ();
+    }
+
   /* While we have not reached the end of the Rogue input, read */
   /* characters from Rogue and figure out what they mean.       */
   while ((*s) ||
          ((!hasted || version != RV36A) && onat && screen[row][col] != '@'))
   {
     ch = getroguetoken ();
+
+    if debug(D_MESSAGE) {
+      at (28,col);
+      printw ("%s", unctrl(ch));
+      at (row, col);
+      refresh ();
+      }
 
     /* If message ends in "(* for list): ", call terpmes */
     if (ch == *q) { if (*++q == 0) terpmes (); }
@@ -194,10 +215,9 @@ int   onat;                             /* 0 ==> Wait for waitstr
     { if (*++m == 0)
       { /* More than 50 messages since last command ==> start logging */
         if (++morecount > 50 && !logging) 
-	{ toggleecho (); dwait (D_WARNING, "Started logging --More-- loop."); }
-
-        /* More than 100 messages since last command ==> infinite loop */
-        if (++morecount > 100) dwait (D_FATAL, "Caught in --More-- loop.");
+	        { toggleecho ();
+            dwait (D_WARNING, "Started logging --More-- loop.");
+          }
 
 	/* Send a space (and possibly a semicolon) to clear the message */
         if (onat == 2) sendnow (" ;");
@@ -207,13 +227,9 @@ int   onat;                             /* 0 ==> Wait for waitstr
         for (i = col - 7; i < col; screen[0][i++] = ' ');
 
         terpmes ();			/* Interpret the message */
-
-        /* This code gets rid of the "Studded leather arm" bug */
-	/* But it causes other problems.		MLM   */
-        /* sprintf (&screen[0][col - 7], "--More--"); */ 
       }
     }
-    else m = "More--";
+    else m = "re--";
 
     /* If the message is 'Call it:', cancel the request */
     if (ch == *call)
@@ -588,6 +604,8 @@ int a1, a2, a3, a4;
 { char cmd[128];
   register char *s = cmd;
 
+  memset(cmd, '\0', 128);
+
   sprintf (cmd, f, a1, a2, a3, a4);
 
   while (*s) sendcnow (*s++);
@@ -603,6 +621,19 @@ char c;
 {
   if (replaying)
     return;
+
+  /* i adjust the constants to fit my specific machine:
+      - so i can watch at higher levels (otherwise it's too fast) and
+      - so that at lower levels i want my fan speed to stay low.
+
+     if you want to run full blast, make sure the USLEEP global
+     constant is 0. */
+
+  if (USLEEP)
+    if (Level > 20) usleep (Level * 6000); 
+    else if (Level > 16) usleep (Level * 4000); 
+    else if (Level > 12) usleep (Level * 2000); 
+    else usleep (USLEEP);
 
   rogue_log_write_command (c);
 
@@ -623,6 +654,7 @@ int a1, a2, a3, a4;
 { char cmd[128];
   register char *s = cmd;
 
+  memset (cmd, '\0', 128);
   sprintf (s, f, a1, a2, a3, a4);
 
   debuglog ("rogo_send (%s)\n",s);
@@ -812,7 +844,8 @@ int a1, a2, a3, a4, a5, a6, a7, a8;
 { char buf[BUFSIZ], *b;
 
   if (!emacs && !terse)
-  { sprintf (buf, f, a1, a2, a3, a4, a5, a6, a7, a8);
+  { memset (buf, '\0', BUFSIZ);
+    sprintf (buf, f, a1, a2, a3, a4, a5, a6, a7, a8);
     at (0,0);
     for (b=buf; *b; b++) printw ("%s", unctrl (*b));
     clrtoeol ();

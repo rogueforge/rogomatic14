@@ -47,6 +47,7 @@ register int i;
 { static char ispace[128];
   register char *item = ispace;
 
+  memset (ispace, '\0', 128);
   if (i < 0 || i >= MAXINV)
   { sprintf (item, "%d out of bounds", i); }
   else if (inven[i].count < 1)
@@ -112,6 +113,10 @@ int pos;
 { 
   if (--(inven[pos].count) == 0)
   { clearpack  (pos);		/* Assure nothing at that spot  DR UT */
+
+    forget (pos, (KNOWN | CURSED | ENCHANTED | PROTECTED | UNCURSED |
+                INUSE | WORTHLESS));
+
     rollpackup (pos);		/* Close up the hole */
   }
 
@@ -131,6 +136,10 @@ int pos;
 
   if (--(inven[pos].count) == 0 || inven[pos].type == missile)
   { clearpack  (pos);		/* Assure nothing at that spot  DR UT */
+    
+    forget (pos, (KNOWN | CURSED | ENCHANTED | PROTECTED | UNCURSED |
+                INUSE | WORTHLESS));
+
     rollpackup (pos);		/* Close up the hole */
   }
 
@@ -151,8 +160,15 @@ int pos;
   inven[pos].phit = UNKNOWN;
   inven[pos].pdam = UNKNOWN;
   inven[pos].charges = UNKNOWN;
+
+  /* let's try remembering more stuff so we don't forget what is
+     protected, cursed etc.
+
   forget (pos, (KNOWN | CURSED | ENCHANTED | PROTECTED | UNCURSED |
                 INUSE | WORTHLESS));
+  */
+
+  forget (pos, ( INUSE ));
 }
 
 /* 
@@ -221,7 +237,7 @@ register int pos;
 
 /*
  * resetinv: send an inventory command. The actual work is done by
- * doresetinv, which is called by a demon in the command handler.
+ * doresetinv.
  */
 
 resetinv()
@@ -252,6 +268,7 @@ doresetinv ()
   usesynch = 1;
   checkrange = 0;
 
+  memset (space, '\0', MAXINV*80);
   for(i=0; i<MAXINV; ++i) 
   { inven[i].str = space[i];
     clearpack (i);
@@ -273,20 +290,43 @@ inventory (msgstart, msgend)
 char *msgstart, *msgend;
 { register char *p, *q, *mess = msgstart, *mend = msgend;
   char objname[100], *realname();
-  int  n, ipos, xknow = 0, newitem = 0, inuse = 0, printed = 0;
+  int  n, ipos, xknow = 0, newitem = 0, inuse = 0, printed = 0, len = 0;
   int  plushit = UNKNOWN, plusdam = UNKNOWN, charges = UNKNOWN;
   stuff what; 
   char *xbeg, *xend;
 
   xbeg = xend = "";
-  dwait (D_PACK, "inventory: message %s", mess);
+  dwait (D_PACK, "inv: message %s", mess);
+
+  if (debug(D_MESSAGE)) {
+    at (30,0);
+    clrtoeol ();
+    printw(">%-79.79s",mess);
+    at (row, col);
+    refresh ();
+    }
 
   /* Rip surrounding garbage from the message */
 
+  /* strange line end when reading identify scrolls, ignore it */
+  if (*mend == '-')
+    mend-=1;
+
   if (mess[1] == ')')
-  { ipos= DIGIT(*mess); mess+=3;}
+    { ipos= DIGIT(*mess); mess+=3;}
   else
-  { ipos= DIGIT(mend[-2]); mend -= 4;
+    { ipos= DIGIT(mend[-2]); mend -= 4; }
+
+
+  if ((ipos < 0) || (ipos > MAXINV))
+    {
+      len = msgend - msgstart;
+      dwait (D_ERROR,
+        "inv: ipos out of range, 0 - MAXINV(%d) ipos %d  invcount %d\nmsgs: %s\n  mess: %s\n",
+        MAXINV, ipos, invcount, msgstart, mess);
+      return(printed);
+    }
+  else {
     deletestuff (atrow, atcol);
     unsetrc (USELESS, atrow, atcol);
     newitem = 1; }
@@ -333,7 +373,7 @@ char *msgstart, *msgend;
     else if (stlmatch(mend,"(on right hand)") )
     { rightring = ipos; inuse = INUSE; }
 
-    while (mend[-1]==' ') mend--;
+    while ((mend[-1]==' ') && (mend > mess)) mend--;
   }
 
   /* Read the charges on a wand (or armor class or ring bonus) */
@@ -383,8 +423,8 @@ char *msgstart, *msgend;
 
   /* Copy the name of the object into a string */
 
+  memset (objname, '\0', 100);
   for (p = objname, q = xbeg; q < xend;  p++, q++) *p = *q;
-  *p = '\0';
 
   dwait (D_PACK, "inv: %s '%s', hit %d, dam %d, chg %d, knw %d",
          stuffmess[(int) what], objname, plushit, plusdam, charges, xknow);
@@ -455,17 +495,24 @@ char *msgstart, *msgend;
     inven[ipos].type = what;
     inven[ipos].count = n;
     inven[ipos].phit = plushit;
+    if ((plushit != UNKNOWN) && (plushit > 0))
+      remember (ipos, ENCHANTED | KNOWN);
     inven[ipos].pdam = plusdam;
+    if ((plusdam != UNKNOWN) && (plusdam > 0))
+      remember (ipos, ENCHANTED | KNOWN);
     inven[ipos].charges = charges;
     remember (ipos, inuse | xknow);
     if (!xknow) ++urocnt;
   }
 
   /* Forget enchanted status if item known.  DR UTexas 31 Jan 84 */
+  /* ...why?...  no idea, let's put this back in and see what happens */
+  /*
   if (itemis (ipos, KNOWN))
     {
       forget (ipos, ENCHANTED);
     }
+  */
 
   /* Set the name of the object */
   if (inven[ipos].str != NULL)
@@ -474,13 +521,24 @@ char *msgstart, *msgend;
     }
   else if (!replaying)
     {
-      dwait (D_ERROR, "terpmess: null inven[%d].str, invcount %d.",
+      dwait (D_ERROR, "inv: null inven[%d].str, invcount %d.",
              ipos, invcount);
     }
 
   /* Set cursed attribute for weapon and armor */
   if (cursedarmor && ipos == currentarmor) remember (ipos, CURSED);
   if (cursedweapon && ipos == currentweapon) remember (ipos, CURSED);
+
+  if (debug(D_MESSAGE)) {
+    at (30,0);
+    clrtoeol ();
+    printw("<%-79.79s",mess);
+    at (31,0);
+    clrtoeol ();
+    printw("<%-79.79s",objname);
+    at (row, col);
+    refresh ();
+    }
 
   /* Keep track of whether we are wielding a trap arrow */
   if (ipos == currentweapon) usingarrow = (what == missile);

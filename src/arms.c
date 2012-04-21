@@ -559,19 +559,6 @@ havearrow ()
   return (NONE);
 }
 
-/*
- * plusweapon: we just enchanted our current weapon.
- *             Do a picky identify to try to find its plusses.
- */
-
-plusweapon ()
-{
-  cursedweapon = 0;
-  newweapon = 1;
-  forget (currentweapon, CURSED);
-  usesynch = 0;
-}
-
 /* 
  * hitbonus: Return the bonus to hit.
  */

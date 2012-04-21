@@ -78,13 +78,20 @@ int obj;
 {
   if (cursedweapon) return (0);
 
+  if (version >= RV54A) {
+    if (itemis (obj, KNOWN) || itemis(obj, ENCHANTED))
+      command (T_HANDLING, "w%c%c", LETTER (obj), ESC);
+    else
+      command (T_HANDLING, "w%c %c", LETTER (obj), ESC);
+    }
+
   /* send 2 escapes because I needed to patch the new rogue to not hang
    * momentatirily on the first escape
    */
-  if (version < RV53A)
-    command (T_HANDLING, "w%cw%c%c", LETTER (obj), ESC, ctrl('r'));
-  else
+  else if (version == RV53A)
     command (T_HANDLING, "w%cw%c%c", LETTER (obj), ESC, ctrl('p'));
+  else
+    command (T_HANDLING, "w%cw%c%c", LETTER (obj), ESC, ctrl('r'));
 
   return (1);
 }
