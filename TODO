@@ -8,18 +8,18 @@ building:
 
 code bugs:
 
- - inventory/pack messages are shortened and should not be
-   wrapping around and clobbering the 2nd line of the display.
+ - should now recognize the "an +0,0 arrow" message.
+
+ - when the nymph steals something the message is now
+   handled correctly.
 
 
 strange happenings:
 
- - pack looks like it is being corrupted
  - invalid inferences
    - changed rogue5.4.4 to get around this, i really 
      didn't want to redo the database/inference code
  - direction: (messages, problems with something)
- - when an item is stolen (troubles)
  - running around without armor on
  - fighting a close up monster with another 
    behind it at a distance (switches between
@@ -53,9 +53,18 @@ someday:
 
 for rogue5.4.4:
 
+
+  [these are done]
+
  - verify basic 5.4.4 rogue build
  - fix two messages (grammar)
+ - fix spelling of missle to missile
  - change colors so they aren't the same (fixes 
-   invalid inference/reference problem)
+   invalid inference/reference problem),
+   gold -> golden, silver -> silvery
+
+
+  [this one still needs to be done]
+
  - update autotools, etc.
 

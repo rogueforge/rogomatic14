@@ -156,6 +156,12 @@ register char *mess, *mend;
     nametrap (BEARTRP,HERE);
   /* :ANT: */
 
+  /* nymph stole an item, pack is out of whack */
+	else if (MATCH("she stole *"))
+		{ 
+    usesynch=0;
+    }
+
   /* Message indicates we picked up a new item */
   else if (*(mend-1)==')' && *(mend-3)=='(')
   {
@@ -206,7 +212,9 @@ register char *mess, *mend;
       else if (MATCH("a scroll *")) ;
       else if (MATCH("a potion *")) ;
       else if (MATCH("a +*")) ;
+      else if (MATCH("an +*")) ;
       else if (MATCH("a -*")) ;
+      else if (MATCH("an -*")) ;
       else unknown++;
       break;
 

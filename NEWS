@@ -1,12 +1,9 @@
 
 most recent changes:
-  
-	- fixed some descriptions so that the top message
-	  line won't wrap and clobber the second line.
 
-	- changed some description words to be abbreviations
-	  and made the pack descriptions more complete for
-	  cursed, protected, enchanted items, etc.
+	- fixed when a nymph steals an item (corrupted pack).
+
+	- fixed unrecognized messages (an +0,0 arrow).
 
 
 -----
