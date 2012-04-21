@@ -25,14 +25,8 @@
  * install.h: 
  *
  * This file contains (hopefully) all system dependent defines 
- * This version of Rog-O-Matic runs with Rogue version 5.3. 
+ * This version of Rog-O-Matic runs with Rogue version 5.4.4
  */
-
-/*
- * BSD41: Defined for 4.1bsd Unix systems (Undefined means 4.2bsd)
- */
-
-/* # define BSD41 */
 
 /*
  * Rog-O-Matic's best score against Rogue 5.3  (UTexas, Feb 1984)
@@ -51,18 +45,14 @@
 /* 
  * This variable defines the version of Rogue we are assumed to be playing
  * if the getrogueversion() routine can't figure it out.  This must be
- * defined, and can be either "5.2", "3.6", or "5.3"
+ * defined, and can be either "3.6", "5.2", "5.3" or "5.4".
+ *
+ * Leave it at 5.4 since this is the version i'm testing against for
+ * now.
+ *
  */
 
-# define DEFVER		"3.6"
-
-/* 
- * This file is created whenever the Rog-O-Matic score file is accessed to
- * prevent simulatneous accesses. This variable must be defined, but will
- * not be used unless RGMDIR is also defined.
- */
-
-# define LOCKFILE	"@prefix@/var/@PACKAGE@/RgmLock"
+# define DEFVER		"5.4"
 
 /* 
  * This variable is the level at which we always start logging the game
@@ -88,7 +78,7 @@
  * defined.
  */
 
-# define NEWROGUE	"/usr/games/rogue" 
+# define NEWROGUE	"@prefix@/bin/rogue" 
 
 /* 
  * This is the location of the player executable, which is the main
@@ -125,6 +115,14 @@
 # define ROGUELOG	"roguelog"
 
 /* 
+ * This file is created whenever the Rog-O-Matic score file is accessed to
+ * prevent simulatneous accesses. This variable must be defined, but will
+ * not be used unless RGMDIR is also defined.
+ */
+
+# define LOCKFILE	"/var/games/@PACKAGE@/RgmLock"
+
+/* 
  * This directory must be defined.  It will contain logs of Rogomatic's
  * scores, an error.log file, and the long term memory file.  It must
  * be writeable by everyone, since score files must be created and
@@ -133,7 +131,7 @@
  * directory.
  */
 
-# define RGMDIR		"@prefix@/var/@PACKAGE@/"
+# define RGMDIR		"/var/games/@PACKAGE@"
 
 /* 
  * This file is created in the current directory if the snapshot command

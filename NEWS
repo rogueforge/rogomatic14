@@ -1,0 +1,203 @@
+
+most recent changes:
+
+	- configure file changes, doesn't compile or run yet.
+
+	- compiler errors are fixed in the next part.
+
+	- some run errors are fixed later.
+
+	- for best results get latest version i have posted.
+
+
+-----
+
+bugs:
+
+  - see TODO for things not fixed yet by this version.
+    see TODO of latest release for a more current status 
+    of bugs.
+
+
+-----
+
+project info:
+
+  - rogomatic is a unix curses program written
+    mostly in C that automatically tries to play 
+    another unix curses game called rogue (also
+    mostly written in C).  curses is a toolbox for 
+    handling character graphics in a simple text 
+    terminal screen (emulating a vt100).  rogue is 
+    a game of a dungeon explorer looking for the 
+    amulet of yendor.
+
+  - many years ago (the mid 1980s) i enjoyed playing 
+    rogue and always wanted to see Rog-O-Matic run, 
+    but our site didn't allow it.  a while ago looking 
+    around i found old versions that would not compile 
+    or run on my Debian GNU-Linux system.  i then 
+    found a version that was more recent and that 
+    version is where this project started from.
+
+    still, the code is old, does some non-standard 
+    things (which i ignore).  given enough time i'd 
+    rewrite large chunks of it, but i really don't 
+    know how much i'll work on or fix until it actually
+    gets done.  what you see here may be all i will 
+    ever do.
+
+  - you can send bug reports and comments to me.
+    i may be too busy to reply at times.  please
+    read the TODO in the latest version released 
+    for a list of known issues so you don't waste 
+    time sending me a note about something i 
+    already know.
+
+  - there are too many bugs and i know i won't be 
+    fixing them all.  if i've made errors or 
+    introduced other bugs, that's the breaks.  :)
+    have fun.  you have the source...
+
+
+-----
+
+install:
+
+  1. set up a directory where you want to put rogomatic
+  2. cd newdir
+  3. untar/unpack downloaded source code
+  4. cd into new directory
+  5. ./configure
+  6. make
+  7. su root
+  8. make installdirs
+  9. make install
+
+  - installdirs will check if /usr/local/bin and
+    /var/games/rogomatic exist, if not they will
+    be created for you.  installdirs is a part of
+    Makefile.am, so you can change it to suit your
+    setup, but make sure that install.h.in matches
+    whatever you wish too.
+
+  - programs and scripts should end up in 
+    /usr/local/bin by default.  i have src/install.h.in
+    set up to find binaries there (for the below version 
+    of rogue too).  if they are not installed there then 
+    they can be in /usr/games and if not there then they 
+    must be in the current directory.
+
+  - data files and lock files should end up in 
+    /var/games/rogomatic.  permission should be 
+    read/writeable to group games.  the user should 
+    also be in group games.
+
+  - check permissions on /usr/local/bin and /var/games/rogomatic
+    to make sure they conform to whatever policy or desires you
+    may have.
+
+  - i am currently using a version of rogue (5.4.4) 
+    distributed with this version of rogomatic, slightly 
+    fixed (see the downloads list for the most recent 
+    version i have posted).  the best results will be 
+    from running that version of rogue since i haven't 
+    tested this updated rogomatic against any other 
+    versions.  see the README in that archive for how 
+    to install.  it places binaries in /usr/local/bin
+    too by default.
+
+  - i have not tested this on a multiuser system, 
+    permissions might need to be adjusted.
+
+  - to redo the autotools (assuming you have them
+    installed) if new versions come out, be prepared
+    for this to break something:
+
+    1. make maintainer-clean
+    2. ./bootstrap
+    3. ./configure, etc...
+
+     maintainer-clean should not normally be needed
+   if after this ./bootstrap or ./configure do not work 
+   the simplest fix is to go back to unpacking the source 
+   and use that version instead by skipping ./bootstrap 
+   and running .configure, this way at least you know that
+   will work.
+
+  - if rogomatic doesn't run it is likely that you
+    have something in a different place than expected.
+
+  - if rogomatic takes a long time to start it is 
+    probably looking for the /var/games/rogomatic
+    directory.  eventually it should quit and give
+    an error message about not being able to open
+    a file for the GenePool(rogue-version).  create
+    the directory using the above directions.
+
+  - debuglog.frogue, debuglog.player and roguelog can
+    all contain useful information for debugging if 
+    rogomatic crashes or gives error messages.  also
+    in /var/games/rogomatic/error(rogue-version) might 
+    be useful information about errors encountered.
+
+
+-----
+
+internal versions/releases:
+
+  - i use tags internally in my notes and in git that 
+    look like:
+
+    rogomatic-ivx.y.z  (or just ivx.y.z)
+
+    so i can keep track of where i'm at.  normally, 
+    you shouldn't see them unless you download a 
+    version with the .git subdirectory included (i 
+    mark those on the download page so you don't 
+    get all that extra stuff if you don't want it).
+    they do not correspond with release versions.
+
+
+  - for actual releases i use versions like:
+
+    rogomatic-rx.y.z
+
+    these are what most people should use.  the most
+    recent the better as the first few releases still
+    contain some bugs that will keep the game from
+    getting very far.
+
+
+-----
+
+debugging:
+
+  - the normal rogue/rogomatic screen is set for 24x80
+    characters.
+
+  - if you turn on debugging flags (via types.h or
+    interactively) you will need to make the window
+    bigger as more information is displayed below.
+
+  - D_MESSAGE, D_PACK are both very helpful.
+
+
+-----
+
+compatibility:
+
+  - i'm currently running the Debian testing (wheezy)
+    distribution (all i plan on following).  as of Apr
+    2012 it doesn't look like the build chain has 
+    diverged much from Squeeze (stable) for this code
+    which means it should also compile and build there.
+
+  - many compiler warning flags are being ignored
+    so at some point those may cause problems, but
+    i'm ignoring them for now too.
+
+  - i'm using fairly up to date versions of the
+    autotools and compiler when they appear in the 
+    archive.
+

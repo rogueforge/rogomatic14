@@ -86,15 +86,15 @@ char *argv[];
 
   /* Find which rogue to use */
   if (*rfilearg)
-  { if (access (rfilearg, 1) == 0)	rfile = rfilearg;
+  { if (access (rfilearg, R_OK|X_OK) == 0)	rfile = rfilearg;
     else				{ perror (rfilearg); exit (1); }
   }
-  else if (access ("rogue", 1) == 0)	rfile = "rogue";
+  else if (access ("rogue", R_OK|X_OK) == 0)	rfile = "rogue";
 # ifdef NEWROGUE
-  else if (access (NEWROGUE, 1) == 0)	rfile = NEWROGUE;
+  else if (access (NEWROGUE, R_OK|X_OK) == 0)	rfile = NEWROGUE;
 # endif
 # ifdef ROGUE
-  else if (access (ROGUE, 1) == 0)	rfile = ROGUE;
+  else if (access (ROGUE, R_OK|X_OK) == 0)	rfile = ROGUE;
 # endif
   else
   { perror ("rogue");

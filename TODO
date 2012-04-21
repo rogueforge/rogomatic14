@@ -1,4 +1,66 @@
-Bugs
-----
-Fix Monster next to character at start bug, reproduciable with
-% SEED=1208982897 ./rogomatic
+
+===== rogomatic
+
+
+building:
+
+ - the basic configurations should be ok now
+
+ - fix so it compiles and builds 
+
+
+code bugs:
+
+ - rogue 5.4.4 has new messages
+
+
+strange happenings:
+
+ - more loop, drop loop, troubles
+ - pack looks like it is being corrupted
+ - message line has previous message leftovers
+ - message lines wrap to the 2nd line
+ - invalid inferences
+   - changed rogue5.4.4 to get around this, i really 
+     didn't want to redo the database/inference code
+ - direction: (messages, problems with something)
+ - when an item is stolen (troubles)
+ - running around without armor on
+ - fighting a close up monster with another 
+   behind it at a distance (switches between
+   thrower and hitter but doesn't look like
+   it actually accomplishes anything and then
+   gets killed)
+ - doesn't find some passageways when searching
+ - tries to go down when not on stairway
+ - doesn't use detect scrolls/potions
+ - drops and picks up useless items
+ - will starve to death standing on a
+   scare monster scroll
+ - forgets useful information about pack items
+
+
+screen not updating correctly:
+
+ - leftover '.', '@' and other characters in dark rooms
+ - passages are sometimes blank instead of '#'
+ - monster letters don't get removed
+ - #'s get put to the left
+
+
+someday:
+
+ - test against different versions of rogue than 5.4.4.
+
+
+===== rogue
+
+
+for rogue5.4.4:
+
+ - verify basic 5.4.4 rogue build
+ - fix two messages (grammar)
+ - change colors so they aren't the same (fixes 
+   invalid inference/reference problem)
+ - update autotools, etc.
+
