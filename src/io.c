@@ -32,15 +32,8 @@
 # include <string.h>
 # include <stdlib.h>
 # include <sys/ioctl.h>
-
+# include <time.h>
 # include "install.h"
-
-# ifdef BSD41
-#     include <time.h>
-# else
-#     include <sys/time.h>
-# endif
-
 # include "types.h"
 # include "globals.h"
 # include "termtokens.h"

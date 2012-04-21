@@ -31,42 +31,29 @@
  * defined here (otherwise the functions from -lcmu are used).
  */
 
-# include <sgtty.h>
+# include <curses.h>
+# include <pwd.h>
 # include <stdio.h>
 # include <stdlib.h>
 # include <signal.h>
 # include <string.h>
 # include <sys/types.h>
 # include <sys/stat.h>
-# include <pwd.h>
+# include <time.h>
 
 # include "install.h"
 
-# ifdef BSD41
-#     include <time.h>
-# else
-#     include <sys/time.h>
-# endif
 
 # define TRUE 1
 # define FALSE 0
 
 /*
- * baudrate: Determine the baud rate of the terminal
+ * rogo_baudrate: Determine the baud rate of the terminal
  */
 
 rogo_baudrate ()
-{ static short  baud_convert[] =
-  { 0, 50, 75, 110, 135, 150, 200, 300, 600, 1200, 1800, 2400, 4800, 9600 };
-  static struct sgttyb  sg;
-  static short  baud_rate;
-
-  gtty (fileno (stdin), &sg);
-  baud_rate = sg.sg_ospeed == 0 ? 1200
-    : sg.sg_ospeed < sizeof baud_convert / sizeof baud_convert[0]
-    ? baud_convert[sg.sg_ospeed] : 9600;
-
-  return (baud_rate);
+{
+  return (baudrate());
 }
 
 /*

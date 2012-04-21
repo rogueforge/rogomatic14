@@ -26,7 +26,6 @@
  * datesub.l:
  */
 
-# define yywrap() 1
 %}
 %%
 "Jan"				printf ("1"); 
@@ -42,6 +41,11 @@
 "Nov"				printf ("11"); 
 "Dec"				printf ("12"); 
 %%
+
+yywrap ()
+{
+;
+}
 
 main ()
 { while (yylex ())
