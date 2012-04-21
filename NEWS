@@ -1,11 +1,7 @@
 
 most recent changes:
 
-	- should configure, compile and run (a bit) now.
-
-	- being released as rogomatic-r0.0.0 because 
-	  some people would like to work from a minimally 
-	  changed source tree that compiles and sort of runs.
+	- more missing messages from rogue 5.4.4 picked up now.
 
 
 -----

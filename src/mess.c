@@ -107,10 +107,11 @@ register char *mess, *mend;
 
   /*----------------Take action based on type of message-------------*/
 
-  if (MATCH("was wearing *"))
-    {
-      ;
-    }
+  /* :ANT: let's tag this as a BEARTRP for now */
+  if (MATCH("* sparks dance across your armor"))
+    nametrap (BEARTRP,HERE);
+  /* :ANT: */
+
   /* Message indicates we picked up a new item */
   else if (mend[-1]==')' && mend[-3]=='(')
   {
@@ -128,7 +129,8 @@ register char *mess, *mend;
   else switch (mess[0])
   {
     case 'a':
-      if (MATCH("as you read the scroll, it vanishes")) echoit=0;
+      if (MATCH("a secret door")) echoit=0;
+      else if (MATCH("as you read the scroll, it vanishes")) echoit=0;
       else if (MATCH("a cloak of darkness falls around you"))
       { infer ("blindness"); blinded=1; }
       else if (MATCH("a teleport trap")) nametrap (TELTRAP,NEAR);
@@ -146,6 +148,13 @@ register char *mess, *mend;
       else if (MATCH("a gush of water hits you on the head")) gushed++;
       else if (MATCH("a sting has weakened you")) ;
       else if (MATCH("a bite has weakened you")) ;
+
+      /* :ANT: let's tag this as a BEARTRP for now */
+      else if (MATCH("a mysterious trap")) nametrap (BEARTRP,NEAR);
+      else if (MATCH("a spike shoots past your ear!")) nametrap (BEARTRP,HERE);
+      else if (MATCH("a * light flashes in your eyes")) nametrap (BEARTRP,HERE);
+      /* :ANT: */
+
       else if (MATCH("a ring *")) ;
       else if (MATCH("a wand *")) ;
       else if (MATCH("a staff *")) ;
@@ -234,6 +243,11 @@ register char *mess, *mend;
       else if (MATCH("missle vanishes")) infer ("magic missile");
       else if (MATCH("my, that was a yummy *")) ;
       else if (MATCH("moved onto *")) set (STUFF);
+
+      /* :ANT: let's tag this as a BEARTRP for now */
+      else if (MATCH("multi-colored lines swirl around you, then fade")) nametrap (BEARTRP,HERE);
+     /* :ANT: */
+
       else unknown++;
       break;
 
@@ -344,6 +358,12 @@ register char *mess, *mend;
       else if (MATCH("the monsters around you freeze")) holdmonsters ();
       else if (MATCH("the monster freezes")) holdmonsters ();
       else if (MATCH("that's inedible")) { usesynch = 0; }
+
+      /* :ANT: let's tag this as a BEARTRP for now */
+      else if (MATCH("time now seems to be going slower")) nametrap (BEARTRP,HERE);
+      else if (MATCH("the light in here suddenly seems*")) nametrap (BEARTRP,HERE);
+     /* :ANT: */
+
       else unknown++;
       break;
 
@@ -460,6 +480,20 @@ register char *mess, *mend;
       else if (MATCH("yum*")) echoit=0;
       else if (MATCH("yuk*")) echoit=0;
       else if (MATCH("you sense the presence of magic*")) echoit=0;
+
+      /* :ANT: let's tag this as a BEARTRP for now */
+      else if (MATCH("you are suddenly in a parallel dimension")) nametrap (BEARTRP, HERE);
+      else if (MATCH("you feel a sting in the side of your neck")) nametrap (BEARTRP, HERE);
+      else if (MATCH("you feel time speed up suddenly")) nametrap (BEARTRP, HERE);
+      else if (MATCH("you suddenly feel very thirsty")) nametrap (BEARTRP, HERE);
+      else if (MATCH("yo* pack turns *")) nametrap (BEARTRP, HERE);
+      /* :ANT: */
+
+      /* :ANT: logic error indicator */
+      else if (MATCH("you are already wearing some"))
+        dwait (D_WARNING, "Logic error, we should know this already. '%s'", mess);
+      /* :ANT: */
+
       else unknown++;
       break;
 
@@ -473,6 +507,7 @@ register char *mess, *mend;
       else if (MATCH("(mctesq was here)")) echoit=0;
       else if (MATCH("'*'*: *")) { echoit=0; mapcharacter (*res1, res3); }
       else if (*mess == '+' || *mess == '-' || ISDIGIT (*mess)) ;
+      else if (MATCH("'*' is not a valid item")) echoit=0;
       else unknown++;      
       break;
   }

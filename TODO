@@ -1,17 +1,16 @@
 
 ===== rogomatic
 
-
 building:
 
- - the basic configurations should be ok now
-
- - fix so it compiles and builds 
+ - should build and compile
 
 
 code bugs:
 
- - rogue 5.4.4 has new messages
+ - should find most new messages from rogue5.4.4
+
+ - needs more work yet to run for long
 
 
 strange happenings:
