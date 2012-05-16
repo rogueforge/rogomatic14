@@ -6,30 +6,60 @@ building:
  - should build and compile
 
 
-code bugs:
+code bugs/changes:
 
- - should now recognize the "an +0,0 arrow" message.
+ - fixing some more ambiguous messages with this version:
 
- - when the nymph steals something the message is now
-   handled correctly.
+   - before rogue would give the same message for the result
+     from reading three different scrolls if nothing happened:
+
+     "you feel a strange sense of loss"
+
+     now that is only retained for hold monster
+
+     protect armor now returns "your scalp itches", enchant 
+     armor returns "your arms tingle", and enchant weapon 
+     "your hands tingle"
+
+   - for potions two of them returned the same messages from 
+     rogue:
+
+     "you have a %s feeling for a moment, then it passes"
+        choose_str("normal", "strange"))
+
+     this message is retained for detect monsters
+
+     the messages for the detect magic potion were changed to:
+
+     "you daydream of %s for a moment, then it passes"
+       choose_str("sunshine", "finding the amulet"))
+
+ - with the fix of the octal 310 character coming from
+   rogue that should take care of any remaining issues
+   with the nymph taking items from the pack.  
+
+   but note that when the nymph now hits she takes all of an 
+   item if there are more than one...
 
 
 strange happenings:
 
- - invalid inferences
-   - changed rogue5.4.4 to get around this, i really 
-     didn't want to redo the database/inference code
- - direction: (messages, problems with something)
+ - still problems with cursed items (if you weild a weapon
+   and your existing weapon is cursed and the letter of the
+   new weapon is "q" then you will be told that you are
+   quaffing something?  similar problem if weapon is letter
+   "d" then dropping something?), etc.
+ - direction: (might be related to cursed item)
  - running around without armor on
  - fighting a close up monster with another 
    behind it at a distance (switches between
    thrower and hitter but doesn't look like
-   it actually accomplishes anything and then
-   gets killed)
+   it actually accomplishes much of anything 
+   and then gets killed)
  - doesn't find some passageways when searching
  - tries to go down when not on stairway
  - doesn't use detect scrolls/potions
- - drops and picks up useless items
+ - repeatedly drops and picks up useless items
  - will starve to death standing on a
    scare monster scroll
  - forgets useful information about pack items
@@ -45,26 +75,38 @@ screen not updating correctly:
 
 someday:
 
- - test against different versions of rogue than 5.4.4.
+ - test against different versions of rogue 
+   other than 5.4.4.
 
 
 ===== rogue
 
 
-for rogue5.4.4:
-
+rogue 5.4.4 ant 1.0.3 (this is the version i use 
+for testing rogomatic):
 
   [these are done]
 
- - verify basic 5.4.4 rogue build
- - fix two messages (grammar)
+ - configuration changes
+ - fix several messages (grammar)
  - fix spelling of missle to missile
  - change colors so they aren't the same (fixes 
    invalid inference/reference problem),
    gold -> golden, silver -> silvery
+ - change even more messages from potions and
+   scrolls to eliminate other invalid inference/
+   reference problems
+ - fix the bug from when the nymph stole an item,
+   it was an invalid reference to a freed space
+   that caused rogue to return an octal 310.  the
+   nymph now steals all of an item if she hits and
+   there is more than one of them
 
 
-  [this one still needs to be done]
+rogue 5.4.4 rgm (version for the purists):
 
- - update autotools, etc.
+ - configuration fixes
+ - fix for the nymph steals item bug
 
+
+No bugs known for rogue 5.4.4 rgm or rogue 5.4.4 ant 1.0.3

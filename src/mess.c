@@ -469,7 +469,7 @@ register char *mess, *mend;
       else if (MATCH("you begin to feel much better*")) infer("extra healing");
       else if (MATCH("you begin to sense the presence of monsters*"))
       { infer("monster detection"); }
-      else if (MATCH("you feel a strange sense of loss*")) ;
+      else if (MATCH("you feel a strange sense of loss*")) infer("hold monster");
       else if (MATCH("you feel a wrenching sensation in your gut*")) ;
       else if (MATCH("you feel stronger, now*")) infer ("gain strength");
       else if (MATCH("you feel very sick now*")) infer ("poison");
@@ -511,11 +511,13 @@ register char *mess, *mend;
       { inven[currentarmor].phit--; 
         if (gushed) { gushed=0; nametrap (WATERAP,HERE); } }
 
+      else if (MATCH("your scalp itches")) infer ("protect armor");
       else if (MATCH("your armor is covered by a shimmering * shield*"))
       { infer ("protect armor");
         protected++;
         remember (currentarmor, PROTECTED); }
 
+      else if (MATCH("your arms tingle")) infer ("enchant armor");
       else if (MATCH("your armor glows * for a moment*"))
       { infer ("enchant armor");
         cursedarmor = 0;
@@ -526,6 +528,7 @@ register char *mess, *mend;
         forget (currentarmor, CURSED);
         remember (currentarmor, UNCURSED);
         }
+      else if (MATCH("your hands tingle")) infer ("enchant weapon");
       else if (MATCH("your * glows * for a moment*"))
       { infer ("enchant weapon");
         cursedweapon = 0;
@@ -552,7 +555,9 @@ register char *mess, *mend;
       else if (MATCH("your purse feels lighter*")) ;
       else if (MATCH("you suddenly feel weaker*")) ;
       else if (MATCH("you must identify something*")) ;
-      else if (MATCH("you have a * feeling for a moment, then it passes*")) ;
+      else if (MATCH("you have a * feeling for a moment, then it passes*")) infer ("detect monsters");
+      else if (MATCH("you daydream of * for a moment, then it passes*")) infer ("detect magic");
+
       else if (MATCH("you are transfixed*")) ;
       else if (MATCH("you are frozen*")) washit ("ice monster");
       else if (MATCH("you faint*")) {echoit=0; if (version<RV36B) eat();}

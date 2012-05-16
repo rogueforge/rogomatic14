@@ -1,9 +1,8 @@
 
 most recent changes:
 
-	- fixed when a nymph steals an item (corrupted pack).
-
-	- fixed unrecognized messages (an +0,0 arrow).
+	- made it so rogomatic would recognize the disambiguated
+	  messages coming from rogue 5.4.4 ant 1.0.3 version.
 
 
 -----
@@ -184,7 +183,7 @@ debugging:
 compatibility:
 
   - i'm currently running the Debian testing (wheezy)
-    distribution (all i plan on following).  as of Apr
+    distribution (all i plan on following).  as of May
     2012 it doesn't look like the build chain has 
     diverged much from Squeeze (stable) for this code
     which means it should also compile and build there.
