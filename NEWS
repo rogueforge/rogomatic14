@@ -1,8 +1,21 @@
+Thu Jul 12 07:17:50 EDT 2012
 
 most recent changes:
 
-	- made it so rogomatic would recognize the disambiguated
-	  messages coming from rogue 5.4.4 ant 1.0.3 version.
+  - improve weapon wielding (so that cursed weapons do not mess
+    up rogomatic).
+
+  - add SEED as a usable environment variable (positive integer
+    value) so that testing is repeatable.  it affects random
+    number generation.  normal use should not set this.  use a 
+    rogue version that also uses this feature.  [the one i 
+    distribute now does have this available by normal compile 
+    (no need to set MASTER)].
+
+  - use the watched option of rogomatic '-w' to switch on or
+    off the usleep delay (which slows down the display so that
+    it can be watched when running).  Also speeds up testing 
+    to have this turned off unless I really do want to watch.
 
 
 -----
@@ -177,20 +190,22 @@ debugging:
 
   - D_MESSAGE, D_PACK are both very helpful.
 
+  - there is a separate archive of the debugging
+    environment i've been using.  it contains 
+    scripts for replicating runs and comparing 
+    series of runs (with and without learning).
+    see the Things webpage.
+
 
 -----
 
 compatibility:
 
-  - i'm currently running the Debian testing (wheezy)
-    distribution (all i plan on following).  as of May
-    2012 it doesn't look like the build chain has 
-    diverged much from Squeeze (stable) for this code
-    which means it should also compile and build there.
+  - i'm currently running the Debian testing distribution.
 
-  - many compiler warning flags are being ignored
-    so at some point those may cause problems, but
-    i'm ignoring them for now too.
+  - many compiler warning flags are being ignored so at 
+    some point those may cause problems, but i'm ignoring 
+    them for now too.
 
   - i'm using fairly up to date versions of the
     autotools and compiler when they appear in the 

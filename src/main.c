@@ -767,11 +767,27 @@ void onintr (int sig)
  */
 
 startlesson ()
-{ sprintf (genelog, "%s/GeneLog%d", getRgmDir (), version);
+{ 
+  int tmpseed = 0;
+
+  sprintf (genelog, "%s/GeneLog%d", getRgmDir (), version);
   sprintf (genepool, "%s/GenePool%d", getRgmDir (), version);
   sprintf (genelock, "%s/GeneLock%d", getRgmDir (), version);
 
-  rogo_srand (0);				/* Start random number generator */
+
+  /* set up random number generation */
+  if (getenv("SEED") != NULL) {
+    /* if we want repeatable results for testing set 
+       the environment variable SEED to some positive integer
+       value and use a version of rogue that also uses a SEED 
+       environment variable.  this makes testing so much easier... */
+    tmpseed = atoi(getenv("SEED"));
+    rogo_srand(tmpseed);
+    }
+  else
+    /* Start random number generator based upon the current time */
+    rogo_srand (0);
+
   critical ();				/* Disable interrupts */
 
   /* Serialize access to the gene pool */

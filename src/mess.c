@@ -433,7 +433,11 @@ register char *mess, *mend;
 
     case 'w':
       if (MATCH("what do you want*")) echoit=0;
-      else if (MATCH("wield what*")) echoit=0;
+      else if (MATCH("wield wha*")) {
+        echoit=0;
+        remember (lastdrop, UNCURSED);
+        cursedweapon=0;
+        }
       else if (MATCH("wielding a*")) ;
       else if (MATCH("wear what*")) echoit=0;
       else if (MATCH("what monster*")) echoit=0;

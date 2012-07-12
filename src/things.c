@@ -79,10 +79,38 @@ int obj;
   if (cursedweapon) return (0);
 
   if (version >= RV54A) {
-    if (itemis (obj, KNOWN) || itemis(obj, ENCHANTED))
-      command (T_HANDLING, "w%c%c", LETTER (obj), ESC);
-    else
-      command (T_HANDLING, "w%c %c", LETTER (obj), ESC);
+
+		if (itemis(currentweapon, CURSED)) {
+			cursedweapon=1;
+			return (0);
+			}
+    else if (currentweapon == NONE) {
+			command (T_HANDLING, "w%c%c", LETTER (obj), ESC);
+			}
+    else if (itemis(currentweapon, UNCURSED)) {
+			cursedweapon=0;
+			command (T_HANDLING, "w%c%c", LETTER (obj), ESC);
+			}
+    else if (itemis(currentweapon, ENCHANTED)) {
+			remember(currentweapon, UNCURSED);
+			cursedweapon=0;
+			command (T_HANDLING, "w%c%c", LETTER (obj), ESC);
+			}
+    else {
+
+			/* current weapon might be cursed, test wield first */
+			if (currentweapon != NONE) {
+        sendcnow("w");
+
+				/* if this comes back ok, then change weapons */
+				if (itemis(currentweapon, UNCURSED))
+ 		   	  command (T_HANDLING, "w%c%c", LETTER (obj), ESC);
+				else {
+					cursedweapon=1;
+					return (0);
+					}
+				}
+			}
     }
 
   /* send 2 escapes because I needed to patch the new rogue to not hang
