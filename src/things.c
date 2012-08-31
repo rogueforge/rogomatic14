@@ -39,8 +39,8 @@
 wear (obj)
 int obj;
 {
-  if (currentarmor != NONE)
-  { dwait (D_FATAL, "Trying to put on a second coat of armor");
+  if (currentarmor != NONE) {
+    dwait (D_FATAL, "Trying to put on a second coat of armor");
     return (0);
   }
 
@@ -57,8 +57,8 @@ int obj;
 
 takeoff ()
 {
-  if (currentarmor == NONE)
-  { dwait (D_ERROR, "Trying to take off armor we don't have on!");
+  if (currentarmor == NONE) {
+    dwait (D_ERROR, "Trying to take off armor we don't have on!");
     return (0);
   }
 
@@ -80,38 +80,38 @@ int obj;
 
   if (version >= RV54A) {
 
-		if (itemis(currentweapon, CURSED)) {
-			cursedweapon=1;
-			return (0);
-			}
+    if (itemis(currentweapon, CURSED)) {
+      cursedweapon=1;
+      return (0);
+    }
     else if (currentweapon == NONE) {
-			command (T_HANDLING, "w%c%c", LETTER (obj), ESC);
-			}
+      command (T_HANDLING, "w%c%c", LETTER (obj), ESC);
+    }
     else if (itemis(currentweapon, UNCURSED)) {
-			cursedweapon=0;
-			command (T_HANDLING, "w%c%c", LETTER (obj), ESC);
-			}
+      cursedweapon=0;
+      command (T_HANDLING, "w%c%c", LETTER (obj), ESC);
+    }
     else if (itemis(currentweapon, ENCHANTED)) {
-			remember(currentweapon, UNCURSED);
-			cursedweapon=0;
-			command (T_HANDLING, "w%c%c", LETTER (obj), ESC);
-			}
+      remember(currentweapon, UNCURSED);
+      cursedweapon=0;
+      command (T_HANDLING, "w%c%c", LETTER (obj), ESC);
+    }
     else {
 
-			/* current weapon might be cursed, test wield first */
-			if (currentweapon != NONE) {
+      /* current weapon might be cursed, test wield first */
+      if (currentweapon != NONE) {
         sendcnow("w");
 
-				/* if this comes back ok, then change weapons */
-				if (itemis(currentweapon, UNCURSED))
- 		   	  command (T_HANDLING, "w%c%c", LETTER (obj), ESC);
-				else {
-					cursedweapon=1;
-					return (0);
-					}
-				}
-			}
+        /* if this comes back ok, then change weapons */
+        if (itemis(currentweapon, UNCURSED))
+          command (T_HANDLING, "w%c%c", LETTER (obj), ESC);
+        else {
+          cursedweapon=1;
+          return (0);
+        }
+      }
     }
+  }
 
   /* send 2 escapes because I needed to patch the new rogue to not hang
    * momentatirily on the first escape
@@ -144,7 +144,7 @@ int obj;
   if (inven[obj].type == Scroll &&
       (!itemis (obj, KNOWN) ||
        stlmatch (inven[obj].str, "identify") &&
-	   prepareident (pickident (), obj) ||
+       prepareident (pickident (), obj) ||
        stlmatch (inven[obj].str, "enchant") ||
        stlmatch (inven[obj].str, "genocide") ||
        stlmatch (inven[obj].str, "gold detection") ||
@@ -154,8 +154,8 @@ int obj;
        stlmatch (inven[obj].str, "monster confusion") ||
        stlmatch (inven[obj].str, "remove curse")) &&
       reads (obj))
-  { return (1); }
-  
+    { return (1); }
+
   /* quaff unknown potions or good potions rather than dropping them */
   if (inven[obj].type == potion &&
       (!itemis (obj, KNOWN) ||
@@ -168,23 +168,23 @@ int obj;
        stlmatch (inven[obj].str, "raise level") ||
        stlmatch (inven[obj].str, "restore strength")) &&
       quaff (obj))
-  { return (1); }
+    { return (1); }
 
   command (T_HANDLING, "d%c", LETTER (obj));
   return (1);
 }
 
-/* 
+/*
  * quaff: build and send a quaff potion command.
  */
 
 quaff (obj)
 int obj;
 {
-  if (inven[obj].type != potion)
-  { dwait (D_ERROR, "Trying to quaff %c", LETTER (obj)); 
+  if (inven[obj].type != potion) {
+    dwait (D_ERROR, "Trying to quaff %c", LETTER (obj));
     usesynch = 0;
-    return (0); 
+    return (0);
   }
 
   command (T_HANDLING, "q%c", LETTER (obj));
@@ -198,10 +198,10 @@ int obj;
 reads (obj)
 int obj;
 {
-  if (inven[obj].type != Scroll)
-  { dwait (D_ERROR, "Trying to read %c", LETTER (obj)); 
+  if (inven[obj].type != Scroll) {
+    dwait (D_ERROR, "Trying to read %c", LETTER (obj));
     usesynch = 0;
-    return (0); 
+    return (0);
   }
 
   command (T_HANDLING, "r%c", LETTER (obj));
@@ -215,9 +215,9 @@ int obj;
 point (obj, dir)
 int obj, dir;
 {
-  if (inven[obj].type != wand)
-  { dwait (D_ERROR, "Trying to point %c", LETTER (obj)); 
-    return (0); 
+  if (inven[obj].type != wand) {
+    dwait (D_ERROR, "Trying to point %c", LETTER (obj));
+    return (0);
   }
 
   command (T_HANDLING, "%c%c%c",
@@ -226,23 +226,23 @@ int obj, dir;
   return (1);
 }
 
-/* 
+/*
  * throw: build and send a throw object command.
  */
 
 throw (obj, dir)
 int obj, dir;
 {
-  if (obj < 0 || obj >= invcount)
-  { dwait (D_ERROR, "Trying to throw %c", LETTER (obj)); 
-    return (0); 
+  if (obj < 0 || obj >= invcount) {
+    dwait (D_ERROR, "Trying to throw %c", LETTER (obj));
+    return (0);
   }
 
   command (T_HANDLING, "t%c%c", keydir[dir], LETTER (obj));
   return (1);
 }
 
-/* 
+/*
  * puton: build and send a command to put on a ring.
  */
 
@@ -250,10 +250,10 @@ puton (obj)
 int obj;
 {
   if (leftring == NONE && rightring == NONE)
-  { command (T_HANDLING, "P%cl", LETTER (obj)); return (1); }
+    { command (T_HANDLING, "P%cl", LETTER (obj)); return (1); }
 
   if (leftring == NONE || rightring == NONE)
-  { command (T_HANDLING, "P%c", LETTER (obj)); return (1); }
+    { command (T_HANDLING, "P%c", LETTER (obj)); return (1); }
 
   return (0);
 }
@@ -266,13 +266,13 @@ removering (obj)
 int obj;
 {
   if (leftring != NONE && rightring != NONE && leftring == obj)
-  { command (T_HANDLING, "Rl"); return (1); }
+    { command (T_HANDLING, "Rl"); return (1); }
 
   if (leftring != NONE && rightring != NONE && rightring == obj)
-  { command (T_HANDLING, "Rr"); return (1); }
+    { command (T_HANDLING, "Rr"); return (1); }
 
   if (leftring == obj || rightring == obj)
-  { command (T_HANDLING, "R"); return (1); }
+    { command (T_HANDLING, "R"); return (1); }
 
   return (0);
 }
@@ -282,7 +282,8 @@ int obj;
  */
 
 initstufflist ()
-{ slistlen = 0;
+{
+  slistlen = 0;
 }
 
 /*
@@ -292,13 +293,17 @@ initstufflist ()
 addstuff (ch, row, col)
 char  ch;
 int   row, col;
-{ /* if (seerc ('@', row, col)) return (0); */ /* Removed MLM 10/28/83 */
+{
+  /* if (seerc ('@', row, col)) return (0); */ /* Removed MLM 10/28/83 */
   if (onrc (STUFF, row, col))
     deletestuff (row, col);
+
   slist[slistlen].what = translate[ch];
   slist[slistlen].srow = row;
   slist[slistlen].scol = col;
+
   if (++slistlen >= MAXSTUFF) dwait (D_FATAL, "Too much stuff");
+
   setrc (STUFF, row, col);
 }
 
@@ -308,11 +313,13 @@ int   row, col;
 
 deletestuff (row, col)
 int   row, col;
-{ register int   i;
+{
+  register int   i;
   unsetrc (STUFF, row, col);
+
   for (i = 0; i < slistlen; ++i)
-    if (slist[i].scol == col && slist[i].srow == row)
-    { slist[i] = slist[--slistlen];
+    if (slist[i].scol == col && slist[i].srow == row) {
+      slist[i] = slist[--slistlen];
       i--;					/* MLM 10/23/82 */
     }
 }
@@ -322,12 +329,15 @@ int   row, col;
  */
 
 dumpstuff ()
-{ register int   i;
+{
+  register int   i;
   at (1, 0);
+
   for (i = 0; i < slistlen; ++i)
     printw ("%d at %d,%d (%c)\n",
-        slist[i].what, slist[i].srow, slist[i].scol,
-        screen[slist[i].srow][slist[i].scol]);
+            slist[i].what, slist[i].srow, slist[i].scol,
+            screen[slist[i].srow][slist[i].scol]);
+
   printw ("You are at %d,%d.", atrow, atcol);
   at (row, col);
 }
@@ -338,11 +348,12 @@ dumpstuff ()
 
 display (s)
 char *s;
-{ saynow (s);
+{
+  saynow (s);
   msgonscreen=1;
 }
 
-/* 
+/*
  * prepareident: Set nextid and afterid to proper values
  */
 
@@ -355,13 +366,14 @@ int obj, iscroll;
 }
 
 /*
- * pickident: Pick an object to be identified.  This is a preference 
- * ordering of objects.  If nothing else, return 0 (the index of the 
+ * pickident: Pick an object to be identified.  This is a preference
+ * ordering of objects.  If nothing else, return 0 (the index of the
  * first item in the pack).
  */
 
 int pickident ()
-{ register int obj;
+{
+  register int obj;
 
   if      ((obj=unknown      (ring))   != NONE);
   else if ((obj=unidentified (wand))   != NONE);
@@ -376,48 +388,54 @@ int pickident ()
 }
 
 /*
- * unknown: Return the index of any unknown object of type otype 
+ * unknown: Return the index of any unknown object of type otype
  */
 
 int unknown (otype)
 stuff otype;
-{ register int i;
+{
+  register int i;
+
   for (i=0; i<invcount; ++i)
     if (inven[i].count &&
         (inven[i].type == otype) &&
         (itemis (i, KNOWN) == 0) &&
-	(!used (inven[i].str)))
+        (!used (inven[i].str)))
       return (i);
 
   return (NONE);
 }
 
 /*
- * unidentified: Return the index of any unidentified object of type otype 
+ * unidentified: Return the index of any unidentified object of type otype
  */
 
 int unidentified (otype)
 stuff otype;
-{ register int i;
+{
+  register int i;
+
   for (i=0; i<invcount; ++i)
     if (inven[i].count &&
         (inven[i].type == otype) &&
         (itemis (i, KNOWN) == 0) &&
-	(used (inven[i].str)))
+        (used (inven[i].str)))
       return (i);
 
   return (NONE);
 }
 
 /*
- * haveother: Return the index of any unknown object of type 'otype', 
+ * haveother: Return the index of any unknown object of type 'otype',
  * but not 'other'.
  */
 
 int haveother (otype,other)
 stuff otype;
 int other;
-{ register int i;
+{
+  register int i;
+
   for (i=0; i<invcount; ++i)
     if (inven[i].count &&
         (inven[i].type == otype) &&
@@ -434,7 +452,9 @@ int other;
 
 int have (otype)
 stuff otype;
-{ register int i;
+{
+  register int i;
+
   for (i=0; i<invcount; ++i)
     if (inven[i].count &&
         inven[i].type == otype) return (i);
@@ -450,7 +470,9 @@ stuff otype;
 int havenamed (otype,name)
 stuff otype;
 char *name;
-{ register int i;
+{
+  register int i;
+
   for (i=0; i<invcount; ++i)
     if (inven[i].count &&
         inven[i].type == otype &&
@@ -467,7 +489,8 @@ char *name;
 
 int havewand (name)
 char *name;
-{ register int i;
+{
+  register int i;
 
   /* Find one with positive charges */
   for (i=0; i<invcount; ++i)
@@ -494,20 +517,21 @@ char *name;
 
 wearing (name)
 char *name;
-{ register int result = NONE;
+{
+  register int result = NONE;
 
   if (leftring != NONE && itemis (leftring, INUSE) &&
-        streq (inven[leftring].str, name))
+      streq (inven[leftring].str, name))
     result = leftring;
 
   else if (rightring != NONE && itemis (rightring, INUSE) &&
-        streq (inven[rightring].str, name))
+           streq (inven[rightring].str, name))
     result = rightring;
-  
-  return (result);  
+
+  return (result);
 }
 
-/* 
+/*
  * Return the index of any object of type otype and name name only
  * if we have count or more of them. This way we can avoid using the
  * last of something .
@@ -517,7 +541,9 @@ int havemult (otype, name, count)
 stuff otype;
 char *name;
 int   count;
-{ register int i, num=count;
+{
+  register int i, num=count;
+
   for (i=0; i<invcount; ++i)
     if (inven[i].count &&
         inven[i].type == otype &&
@@ -528,13 +554,15 @@ int   count;
   return (NONE);
 }
 
-/* 
+/*
  * haveminus: Return the index of something if it is a minus item
  * (used to throw away stuff at end)
  */
 
 int haveminus ()
-{ register int i;
+{
+  register int i;
+
   for (i=0; i<invcount; ++i)
     if (inven[i].count &&
         inven[i].phit != UNKNOWN &&
@@ -544,12 +572,14 @@ int haveminus ()
   return (NONE);
 }
 
-/* 
+/*
  * haveuseless: return the index of useless arrows, and empty wands.
  */
 
 int haveuseless ()
-{ register int i;
+{
+  register int i;
+
   for (i=0; i<invcount; ++i)
     if (inven[i].count &&
         inven[i].type == wand && inven[i].charges == 0 ||
@@ -559,16 +589,17 @@ int haveuseless ()
   return (NONE);
 }
 
-/* 
+/*
  * willrust: return true if a suit of armor can rust
  */
 
 willrust (obj)
 int obj;
-{ return (! (protected ||
-	     armorclass (obj) > 8 || armorclass (obj) < -5 ||
-	     itemis (obj, PROTECTED) ||
-	     stlmatch (inven[obj].str, "leather") && version > RV36B));
+{
+  return (! (protected ||
+             armorclass (obj) > 8 || armorclass (obj) < -5 ||
+             itemis (obj, PROTECTED) ||
+             stlmatch (inven[obj].str, "leather") && version > RV36B));
 }
 
 /*
@@ -577,25 +608,25 @@ int obj;
 
 wielding (otype)
 stuff otype;
-{ 
+{
   return (inven[currentweapon].type == otype);
 }
 
-/* 
+/*
  * hungry: return true if we are hungry, weak, or fainting
  */
 
 hungry ()
 { return (*Ms == 'H' || *Ms == 'W' || *Ms == 'F'); }
 
-/* 
+/*
  * weak: return true if we are weak or fainting
  */
 
 weak ()
 { return (*Ms == 'W' || *Ms == 'F'); }
 
-/* 
+/*
  * fainting: return true if we are fainting
  */
 
@@ -610,13 +641,16 @@ fainting ()
 
 int havefood (n)
 int n;
-{ int remaining, foodest, desired;
+{
+  int remaining, foodest, desired;
 
   if (hungry () || weak () || fainting ())
     return (0);
 
   remaining = 800 - turns + lastate;
+
   if (remaining < 0) remaining = 0;
+
   foodest = larder * 1000 + remaining;
   desired = n * 1000 * 50 / (100-k_food);
 

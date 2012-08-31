@@ -61,7 +61,8 @@ rogo_baudrate ()
  */
 
 char *getname ()
-{ static char name[100];
+{
+  static char name[100];
   int   i;
   struct passwd *passwd;
 
@@ -82,14 +83,15 @@ char *getname ()
 
 FILE *wopen(fname, mode)
 char *fname, *mode;
-{ int oldmask;
+{
+  int oldmask;
   FILE *newlog;
 
   oldmask = umask (0111);
   newlog = fopen (fname, mode);
   umask (oldmask);
 
-  return (newlog);  
+  return (newlog);
 }
 
 /*
@@ -98,7 +100,8 @@ char *fname, *mode;
 
 fexists (fn)
 char *fn;
-{ struct stat pbuf;
+{
+  struct stat pbuf;
 
   return (stat (fn, &pbuf) == 0);
 }
@@ -109,7 +112,8 @@ char *fn;
 
 int filelength (f)
 char *f;
-{ struct stat sbuf;
+{
+  struct stat sbuf;
 
   if (stat (f, &sbuf) == 0)
     return (sbuf.st_size);
@@ -165,8 +169,11 @@ int_exit (exitproc)
 void (*exitproc)(int);
 {
   if (signal (SIGHUP, SIG_IGN) != SIG_IGN)  signal (SIGHUP, exitproc);
+
   if (signal (SIGINT, SIG_IGN) != SIG_IGN)  signal (SIGINT, exitproc);
+
   if (signal (SIGPIPE, SIG_IGN) != SIG_IGN) signal (SIGPIPE, exitproc);
+
   if (signal (SIGQUIT, SIG_IGN) != SIG_IGN) signal (SIGQUIT, exitproc);
 }
 
@@ -180,28 +187,34 @@ void (*exitproc)(int);
 lock_file (lokfil, maxtime)
 char *lokfil;
 int maxtime;
-{ int try;
+{
+
+  int try;
+
   struct stat statbuf;
   time_t time ();
 
-  start:
+start:
+
   if (creat (lokfil, NOWRITE) > 0)
     return TRUE;
 
-  for (try = 0; try < 60; try++)
-  { sleep (1);
-    if (creat (lokfil, NOWRITE) > 0)
-      return TRUE;
-  }
+  for (try = 0; try < 60; try++) {
+          sleep (1);
 
-  if (stat (lokfil, &statbuf) < 0)
-  { creat (lokfil, NOWRITE);
+          if (creat (lokfil, NOWRITE) > 0)
+            return TRUE;
+        }
+
+  if (stat (lokfil, &statbuf) < 0) {
+    creat (lokfil, NOWRITE);
     return TRUE;
   }
 
-  if (time (NULL) - statbuf.st_mtime > maxtime)
-  { if (unlink (lokfil) < 0)
+  if (time (NULL) - statbuf.st_mtime > maxtime) {
+    if (unlink (lokfil) < 0)
       return FALSE;
+
     goto start;
   }
   else
@@ -214,7 +227,8 @@ int maxtime;
 
 unlock_file (lokfil)
 char *lokfil;
-{ unlink (lokfil);
+{
+  unlink (lokfil);
 }
 
 # ifndef CMU
@@ -252,14 +266,17 @@ char *fmt;
 
 int stlmatch (big, small)
 char *small, *big;
-{ register char *s, *b;
+{
+  register char *s, *b;
   s = small;
   b = big;
-  do
-  { if (*s == '\0')
+
+  do {
+    if (*s == '\0')
       return (1);
   }
   while (*s++ == *b++);
+
   return (0);
 }
 # endif
@@ -299,7 +316,7 @@ char *small, *big;
 
 #define EXTRASIZE 5		/* increment to add to env. size */
 
-//char *index (), *malloc (), *realloc (); 
+//char *index (), *malloc (), *realloc ();
 //int   strlen ();
 
 static int  envsize = -1;	/* current size of environment */
@@ -311,48 +328,57 @@ static int  moreenv ();		/* incr. size of env. */
 
 int  rogo_putenv (name, value)
 char *name, *value;
-{ register int  i, j;
+{
+  register int  i, j;
   register char *p;
 
-  if (envsize < 0)
-  {				/* first time putenv called */
+  if (envsize < 0) {
+    /* first time putenv called */
     if (newenv () < 0)		/* copy env. to heap */
       return (-1);
   }
 
   i = findenv (name);		/* look for name in environment */
 
-  if (value)
-  {				/* put value into environment */
-    if (i < 0)
-    {				/* name must be added */
+  if (value) {
+    /* put value into environment */
+    if (i < 0) {
+      /* name must be added */
       for (i = 0; environ[i]; i++);
-      if (i >= (envsize - 1))
-      {				/* need new slot */
-	if (moreenv () < 0)
-	  return (-1);
+
+      if (i >= (envsize - 1)) {
+        /* need new slot */
+        if (moreenv () < 0)
+          return (-1);
       }
+
       p = malloc (strlen (name) + strlen (value) + 2);
+
       if (p == 0)		/* not enough core */
-	return (-1);
+        return (-1);
+
       environ[i + 1] = 0;	/* new end of env. */
     }
-    else
-    {				/* name already in env. */
+    else {
+      /* name already in env. */
       p = realloc (environ[i],
-	  strlen (name) + strlen (value) + 2);
+                   strlen (name) + strlen (value) + 2);
+
       if (p == 0)
-	return (-1);
+        return (-1);
     }
+
     sprintf (p, "%s=%s", name, value);/* copy into env. */
     environ[i] = p;
   }
-  else
-  {				/* delete name from environment */
-    if (i >= 0)
-    {				/* name is currently in env. */
+  else {
+    /* delete name from environment */
+    if (i >= 0) {
+      /* name is currently in env. */
       free (environ[i]);
+
       for (j = i; environ[j]; j++);
+
       environ[i] = environ[j - 1];
       environ[j - 1] = 0;
     }
@@ -363,36 +389,46 @@ char *name, *value;
 
 static int  findenv (name)
 char *name;
-{ register char *namechar, *envchar;
+{
+  register char *namechar, *envchar;
   register int  i, found;
 
   found = 0;
-  for (i = 0; environ[i] && !found; i++)
-  { envchar = environ[i];
+
+  for (i = 0; environ[i] && !found; i++) {
+    envchar = environ[i];
     namechar = name;
-    while (*namechar && (*namechar == *envchar))
-    { namechar++;
+
+    while (*namechar && (*namechar == *envchar)) {
+      namechar++;
       envchar++;
     }
+
     found = (*namechar == '\0' && *envchar == '=');
   }
+
   return (found ? i - 1 : -1);
 }
 
 static int  newenv ()
-{ register char **env, *elem;
+{
+  register char **env, *elem;
   register int  i, esize;
 
   for (i = 0; environ[i]; i++);
+
   esize = i + EXTRASIZE + 1;
   env = (char **) malloc (esize * sizeof (elem));
+
   if (env == 0)
     return (-1);
 
-  for (i = 0; environ[i]; i++)
-  { elem = malloc (strlen (environ[i]) + 1);
+  for (i = 0; environ[i]; i++) {
+    elem = malloc (strlen (environ[i]) + 1);
+
     if (elem == 0)
       return (-1);
+
     env[i] = elem;
     strcpy (elem, environ[i]);
   }
@@ -404,13 +440,16 @@ static int  newenv ()
 }
 
 static int  moreenv ()
-{ register int  esize;
+{
+  register int  esize;
   register char **env;
 
   esize = envsize + EXTRASIZE;
   env = (char **) realloc (environ, esize * sizeof (*env));
+
   if (env == 0)
     return (-1);
+
   environ = env;
   envsize = esize;
   return (0);

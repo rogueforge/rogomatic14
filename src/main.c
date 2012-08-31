@@ -97,7 +97,7 @@
 # include <ctype.h>
 # include <fcntl.h>
 # include <signal.h>
-# include <setjmp.h>  
+# include <setjmp.h>
 # include <string.h>
 # include <stdlib.h>
 # include "types.h"
@@ -270,14 +270,14 @@ int k_wake =	50;	/* Propensity for waking things up */
 int k_food =	50;	/* Propensity for hoarding food (affects rings) */
 int knob[MAXKNOB] = {50, 50, 50, 50, 50, 50, 50, 50};
 char *knob_name[MAXKNOB] = {
-	"trap searching:   ",
-	"door searching:   ",
-	"resting:          ",
-	"using arrows:     ",
-	"experimenting:    ",
-	"retreating:       ",
-	"waking monsters:  ",
-	"hoarding food:    "
+  "trap searching:   ",
+  "door searching:   ",
+  "resting:          ",
+  "using arrows:     ",
+  "experimenting:    ",
+  "retreating:       ",
+  "waking monsters:  ",
+  "hoarding food:    "
 };
 /* Door search map */
 char timessearched[24][80], timestosearch;
@@ -300,23 +300,23 @@ char  keydir[8] = { 'l', 'u', 'k', 'y', 'h', 'b', 'j', 'n' };
 int   movedir;
 
 /* Map characters on screen into object types */
-stuff translate[128] =
-{    /* \00x */  none, none, none, none, none, none, none, none,
-     /* \01x */ none, none, none, none, none, none, none, none,
-     /* \02x */ none, none, none, none, none, none, none, none,
-     /* \03x */ none, none, none, none, none, none, none, none,
-     /* \04x */ none, potion, none, none, none, none, none, none,
-     /* \05x */ hitter, hitter, gold, none, amulet, none, none, wand,
-     /* \06x */ none, none, none, none, none, none, none, none,
-     /* \07x */ none, none, food, none, none, ring, none, Scroll,
-     /* \10x */ none, none, none, none, none, none, none, none,
-     /* \11x */ none, none, none, none, none, none, none, none,
-     /* \12x */ none, none, none, none, none, none, none, none,
-     /* \13x */ none, none, none, armor, none, armor, none, none,
-     /* \14x */ none, none, none, none, none, none, none, none,
-     /* \15x */ none, none, none, none, none, none, none, none,
-     /* \16x */ none, none, none, none, none, none, none, none,
-     /* \17x */ none, none, none, none, none, none, none, none
+stuff translate[128] = {
+  /* \00x */  none, none, none, none, none, none, none, none,
+  /* \01x */ none, none, none, none, none, none, none, none,
+  /* \02x */ none, none, none, none, none, none, none, none,
+  /* \03x */ none, none, none, none, none, none, none, none,
+  /* \04x */ none, potion, none, none, none, none, none, none,
+  /* \05x */ hitter, hitter, gold, none, amulet, none, none, wand,
+  /* \06x */ none, none, none, none, none, none, none, none,
+  /* \07x */ none, none, food, none, none, ring, none, Scroll,
+  /* \10x */ none, none, none, none, none, none, none, none,
+  /* \11x */ none, none, none, none, none, none, none, none,
+  /* \12x */ none, none, none, none, none, none, none, none,
+  /* \13x */ none, none, none, armor, none, armor, none, none,
+  /* \14x */ none, none, none, none, none, none, none, none,
+  /* \15x */ none, none, none, none, none, none, none, none,
+  /* \16x */ none, none, none, none, none, none, none, none,
+  /* \17x */ none, none, none, none, none, none, none, none
 };
 
 /* Inventory, contents of our pack */
@@ -340,7 +340,8 @@ jmp_buf  commandtop;
 main (argc, argv)
 int   argc;
 char *argv[];
-{ char  ch, *s, *getenv(), *statusline(), msg[128];
+{
+  char  ch, *s, *getenv(), *statusline(), msg[128];
   int startingup = 1;
   register int  i;
 
@@ -349,15 +350,16 @@ char *argv[];
   /*
    * Initialize some storage
    */
-  
+
   sprintf (genocided, "");
   sprintf (lastcmd, "i");
   sprintf (ourkiller, "unknown");
   sprintf (sumline, "");
   sprintf (versionstr, "");
+
   for (i = 80 * 24; i--; ) screen[0][i] = ' ';
- 
-  /* 
+
+  /*
    * The first argument to player is a two character string encoding
    * the file descriptors of the pipe ends. See setup.c for call.
    *
@@ -365,15 +367,14 @@ char *argv[];
    * are no pipes to read/write.
    */
 
-  if (argv[1][0] == 'Z')
-  { replaying = 1;
+  if (argv[1][0] == 'Z') {
+    replaying = 1;
     gamename = "Iteratum Rog-O-Maticus";
     termination = "finis";
     strcpy (logfilename, argv[4]);
     startreplay (&logfile, logfilename);
   }
-  else
-  {
+  else {
     int frogue_fd = argv[1][0] - 'a';
     int trogue_fd = argv[1][1] - 'a';
     open_frogue_fd (frogue_fd);
@@ -383,12 +384,12 @@ char *argv[];
   }
 
   /* The second argument to player is the process id of Rogue */
-  if (argc > 2) rogpid = atoi (argv[2]);                  
+  if (argc > 2) rogpid = atoi (argv[2]);
 
   /* The third argument is an option list */
-  if (argc > 3) sscanf (argv[3], "%d,%d,%d,%d,%d,%d,%d,%d", 
-			&cheat, &noterm, &startecho, &nohalf,
-			&emacs, &terse, &transparent, &quitat);
+  if (argc > 3) sscanf (argv[3], "%d,%d,%d,%d,%d,%d,%d,%d",
+                          &cheat, &noterm, &startecho, &nohalf,
+                          &emacs, &terse, &transparent, &quitat);
 
   /* The fourth argument is the Rogue name */
   if (argc > 4)	strcpy (roguename, argv[4]);
@@ -396,50 +397,55 @@ char *argv[];
 
   /* Now count argument space and assign a global pointer to it */
   arglen = 0;
-  for (i=0; i<argc; i++)
-  { register int len = strlen (argv[i]);
+
+  for (i=0; i<argc; i++) {
+    register int len = strlen (argv[i]);
     arglen += len + 1;
+
     while (len >= 0) argv[i][len--] = ' ';
   }
+
   parmstr = argv[0];	arglen--;
   parmstr[arglen] = '\0';/* I don't like this business with muck with ps, but
                             I think the lack of a null is a problem - NYM */
 
   /* If we are in one-line mode, then squirrel away stdout */
-  if (emacs || terse)
-  { realstdout = fdopen (dup (fileno (stdout)), "w");
+  if (emacs || terse) {
+    realstdout = fdopen (dup (fileno (stdout)), "w");
     freopen ("/dev/null", "w", stdout);
   }
 
   initscr (); crmode (); noecho ();	/* Initialize the Curses package */
+
   if (startecho) toggleecho ();		/* Start logging? */
+
   clear ();				/* Clear the screen */
   getrogver ();				/* Figure out Rogue version */
 
-  if (!replaying)
-  { restoreltm ();			/* Get long term memory of version */ 
+  if (!replaying) {
+    restoreltm ();			/* Get long term memory of version */
     startlesson ();			/* Start genetic learning */
   }
 
-  /* 
+  /*
    * Give a hello message
    */
 
   if (replaying)
-    sprintf (msg, " Replaying log file %s, version %s.", 
-	     logfilename, versionstr);
+    sprintf (msg, " Replaying log file %s, version %s.",
+             logfilename, versionstr);
   else
     sprintf (msg, " %s: version %s, genotype %d, quit at %d.",
-	     roguename, versionstr, geneid, quitat);
-  
-  if (emacs)
-  { fprintf (realstdout, "%s  (%%b)", msg); fflush (realstdout); }
-  else if (terse)
-  { fprintf (realstdout, "%s\n", msg); fflush (realstdout); }
-  else
-  { saynow (msg); }
+             roguename, versionstr, geneid, quitat);
 
-  /* 
+  if (emacs)
+    { fprintf (realstdout, "%s  (%%b)", msg); fflush (realstdout); }
+  else if (terse)
+    { fprintf (realstdout, "%s\n", msg); fflush (realstdout); }
+  else
+    { saynow (msg); }
+
+  /*
    * Now that we have the version figured out, we can properly
    * interpret the screen.  Force a redraw by sending a redraw
    * screen command (^L for old, ^R for new).
@@ -453,21 +459,21 @@ char *argv[];
   else
     sendnow ("%c;", ctrl('r'));
 
-  /* 
+  /*
    * If we are not replaying an old game, we must position the
    * input after the next form feed, which signals the start of
    * the level drawing.
    */
   {
     char *m = "More--";				/* FSM to check for '--More--' */
+
     if (!replaying)
-      while ((int) (ch = getroguetoken ()) != CL_TOK && (int) ch != EOF)
-        {
-          /* FIXME: If you start next to a monster this will get stuck, as
-             pressing 'v' takes time in version 3.6, so rogue will be waiting
-             for input and we will be waiting for rogue to print a CL_TOK,
-             so deadlock - NYM */
-        }
+      while ((int) (ch = getroguetoken ()) != CL_TOK && (int) ch != EOF) {
+        /* FIXME: If you start next to a monster this will get stuck, as
+           pressing 'v' takes time in version 3.6, so rogue will be waiting
+           for input and we will be waiting for rogue to print a CL_TOK,
+           so deadlock - NYM */
+      }
   }
 
   /*
@@ -488,29 +494,31 @@ char *argv[];
 
   istat = signal (SIGINT, SIG_IGN); /* save original status */
   setjmp (commandtop);              /* save stack position */
+
   if (istat != SIG_IGN)
     signal (SIGINT, onintr);
 
-  if (interrupted)
-  { saynow ("Interrupt [enter command]:");
+  if (interrupted) {
+    saynow ("Interrupt [enter command]:");
     interrupted = 0;
     transparent = 1;
   }
 
   if (transparent) noterm = 0;
 
-  while (playing) 
-  { refresh ();
+  while (playing) {
+    refresh ();
 
     /* If we have any commands to send, send them */
-    while (resend ())
-    { if (startingup) showcommand (lastcmd);
+    while (resend ()) {
+      if (startingup) showcommand (lastcmd);
+
       sendnow (";");
       getrogue (ill, 2);
     }
 
-    if (startingup)		/* All monsters identified */
-    { versiondep ();			/* Do version specific things */
+    if (startingup) {	/* All monsters identified */
+      versiondep ();			/* Do version specific things */
       startingup = 0;			/* Clear starting flag */
     }
 
@@ -527,19 +535,20 @@ char *argv[];
 
     if ((transparent && !singlestep) ||
         (!emacs && charsavail ()) ||
-        !strategize())
-    { ch = (noterm) ? ROGQUIT : getch ();
+        !strategize()) {
+      ch = (noterm) ? ROGQUIT : getch ();
 
-      switch (ch)
-      { case '?': givehelp (); break;
-      
-        case '\n': if (terse) 
-	           { printsnap (realstdout); fflush (realstdout); }
-	           else
-                  { singlestep = 1; transparent = 1; }
-		   break;
-	           
-        /* Rogue Command Characters */
+      switch (ch) {
+        case '?': givehelp (); break;
+
+        case '\n': if (terse)
+            { printsnap (realstdout); fflush (realstdout); }
+          else
+            { singlestep = 1; transparent = 1; }
+
+          break;
+
+          /* Rogue Command Characters */
         case 'H': case 'J': case 'K': case 'L':
         case 'Y': case 'U': case 'B': case 'N':
         case 'h': case 'j': case 'k': case 'l':
@@ -547,13 +556,15 @@ char *argv[];
         case 's': command (T_OTHER, "%c", ch); transparent = 1; break;
 
         case 'f': ch = getch ();
-                  for (s = "hjklyubnHJKLYUBN"; *s; s++)
-                    { if (ch == *s)
-                        { if (version < RV53A) command (T_OTHER, "f%c", ch);
-                          else                 command (T_OTHER, "%c", ctrl (ch)); 
-                        }
-                    }
-                  transparent = 1; break;
+
+          for (s = "hjklyubnHJKLYUBN"; *s; s++) {
+            if (ch == *s) {
+              if (version < RV53A) command (T_OTHER, "f%c", ch);
+              else                 command (T_OTHER, "%c", ctrl (ch));
+            }
+          }
+
+          transparent = 1; break;
 
         case '\f':  redrawscreen (); break;
 
@@ -561,13 +572,15 @@ char *argv[];
 
         case 'M':   dumpmazedoor (); break;
 
-        case '>': if (atrow == stairrow && atcol == staircol) 
-                    command (T_OTHER, ">");
-                  transparent = 1; break;
+        case '>': if (atrow == stairrow && atcol == staircol)
+            command (T_OTHER, ">");
+
+          transparent = 1; break;
 
         case '<': if (atrow == stairrow && atcol == staircol &&
-                      have (amulet) != NONE) command (T_OTHER, "<");
-                  transparent = 1; break;
+                        have (amulet) != NONE) command (T_OTHER, "<");
+
+          transparent = 1; break;
 
         case 't': transparent = !transparent; break;
 
@@ -576,62 +589,63 @@ char *argv[];
         case '+': setpsd (DOPRINT); at (row, col); break;
 
         case 'A': attempt = (attempt+1) % 5;
-		  saynow ("Attempt %d", attempt); break;
+          saynow ("Attempt %d", attempt); break;
 
         case 'G': mvprintw (0, 0,
-               "%d: Sr %d Dr %d Re %d Ar %d Ex %d Rn %d Wk %d Fd %d, %d/%d",
-		  geneid, k_srch, k_door, k_rest, k_arch,
-		  k_exper, k_run, k_wake, k_food, genebest, geneavg);
-		  clrtoeol (); at (row, col); refresh (); break;
+                              "%d: Sr %d Dr %d Re %d Ar %d Ex %d Rn %d Wk %d Fd %d, %d/%d",
+                              geneid, k_srch, k_door, k_rest, k_arch,
+                              k_exper, k_run, k_wake, k_food, genebest, geneavg);
+          clrtoeol (); at (row, col); refresh (); break;
 
         case ':': chicken = !chicken;
-                  say (chicken ? "chicken" : "aggressive");
-                  break;
+          say (chicken ? "chicken" : "aggressive");
+          break;
 
         case '~': if (replaying)
-		    saynow ("Replaying log file %s, version %s.", 
-			    logfilename, versionstr);
-		  else
-		    saynow (" %s: version %s, genotype %d, quit at %d.",
-			    roguename, versionstr, geneid, quitat);
-                  break;
+            saynow ("Replaying log file %s, version %s.",
+                    logfilename, versionstr);
+          else
+            saynow (" %s: version %s, genotype %d, quit at %d.",
+                    roguename, versionstr, geneid, quitat);
+
+          break;
 
         case '[': at (0,0);
-                  printw ("%s = %d, %s = %d, %s = %d, %s = %d.",
-                     "hitstokill", hitstokill,
-                     "goodweapon", goodweapon,
-                     "usingarrow", usingarrow,
-                     "goodarrow", goodarrow);
-                  clrtoeol ();
-                  at (row, col);
-                  refresh ();
-                  break;
+          printw ("%s = %d, %s = %d, %s = %d, %s = %d.",
+                  "hitstokill", hitstokill,
+                  "goodweapon", goodweapon,
+                  "usingarrow", usingarrow,
+                  "goodarrow", goodarrow);
+          clrtoeol ();
+          at (row, col);
+          refresh ();
+          break;
 
         case '-': saynow (statusline ());
-                  break;
+          break;
 
         case '`': clear ();
-                  summary ((FILE *) NULL, '\n');
-                  pauserogue ();
-                  break;
+          summary ((FILE *) NULL, '\n');
+          pauserogue ();
+          break;
 
         case '|': clear ();
-                  timehistory ((FILE *) NULL, '\n');
-                  pauserogue ();
-                  break;
+          timehistory ((FILE *) NULL, '\n');
+          pauserogue ();
+          break;
 
         case 'r': resetinv (); say ("Inventory reset."); break;
 
         case 'i': clear (); dumpinv ((FILE *) NULL); pauserogue (); break;
 
         case '/': dosnapshot ();
-                  break;
+          break;
 
         case '(': clear (); dumpdatabase (); pauserogue (); break;
 
         case 'c': cheat = !cheat;
-                  say (cheat ? "cheating" : "righteous");
-                  break;
+          say (cheat ? "cheating" : "righteous");
+          break;
 
         case 'd': toggledebug ();	break;
 
@@ -646,7 +660,7 @@ char *argv[];
         case '%': clear (); havearmor (1, DOPRINT, ANY); pauserogue (); break;
 
         case ']': clear (); havearmor (1, DOPRINT, RUSTPROOF);
-		  pauserogue (); break;
+          pauserogue (); break;
 
         case '=': clear (); havering (1, DOPRINT); pauserogue (); break;
 
@@ -659,42 +673,45 @@ char *argv[];
         case '&': saynow ("Object count is %d.", objcount); break;
 
         case '*': blinded = !blinded;
-                  saynow (blinded ? "blinded" : "sighted");
-                  break;
+          saynow (blinded ? "blinded" : "sighted");
+          break;
 
         case 'C': cosmic = !cosmic;
-                  saynow (cosmic ? "cosmic" : "boring");
-                  break;
+          saynow (cosmic ? "cosmic" : "boring");
+          break;
 
         case 'E': dwait (D_ERROR, "Testing the ERROR trap..."); break;
 
         case 'F': dwait (D_FATAL, "Testing the FATAL trap..."); break;
 
-        case 'R': if (replaying)
-		  { positionreplay (); getrogue (ill, 2);
-	            if (transparent) singlestep = 1; }
-		  else
-                    saynow ("Replay position only works in replay mode.");
-                  break;
+        case 'R': if (replaying) {
+            positionreplay (); getrogue (ill, 2);
 
-        case 'S': quitrogue ("saved", Gold, SAVED); 
-                  playing = 0; break;
+            if (transparent) singlestep = 1;
+          }
+          else
+            saynow ("Replay position only works in replay mode.");
 
-        case 'Q': quitrogue ("user typing quit", Gold, FINISHED); 
-                  playing = 0; break;
+          break;
+
+        case 'S': quitrogue ("saved", Gold, SAVED);
+          playing = 0; break;
+
+        case 'Q': quitrogue ("user typing quit", Gold, FINISHED);
+          playing = 0; break;
 
         case ROGQUIT: dwait (D_ERROR, "Strategize failed, gave up.");
-                      quitrogue ("gave up", Gold, SAVED); break;
+          quitrogue ("gave up", Gold, SAVED); break;
       }
     }
-    else
-    { singlestep = 0;
+    else {
+      singlestep = 0;
     }
   }
 
-  if (! replaying)
-  { saveltm (Gold);			/* Save new long term memory */
-    endlesson ();			/* End genetic learning */  
+  if (! replaying) {
+    saveltm (Gold);			/* Save new long term memory */
+    endlesson ();			/* End genetic learning */
   }
 
   /* Print termination messages */
@@ -704,24 +721,26 @@ char *argv[];
   refresh ();
   endwin (); nocrmode (); noraw (); echo ();
 
-  if (emacs)  
-  { if (*sumline) fprintf (realstdout, " %s", sumline);
+  if (emacs) {
+    if (*sumline) fprintf (realstdout, " %s", sumline);
   }
-  else if (terse)  
-  { if (*sumline) fprintf (realstdout, "%s\n",sumline);
+  else if (terse) {
+    if (*sumline) fprintf (realstdout, "%s\n",sumline);
+
     fprintf (realstdout, "%s %s est.\n", gamename, termination);
   }
-  else
-  { if (*sumline) printf ("%s\n",sumline);
+  else {
+    if (*sumline) printf ("%s\n",sumline);
+
     printf ("%s %s est.\n", gamename, termination);
   }
 
-  /* 
+  /*
    * Rename log file, if it is open
    */
 
-  if (logging)
-  { char lognam[128];
+  if (logging) {
+    char lognam[128];
 
     /* Make up a new log file name */
     sprintf (lognam, "%0.4s.%d.%d", ourkiller, MaxLevel, ourscore);
@@ -730,8 +749,8 @@ char *argv[];
     toggleecho ();
 
     /* Rename the log file */
-    if (link (ROGUELOG, lognam) == 0)
-    { unlink (ROGUELOG);
+    if (link (ROGUELOG, lognam) == 0) {
+      unlink (ROGUELOG);
       printf ("Log file left on %s\n", lognam);
     }
     else
@@ -751,7 +770,8 @@ char *argv[];
  */
 
 void onintr (int sig)
-{ sendnow ("n\033");            /* Tell Rogue we don't want to quit */
+{
+  sendnow ("n\033");            /* Tell Rogue we don't want to quit */
   refresh ();                   /* Clear terminal output */
   clearsendqueue ();            /* Clear command queue */
   setnewgoal ();                /* Don't believe ex */
@@ -767,7 +787,7 @@ void onintr (int sig)
  */
 
 startlesson ()
-{ 
+{
   int tmpseed = 0;
 
   sprintf (genelog, "%s/GeneLog%d", getRgmDir (), version);
@@ -777,13 +797,13 @@ startlesson ()
 
   /* set up random number generation */
   if (getenv("SEED") != NULL) {
-    /* if we want repeatable results for testing set 
+    /* if we want repeatable results for testing set
        the environment variable SEED to some positive integer
-       value and use a version of rogue that also uses a SEED 
+       value and use a version of rogue that also uses a SEED
        environment variable.  this makes testing so much easier... */
     tmpseed = atoi(getenv("SEED"));
     rogo_srand(tmpseed);
-    }
+  }
   else
     /* Start random number generator based upon the current time */
     rogo_srand (0);
@@ -791,11 +811,13 @@ startlesson ()
   critical ();				/* Disable interrupts */
 
   /* Serialize access to the gene pool */
-  if (lock_file (genelock, MAXLOCK))	/* Lock the gene pool */
-  { if (rogo_openlog (genelog) == NULL)	/* Open the gene log file */
+  if (lock_file (genelock, MAXLOCK)) {	/* Lock the gene pool */
+    if (rogo_openlog (genelog) == NULL)	/* Open the gene log file */
       saynow ("Could not open file %s", genelog);
+
     if (! readgenes (genepool))		/* Read the gene pool */
       initpool (MAXKNOB, 20);		/* Random starting point */
+
     setknobs (&geneid, knob, &genebest, &geneavg); /* Select a genotype */
     writegenes (genepool);		/* Write out the gene pool */
     rogo_closelog ();			/* Close the gene log file */
@@ -819,21 +841,25 @@ startlesson ()
  */
 
 endlesson ()
-{ if (geneid > 0 &&
+{
+  if (geneid > 0 &&
       (stlmatch (termination, "perditus") ||
        stlmatch (termination, "victorius") ||
-       stlmatch (termination, "callidus")))
-  { critical ();			/* Disable interrupts */
+       stlmatch (termination, "callidus"))) {
+    critical ();			/* Disable interrupts */
 
-    if (lock_file (genelock, MAXLOCK))	/* Lock the score file */
-    { rogo_openlog (genelog);		/* Open the gene log file */
-      if (readgenes (genepool))		/* Read the gene pool */
-      { evalknobs (geneid,Gold,Level);	/* Add the trial to the pool */
-        writegenes (genepool); }	/* Write out the gene pool */
+    if (lock_file (genelock, MAXLOCK)) {	/* Lock the score file */
+      rogo_openlog (genelog);		/* Open the gene log file */
+
+      if (readgenes (genepool)) {	/* Read the gene pool */
+        evalknobs (geneid,Gold,Level);	/* Add the trial to the pool */
+        writegenes (genepool);
+      }	/* Write out the gene pool */
+
       rogo_closelog ();
       unlock_file (genelock);		/* Disable interrupts */
     }
-    else 
+    else
       fprintf (stderr, "Cannot lock gene pool to evaluate '%s'\n", genepool);
 
     uncritical ();			/* Re-enable interrupts */

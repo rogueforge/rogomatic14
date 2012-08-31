@@ -38,14 +38,14 @@
 static int nosave = 0;		/* True ==> dont write ltm back out */
 static char ltmnam[100];	/* Long term memory file name */
 
-/* 
+/*
  * mapcharacter: Read a character help message
  */
 
 mapcharacter (ch, str)
 char ch, *str;
 {
-  dwait (D_CONTROL, "mapcharacter called: '%c' ==> '%s'", ch, str);  
+  dwait (D_CONTROL, "mapcharacter called: '%c' ==> '%s'", ch, str);
 
   /* Ancient versions of Rogue had no wands or staves */
   if (ch == '/' && stlmatch (str, "unknown"))
@@ -57,17 +57,18 @@ char ch, *str;
 
   /* If it is a monster, set its array index */
   else if (ch >= 'a' && ch <= 'z')
-  { monindex[ch-'a'+ 1] = addmonhist (str); }
+    { monindex[ch-'a'+ 1] = addmonhist (str); }
 }
 
-/* 
+/*
  * addmonhist:  Return the monster index of a given monster name in the
  * history array.  Create an entry if none exists.
  */
 
 int addmonhist (monster)
 char *monster;
-{ register int m;
+{
+  register int m;
 
   /* Search for the monsters entry in the table */
   for (m=0; m<nextmon; m++)
@@ -81,14 +82,15 @@ char *monster;
   return (nextmon++);				/* Return the index */
 }
 
-/* 
+/*
  * findmonster:  Return the monster index of a given monster name in the
  * history array.  Return -1 if the monster is not in the table.
  */
 
 int findmonster (monster)
 char *monster;
-{ register int m;
+{
+  register int m;
 
   /* Search for the monsters entry in the table */
   for (m=0; m<nextmon; m++)
@@ -98,7 +100,7 @@ char *monster;
   return (-1);
 }
 
-/* 
+/*
  * saveltm: Write the new monster information out to the long term memory
  * file for this version of Rogue.  Be careful about serializing
  * access to the output file.
@@ -106,9 +108,10 @@ char *monster;
 
 saveltm (score)
 int score;
-{ register int m;
+{
+  register int m;
   register FILE *ltmfil;
-  
+
   if (nextmon < 1 || nosave) return;
 
   dwait (D_CONTROL, "Saveltm called, writing file '%s'", ltmnam);
@@ -117,18 +120,18 @@ int score;
   critical ();
 
   /* Only write out the new results if we can get write access */
-  if (lock_file (getLockFile (), MAXLOCK))
-  { if ((ltmfil = wopen (ltmnam, "w")) == NULL)
-    { dwait (D_WARNING, "Can't write long term memory file '%s'...", ltmnam); }
-    else
-    { /* Write the ltm file header */
+  if (lock_file (getLockFile (), MAXLOCK)) {
+    if ((ltmfil = wopen (ltmnam, "w")) == NULL)
+      { dwait (D_WARNING, "Can't write long term memory file '%s'...", ltmnam); }
+    else {
+      /* Write the ltm file header */
       fprintf (ltmfil, "Count %d, sum %d, start %d, saved %d\n",
-	       ltm.gamecnt+1, ltm.gamesum+score,
+               ltm.gamecnt+1, ltm.gamesum+score,
                ltm.inittime, ltm.timeswritten+1);
 
       /* Now write a line for each monster */
-      for (m = 0; m < nextmon; m++)
-      { fprintf (ltmfil, "%s|", monhist[m].m_name);
+      for (m = 0; m < nextmon; m++) {
+        fprintf (ltmfil, "%s|", monhist[m].m_name);
         writeprob (ltmfil, &monhist[m].wehit);    fprintf (ltmfil, "|");
         writeprob (ltmfil, &monhist[m].theyhit);  fprintf (ltmfil, "|");
         writeprob (ltmfil, &monhist[m].arrowhit); fprintf (ltmfil, "|");
@@ -137,17 +140,18 @@ int score;
         writestat (ltmfil, &monhist[m].atokill);  fprintf (ltmfil, "|\n");
       }
 
-      /* Close the file and unlock it */  
+      /* Close the file and unlock it */
       fclose (ltmfil);
     }
+
     unlock_file (getLockFile ());
   }
-  
+
   /* Re-enable interrupts */
   uncritical ();
 }
 
-/* 
+/*
  * restoreltm: Read the long term memory file.
  */
 
@@ -164,11 +168,11 @@ restoreltm ()
   critical ();
 
   /* Only read the long term memory if we can get access */
-  if (lock_file (getLockFile (), MAXLOCK))
-  { if (fexists (ltmnam))
+  if (lock_file (getLockFile (), MAXLOCK)) {
+    if (fexists (ltmnam))
       readltm ();
-    else 
-    { dwait (D_CONTROL | D_SAY,
+    else {
+      dwait (D_CONTROL | D_SAY,
              "Starting long term memory file '%s'...", ltmnam);
       ltm.gamecnt = ltm.gamesum = ltm.timeswritten = 0;
       ltm.inittime = time (0);
@@ -176,34 +180,35 @@ restoreltm ()
 
     unlock_file (getLockFile ());
   }
-  else
-  { saynow ("Warning: could not lock long term memory file!");    
+  else {
+    saynow ("Warning: could not lock long term memory file!");
     nosave = 1;
   }
-  
+
   uncritical ();
 }
 
-/* 
+/*
  * readltm: Read in the long term memory file for this version of Rogue
  * into storage.  Be careful about serializing access to the file.
  */
 
 readltm ()
-{ char buf[BUFSIZ];
+{
+  char buf[BUFSIZ];
   register FILE *ltmfil;
-  
-  if ((ltmfil = fopen (ltmnam, "r")) == NULL)
-  { nosave = 1;
+
+  if ((ltmfil = fopen (ltmnam, "r")) == NULL) {
+    nosave = 1;
     dwait (D_WARNING | D_SAY,
            "Could not read long term memory file '%s'...", ltmnam);
   }
-  else
-  { /* Read the ltm file header */
+  else {
+    /* Read the ltm file header */
     if (fgets (buf, BUFSIZ, ltmfil))
       sscanf (buf, "Count %d, sum %d, start %d, saved %d",
-	      &ltm.gamecnt, &ltm.gamesum, 
-	      &ltm.inittime, &ltm.timeswritten);
+              &ltm.gamecnt, &ltm.gamesum,
+              &ltm.inittime, &ltm.timeswritten);
 
     /* Read each monster line */
     while (fgets (buf, BUFSIZ, ltmfil))
@@ -213,18 +218,20 @@ readltm ()
   }
 }
 
-/* 
+/*
  * parsemonster: parse one line from the ltm file.
  */
 
 parsemonster (monster)
 char *monster;
-{ register char *attrs;
+{
+  register char *attrs;
   char *index();
   register int m;
 
   /* Separate the monster name from the attributes */
   if ((attrs = index (monster, '|')) == NULL) return;
+
   *attrs++ = '\0';
 
   /* Find the monsters entry in long term memory */
@@ -239,16 +246,17 @@ char *monster;
   parsestat (attrs, &monhist[m].atokill);	SKIPTO ('|', attrs);
 }
 
-/* 
+/*
  * clearltm: Clear a whole long term memory array.
  */
 
 clearltm (ltmarr)
 register ltmrec *ltmarr;
-{ register int i;
+{
+  register int i;
 
-  for (i=0; i<MAXMON; i++)
-  { ltmarr[i].m_name[0] = '\0';
+  for (i=0; i<MAXMON; i++) {
+    ltmarr[i].m_name[0] = '\0';
     clearprob (&ltmarr[i].wehit);
     clearprob (&ltmarr[i].theyhit);
     clearprob (&ltmarr[i].arrowhit);
@@ -258,26 +266,29 @@ register ltmrec *ltmarr;
   }
 }
 
-/* 
+/*
  * dumpmonstertable: Format and print the monster table on the screen
  */
 
 dumpmonstertable ()
-{ register int m;
+{
+  register int m;
   char monc;
 
   clear (); mvprintw (0,0,"Monster table:");
   analyzeltm ();
 
-  for (m=0, monc='A';  m<26;  m++, monc++)
-  { if (m < 13) at (m+2, 0);
+  for (m=0, monc='A';  m<26;  m++, monc++) {
+    if (m < 13) at (m+2, 0);
     else        at (m-11, 40);
 
     printw ("%c: %s", monc, monname (monc));
+
     if (monhist[monindex[m+1]].damage.count > 0)
       printw (" (%d,%d)", monatt[m].expdam, monatt[m].maxdam);
     else
       printw (" <%d>", monatt[m].maxdam);
+
     if (monhist[monindex[m+1]].atokill.count > 0)
       printw (" [%d]", monatt[m].mtokill);
   }
@@ -285,30 +296,31 @@ dumpmonstertable ()
   pauserogue ();
 }
 
-/* 
+/*
  * analyzeltm: Set the monatt array based on current long term memory.
  */
 
 analyzeltm ()
-{ register int m, i;
+{
+  register int m, i;
   double avg_dam = 0.6*Level+3, max_dam = 7.0+Level, avg_arr = 4.0;
   double phit, mean_dam, stdev_dam, three_dev;
 
   /* Loop through each monster in this game (not whole ltm file) */
-  for (i=0; i<26; i++)
-  { m = monindex[i+1];
+  for (i=0; i<26; i++) {
+    m = monindex[i+1];
 
     /* Calculate expected and maximum damage done by monster */
-    if (monhist[m].damage.count > 3)
-    { mean_dam = mean (&monhist[m].damage);
+    if (monhist[m].damage.count > 3) {
+      mean_dam = mean (&monhist[m].damage);
       stdev_dam = stdev (&monhist[m].damage);
       max_dam = monhist[m].damage.high;
 
       avg_dam = mean_dam * prob (&monhist[m].theyhit);
       three_dev = mean_dam + 3 * stdev_dam;
-      
-      if (max_dam > three_dev && monhist[m].damage.count > 10)
-      { max_dam = mean_dam + stdev_dam;
+
+      if (max_dam > three_dev && monhist[m].damage.count > 10) {
+        max_dam = mean_dam + stdev_dam;
         monhist[m].damage.high = max_dam;
       }
     }
@@ -316,12 +328,12 @@ analyzeltm ()
       max_dam = monhist[m].damage.high;
 
     /* Calculate average arrows fired to killed monster */
-    if (monhist[m].atokill.count > 2)
-    { phit = prob (&monhist[m].arrowhit); phit = max (phit, 0.1);
+    if (monhist[m].atokill.count > 2) {
+      phit = prob (&monhist[m].arrowhit); phit = max (phit, 0.1);
       avg_arr = mean (&monhist[m].atokill) / phit;
     }
 
-    /* Now store the information in the monster tables */    
+    /* Now store the information in the monster tables */
     monatt[i].expdam = ceil (avg_dam*10);
     monatt[i].maxdam = ceil (max_dam);
     monatt[i].mtokill = ceil (avg_arr);

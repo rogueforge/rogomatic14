@@ -33,16 +33,15 @@ err_doit(int errnoflag, int error, const char *fmt, va_list ap)
   char buf[MAXLINE];
 
   vsnprintf(buf, MAXLINE, fmt, ap);
-  if (debug != NULL)
-    {
-      fputs(buf, debug);
-      fflush (debug);
-    }
-  else
-    {
-      fputs (buf, stderr);
-      fflush (stderr);
-    }
+
+  if (debug != NULL) {
+    fputs(buf, debug);
+    fflush (debug);
+  }
+  else {
+    fputs (buf, stderr);
+    fflush (stderr);
+  }
 }
 
 void debuglog_open (const char *log)

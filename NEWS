@@ -1,21 +1,15 @@
-Thu Jul 12 07:17:50 EDT 2012
+Thu Aug 30 21:17:35 EDT 2012
 
 most recent changes:
 
-  - improve weapon wielding (so that cursed weapons do not mess
-    up rogomatic).
+  - reformatting the code using:
 
-  - add SEED as a usable environment variable (positive integer
-    value) so that testing is repeatable.  it affects random
-    number generation.  normal use should not set this.  use a 
-    rogue version that also uses this feature.  [the one i 
-    distribute now does have this available by normal compile 
-    (no need to set MASTER)].
+    astyle --indent=spaces=2 --style=k\&r --break-blocks --preserve-date --keep-one-line-statements --indent-blocks --indent-switches --keep-one-line-blocks --break-closing-brackets
 
-  - use the watched option of rogomatic '-w' to switch on or
-    off the usleep delay (which slows down the display so that
-    it can be watched when running).  Also speeds up testing 
-    to have this turned off unless I really do want to watch.
+  if i'm going to keep reading through this it helps to
+have it consistently formatted.
+
+  should be no changes to how rogomatic runs.
 
 
 -----

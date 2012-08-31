@@ -24,7 +24,7 @@
 /*
  * arms.c:
  *
- * This file contains all utility functions which exist for armor, 
+ * This file contains all utility functions which exist for armor,
  * weapons and rings.
  */
 
@@ -42,30 +42,34 @@
 # define swap(x,y) {t=(x); (x)=(y); (y)=t;}
 
 int havearmor (k, print, rustproof)
-{ register int i, j, w, t, n=0;
+{
+  register int i, j, w, t, n=0;
   int armind[MAXINV], armval[MAXINV];
 
   /* Sort armor by armor class (best first) */
-  for (i=0; i<invcount; ++i)
-  { if (inven[i].count && inven[i].type == armor &&
-        ! (rustproof && willrust (i)))
-    { n++;
+  for (i=0; i<invcount; ++i) {
+    if (inven[i].count && inven[i].type == armor &&
+        ! (rustproof && willrust (i))) {
+      n++;
       w = armorclass (i);
-      for (j = n-1; j > 0 && w <= armval[j-1]; j--)
-      { swap (armind[j], armind[j-1]);
+
+      for (j = n-1; j > 0 && w <= armval[j-1]; j--) {
+        swap (armind[j], armind[j-1]);
         swap (armval[j], armval[j-1]);
       }
+
       armind[j] = i;
       armval[j] = w;
     }
   }
 
-  if (print)
-  { mvprintw (1,0, "Current %sArmor Rankings", rustproof ? "Rustproof " : "");
+  if (print) {
+    mvprintw (1,0, "Current %sArmor Rankings", rustproof ? "Rustproof " : "");
+
     for (i = 0; i<n; i++)
       mvprintw (i+3, 8, "%2d: %3d %s", i+1, armval[i], itemstr (armind[i]));
   }
-  
+
   return ((k <= n) ? armind[k-1] : NONE);
 }
 
@@ -77,11 +81,12 @@ int havearmor (k, print, rustproof)
 
 armorclass (i)
 int i;
-{ int class;
+{
+  int class;
 
   if (inven[i].type != armor)
     return (1000);
-    
+
   if (stlmatch (inven[i].str, "leather"))        class = 8;
   else if (stlmatch (inven[i].str, "ring"))      class = 7;
   else if (stlmatch (inven[i].str, "studded"))   class = 7;
@@ -114,36 +119,42 @@ int i;
  */
 
 int haveweapon (k, print)
-{ register int i, j, w, t, n=0;
+{
+  register int i, j, w, t, n=0;
   int weapind[MAXINV], weapval[MAXINV];
+
   for (i=0; i<invcount; ++i)
-    if (inven[i].count && (w = weaponclass (i)) > 0)
-    { n++;
-      for (j = n-1; j > 0 && w >= weapval[j-1]; j--)
-      { swap (weapind[j], weapind[j-1]);
+    if (inven[i].count && (w = weaponclass (i)) > 0) {
+      n++;
+
+      for (j = n-1; j > 0 && w >= weapval[j-1]; j--) {
+        swap (weapind[j], weapind[j-1]);
         swap (weapval[j], weapval[j-1]);
       }
+
       weapind[j] = i;
       weapval[j] = w;
     }
 
-    /*
-     * Put enchanted weapons above unenchanted ones if the weapon
-     * ratings are equal.  DR UTexas 25 Jan 84 
-     */
+  /*
+   * Put enchanted weapons above unenchanted ones if the weapon
+   * ratings are equal.  DR UTexas 25 Jan 84
+   */
 
-    for (j = n-1; j > 0; j--)
-    { if (weapval[j] == weapval[j-1])
-      { i = weapind[j];
-        w = weapind[j-1];
-        if (!itemis (w, ENCHANTED) && itemis (i, ENCHANTED) &&
-            !itemis (w, KNOWN) && !itemis (i, KNOWN))
+  for (j = n-1; j > 0; j--) {
+    if (weapval[j] == weapval[j-1]) {
+      i = weapind[j];
+      w = weapind[j-1];
+
+      if (!itemis (w, ENCHANTED) && itemis (i, ENCHANTED) &&
+          !itemis (w, KNOWN) && !itemis (i, KNOWN))
         { swap (weapind[j], weapind[j-1]); }
-      }
     }
+  }
 
-  if (print)
-  { mvaddstr (1, 0, "Current Weapon Rankings");
+  if (print) {
+    mvaddstr (1, 0, "Current Weapon Rankings");
+
     for (i = 0; i<n; i++)
       mvprintw (i+3, 8, "%2d: %5d %s", i+1, weapval[i], itemstr (weapind[i]));
   }
@@ -152,7 +163,7 @@ int haveweapon (k, print)
 }
 
 /*
- * weaponclass: Given the index of a weapon, return the weapon class. 
+ * weaponclass: Given the index of a weapon, return the weapon class.
  *              This is the average damage done + 3/2 the plus to
  *              hit, multiplied by 10. Magic arrows are given very
  *              high numbers.
@@ -160,9 +171,10 @@ int haveweapon (k, print)
 
 weaponclass (i)
 int i;
-{ int class, hitplus = 0, damplus = 0;
+{
+  int class, hitplus = 0, damplus = 0;
 
-  /* Swords and maces are always valid weapons */   
+  /* Swords and maces are always valid weapons */
   if (inven[i].type == hitter)
     ;
   /* Under special circumstances, arrows are valid weapons (Hee hee) */
@@ -173,10 +185,10 @@ int i;
   else
     return (0);
 
-  /* 
-   * Set the basic expected damage done by the weapon. 
+  /*
+   * Set the basic expected damage done by the weapon.
    */
-    
+
   if (stlmatch (inven[i].str, "mace"))
     class =  50;
   else if (stlmatch (inven[i].str, "two handed sword"))
@@ -189,14 +201,14 @@ int i;
     class =   0;
 
   /* Know the modifier exactly */
-  if (inven[i].phit != UNKNOWN)
-  { hitplus += inven[i].phit;
+  if (inven[i].phit != UNKNOWN) {
+    hitplus += inven[i].phit;
 
     if (inven[i].pdam != UNKNOWN)
-      damplus = inven[i].pdam; 
+      damplus = inven[i].pdam;
   }
 
-  /* 
+  /*
    * Strategy for "Magic Arrows". These are single arrows when
    * we are cheating. Since arrows normally come in clumps, and
    * since we have never (in cheat mode) thrown any, then a
@@ -209,9 +221,9 @@ int i;
     return (1800);
 
   else if (cheat && version <= RV36B && stlmatch (inven[i].str, "arrow") &&
-           inven[i].count == 1 && !itemis (i, WORTHLESS) && 
+           inven[i].count == 1 && !itemis (i, WORTHLESS) &&
            (!badarrow || i != currentweapon))
-  { hitplus = 50;  damplus = 50; }
+    { hitplus = 50;  damplus = 50; }
 
   hitplus = (hitplus < 100) ? hitplus : 100;
   damplus = (damplus < 200) ? damplus : 200;
@@ -226,26 +238,31 @@ int i;
  */
 
 int havering (k, print)
-{ register int i, j, r, t, n=0;
+{
+  register int i, j, r, t, n=0;
   int ringind[MAXINV], ringval[MAXINV];
+
   for (i=0; i<invcount; ++i)
-    if (inven[i].count && (r = ringclass (i)) > 0)
-    { n++;
-      for (j = n-1; j > 0 && r >= ringval[j-1]; j--)
-      { swap (ringind[j], ringind[j-1]);
+    if (inven[i].count && (r = ringclass (i)) > 0) {
+      n++;
+
+      for (j = n-1; j > 0 && r >= ringval[j-1]; j--) {
+        swap (ringind[j], ringind[j-1]);
         swap (ringval[j], ringval[j-1]);
       }
+
       ringind[j] = i;
       ringval[j] = r;
     }
 
-  if (print)
-  { mvaddstr (1, 0, "Current Ring Rankings");
+  if (print) {
+    mvaddstr (1, 0, "Current Ring Rankings");
+
     for (i = 0; i<n; i++)
       mvprintw (i+3, 8, "%2d: %5d  %s", i+1, ringval[i], itemstr (ringind[i]));
   }
 
-  /* 
+  /*
    * Since rings are class [1-1000] if we don't want to wear them,
    * return the ring index only if its value is greater than 1000.
    */
@@ -254,7 +271,7 @@ int havering (k, print)
 }
 
 /*
- * ringclass: Given the index of a ring, return the ring class. 
+ * ringclass: Given the index of a ring, return the ring class.
  *            This is a subjective measure of how much good it
  *            would do us to wear this ring. Values of [1-1000] indicates
  *            that we should not wear this ring at all. A value of 0
@@ -269,31 +286,32 @@ int havering (k, print)
 
 ringclass (i)
 int i;
-{ int class = 0, magicplus = 0;
+{
+  int class = 0, magicplus = 0;
 
   if (inven[i].type != ring)
     return (0);
 
   /* Get the magic plus */
-  if (inven[i].phit != UNKNOWN)
-  { magicplus = inven[i].phit;
+  if (inven[i].phit != UNKNOWN) {
+    magicplus = inven[i].phit;
   }
 
   /* A ring of protection */
   if (stlmatch (inven[i].str, "protection"))
-  { if (magicplus > 0) class = (havefood (1) ? 1000 : 0) + 450; }
+    { if (magicplus > 0) class = (havefood (1) ? 1000 : 0) + 450; }
 
   /* A ring of add strength */
-  else if (stlmatch (inven[i].str, "add strength"))
-  { if (itemis (i, INUSE) && magicplus > 0)
-    { if (hitbonus (Str) == hitbonus (Str - magicplus * 100) &&
+  else if (stlmatch (inven[i].str, "add strength")) {
+    if (itemis (i, INUSE) && magicplus > 0) {
+      if (hitbonus (Str) == hitbonus (Str - magicplus * 100) &&
           damagebonus (Str) == damagebonus (Str - magicplus * 100))
         class = 400;
       else
         class = (havefood (1) ? 1000 : 0) + 400;
     }
-    else if (magicplus > 0)
-    { if (hitbonus (Str) == hitbonus (Str + magicplus * 100) &&
+    else if (magicplus > 0) {
+      if (hitbonus (Str) == hitbonus (Str + magicplus * 100) &&
           damagebonus (Str) == damagebonus (Str + magicplus * 100))
         class = 400;
       else
@@ -302,18 +320,17 @@ int i;
   }
 
   /* A ring of sustain strength */
-  else if (stlmatch (inven[i].str, "sustain strength"))
-  { 
+  else if (stlmatch (inven[i].str, "sustain strength")) {
     /* A second ring of sustain strength is useless */
     if (!itemis (i, INUSE) && wearing ("sustain strength") != NONE)
       class = 0;
 
     else
-      class = (havefood (3) ? 1000 : 0) + 
-              (Level > 12 ? 150 : 
-               Str > 2000 ? 700 :
-               Str > 1600 ? Str - 1200 :
-                            100);
+      class = (havefood (3) ? 1000 : 0) +
+                (Level > 12 ? 150 :
+                 Str > 2000 ? 700 :
+                 Str > 1600 ? Str - 1200 :
+                   100);
   }
 
   /* A ring of searching */
@@ -321,13 +338,12 @@ int i;
   { class = (havefood (0) ? 1000 : 0) + 250; }
 
   /* A ring of see invisible */
-  else if (stlmatch (inven[i].str, "see invisible"))
-  { 
+  else if (stlmatch (inven[i].str, "see invisible")) {
     /* A second ring of see invisible is useless */
     if (!itemis (i, INUSE) && wearing ("see invisible") != NONE)
       class = 0;
 
-    /* 
+    /*
      * If we are beingstalked and we are wearing this ring, then
      * we should take it off and put it on to set the Rogue CANSEE
      * bit, which can be unset by a second ring of see invisible or
@@ -344,7 +360,8 @@ int i;
 
     else
       class = (beingstalked || turns - putonseeinv < 20) ? 1999 :
-              ((havefood (0) && Level > 15 && Level < 26) ? 1000 : 0) + 300;  }
+                  ((havefood (0) && Level > 15 && Level < 26) ? 1000 : 0) + 300;
+  }
 
   /* A ring of adornment */
   else if (stlmatch (inven[i].str, "adornment"))
@@ -352,67 +369,65 @@ int i;
 
   /* A ring of aggravate monster */
   else if (stlmatch (inven[i].str, "aggravate monster"))
-  { class = 0; }
+    { class = 0; }
 
   /* A ring of dexterity */
   else if (stlmatch (inven[i].str, "dexterity"))
-  { if (magicplus > 0) class = (havefood (0) ? 1000 : 0) + 475; }
+    { if (magicplus > 0) class = (havefood (0) ? 1000 : 0) + 475; }
 
   /* A ring of increase damage */
   else if (stlmatch (inven[i].str, "increase damage"))
-  { if (magicplus > 0) class = (havefood (0) ? 1000 : 0) + 500; }
+    { if (magicplus > 0) class = (havefood (0) ? 1000 : 0) + 500; }
 
   /* A ring of regeneration */
-  else if (stlmatch (inven[i].str, "regeneration"))
-  {
+  else if (stlmatch (inven[i].str, "regeneration")) {
     /* Analysis indicates that rings of regenerate DO NOT hold back   */
     /* the character after any level. They each add one hit point per */
     /* turn of rest regardless of your level!			MLM   */
 
-    class = 50*(Hpmax-Hp-Explev) + 500; }
+    class = 50*(Hpmax-Hp-Explev) + 500;
+  }
 
   /* A ring of slow digestion */
-  else if (stlmatch (inven[i].str, "slow digestion"))
-  { 
+  else if (stlmatch (inven[i].str, "slow digestion")) {
     /* A second ring of slow digestion is not too useful */
     if (havefood (0) && !itemis (i, INUSE) &&
-	wearing ("slow digestion") != NONE)
+        wearing ("slow digestion") != NONE)
       class = 1001;
 
-    else
-    { class =	havefood (3) ?	1100 :
-		havefood (2) ?	1300 :
-		havefood (1) ?	1500 :
-		havefood (0) ?	1900 :
-				1999 ;
+    else {
+      class =	havefood (3) ?	1100 :
+                havefood (2) ?	1300 :
+                havefood (1) ?	1500 :
+                havefood (0) ?	1900 :
+                  1999 ;
     }
   }
 
   /* A ring of teleportation */
-  else if (stlmatch (inven[i].str, "telportation") || 
+  else if (stlmatch (inven[i].str, "telportation") ||
            stlmatch (inven[i].str, "teleportation"))
   { class = 0; }
 
   /* A ring of stealth */
-  else if (stlmatch (inven[i].str, "stealth"))
-  {
+  else if (stlmatch (inven[i].str, "stealth")) {
     /* A second ring of stealth is useless */
     if (!itemis (i, INUSE) && wearing ("stealth") != NONE)
       class = 0;
 
-    else
-    { class = (havefood (1) ? 1000 : 0) + 
-             (Level > 17 ? 850 : Level > 12 ? 700 : 300);
+    else {
+      class = (havefood (1) ? 1000 : 0) +
+                  (Level > 17 ? 850 : Level > 12 ? 700 : 300);
     }
   }
 
   /* A ring of maintain armor */
-  else if (stlmatch (inven[i].str, "maintain armor"))
-  { int bestarm, nextarm, armdiff;
+  else if (stlmatch (inven[i].str, "maintain armor")) {
+    int bestarm, nextarm, armdiff;
 
     /* No rust monsters yet or cursed armor */
     if (Level < 9 || cursedarmor) return (900);
-    
+
     /* Past the rust monsters */
     else if (Level > 18) return (300);
 
@@ -420,8 +435,8 @@ int i;
     else if (!itemis (i, INUSE) && wearing ("maintain armor") != NONE)
       class = 0;
 
-    else
-    { bestarm = havearmor (1, NOPRINT, ANY);
+    else {
+      bestarm = havearmor (1, NOPRINT, ANY);
       nextarm = havearmor (1, NOPRINT, RUSTPROOF);
 
       if (bestarm < 0)                       /* No armor to protect */
@@ -435,10 +450,10 @@ int i;
 
       else			             /* Get difference in classes */
         armdiff = armorclass (nextarm) -
-		  armorclass (bestarm);
+                  armorclass (bestarm);
 
       class = (havefood (1) ? 1000 : 0) +
-              200 * armdiff;
+                  200 * armdiff;
     }
   }
 
@@ -457,21 +472,26 @@ int i;
  */
 
 int havebow (k, print)
-{ register int i, j, w, t, n=0;
+{
+  register int i, j, w, t, n=0;
   int bowind[MAXINV], bowval[MAXINV];
+
   for (i=0; i<invcount; ++i)
-    if (inven[i].count && (w = bowclass (i)) > 0)
-    { n++;
-      for (j = n-1; j > 0 && w >= bowval[j-1]; j--)
-      { swap (bowind[j], bowind[j-1]);
+    if (inven[i].count && (w = bowclass (i)) > 0) {
+      n++;
+
+      for (j = n-1; j > 0 && w >= bowval[j-1]; j--) {
+        swap (bowind[j], bowind[j-1]);
         swap (bowval[j], bowval[j-1]);
       }
+
       bowind[j] = i;
       bowval[j] = w;
     }
 
-  if (print)
-  { mvaddstr (1, 0, "Current Bow Rankings");
+  if (print) {
+    mvaddstr (1, 0, "Current Bow Rankings");
+
     for (i = 0; i<n; i++)
       mvprintw (i+3, 8, "%2d: %5d %s", i+1, bowval[i], itemstr (bowind[i]));
   }
@@ -480,14 +500,15 @@ int havebow (k, print)
 }
 
 /*
- * bowclass: Given the index of a bow, return the bow class. 
+ * bowclass: Given the index of a bow, return the bow class.
  *           This is the average damage done + 6/5 the plus to
  *           hit, multiplied by 10.
  */
 
 bowclass (i)
 int i;
-{ int class, hitplus = 0, damplus = 0;
+{
+  int class, hitplus = 0, damplus = 0;
 
   if (inven[i].type == thrower &&
       stlmatch (inven[i].str, "short bow") &&
@@ -497,11 +518,11 @@ int i;
     return (0);
 
   /* Find the modifiers */
-  if (inven[i].phit != UNKNOWN)
-  { hitplus += inven[i].phit;
+  if (inven[i].phit != UNKNOWN) {
+    hitplus += inven[i].phit;
 
     if (inven[i].pdam != UNKNOWN)
-      damplus = inven[i].pdam; 
+      damplus = inven[i].pdam;
   }
 
   return (class + 12*hitplus + 10*damplus);
@@ -513,26 +534,27 @@ int i;
  */
 
 int havemissile ()
-{ register int i, fewest = 9999, obj = NONE;
+{
+  register int i, fewest = 9999, obj = NONE;
 
-  if (wielding (thrower))	/* Wielding bow, use arrows */
-  { for (i=0; i<invcount; ++i)
+  if (wielding (thrower)) {	/* Wielding bow, use arrows */
+    for (i=0; i<invcount; ++i)
       if (inven[i].count > 0 && inven[i].count < fewest &&
           inven[i].type == missile && stlmatch(inven[i].str,"arrow"))
-      { obj = i; fewest = inven[i].count; }
+        { obj = i; fewest = inven[i].count; }
   }
 
-  if (obj < 0)			/* Not wielding bow or no arrows */
-  { for (i=0; i<invcount; ++i)
+  if (obj < 0) {		/* Not wielding bow or no arrows */
+    for (i=0; i<invcount; ++i)
       if (inven[i].count > 0 &&
-	  inven[i].count < fewest &&
-	  !itemis (i, INUSE) &&
+          inven[i].count < fewest &&
+          !itemis (i, INUSE) &&
           (inven[i].type == missile ||
-           stlmatch(inven[i].str,"spear") || 
-           stlmatch(inven[i].str,"dagger") || 
-           stlmatch(inven[i].str,"mace") && inven[i].phit <= 0 || 
+           stlmatch(inven[i].str,"spear") ||
+           stlmatch(inven[i].str,"dagger") ||
+           stlmatch(inven[i].str,"mace") && inven[i].phit <= 0 ||
            stlmatch(inven[i].str,"long sword") && inven[i].phit < 0))
-      { obj = i; fewest = inven[i].count; }
+        { obj = i; fewest = inven[i].count; }
   }
 
   if (obj != NONE)
@@ -548,7 +570,8 @@ int havemissile ()
  */
 
 havearrow ()
-{ int arr;
+{
+  int arr;
 
   for (arr = 0; arr<invcount; arr++)
     if (inven[arr].type == missile &&
@@ -559,45 +582,47 @@ havearrow ()
   return (NONE);
 }
 
-/* 
+/*
  * hitbonus: Return the bonus to hit.
  */
 
 hitbonus (strength)
 int strength;
-{ int bonus = 0;
-  
+{
+  int bonus = 0;
+
   if (strength < 700) bonus = strength/100 - 7;
 
-  else if (version > RV36B)
-  { if (strength < 1700) bonus = 0;
+  else if (version > RV36B) {
+    if (strength < 1700) bonus = 0;
     else if (strength < 2100) bonus = 1;
     else if (strength < 3100) bonus = 2;
-    else bonus = 3;    
+    else bonus = 3;
   }
 
-  else 
-  { if (strength < 1700) bonus = 0;
+  else {
+    if (strength < 1700) bonus = 0;
     else if (strength < 1851) bonus = 1;
     else if (strength < 1900) bonus = 2;
-    else bonus = 3;    
+    else bonus = 3;
   }
 
   return (bonus);
 }
 
-/* 
+/*
  * damagebonus: bonus = the damage bonus.
  */
 
 damagebonus (strength)
 int strength;
-{ int bonus = 0;
+{
+  int bonus = 0;
 
   if (strength < 700) bonus = strength/100 - 7;
 
-  else  if (version > RV36B)
-  { if (strength < 1600) bonus = 0;
+  else  if (version > RV36B) {
+    if (strength < 1600) bonus = 0;
     else if (strength < 1800) bonus = 1;
     else if (strength < 1900) bonus = 2;
     else if (strength < 2100) bonus = 3;
@@ -606,20 +631,20 @@ int strength;
     else bonus = 6;
   }
 
-  else 
-  { if (strength < 1600) bonus = 0;
+  else {
+    if (strength < 1600) bonus = 0;
     else if (strength < 1800) bonus = 1;
     else if (strength < 1801) bonus = 2;
     else if (strength < 1876) bonus = 3;
     else if (strength < 1891) bonus = 4;
     else if (strength < 1900) bonus = 5;
-    else bonus = 6;    
+    else bonus = 6;
   }
 
   return (bonus);
 }
 
-/* 
+/*
  * setbonuses: Set global hit and damage pluses.
  */
 
@@ -630,29 +655,29 @@ setbonuses ()
 
   if (leftring != NONE && stlmatch (inven[leftring].str, "dexterity") &&
       inven[leftring].phit != UNKNOWN)
-   gplushit += inven[leftring].phit;
+    gplushit += inven[leftring].phit;
 
   if (rightring != NONE && stlmatch (inven[rightring].str, "dexterity") &&
       inven[rightring].phit != UNKNOWN)
-   gplushit += inven[rightring].phit;
+    gplushit += inven[rightring].phit;
 
   /* Set global Damage Bonus */
   gplusdam = damagebonus (Str);
 
   if (leftring != NONE && stlmatch (inven[leftring].str, "add damage") &&
       inven[leftring].pdam != UNKNOWN)
-   gplusdam += inven[leftring].pdam;
+    gplusdam += inven[leftring].pdam;
 
   if (rightring != NONE && stlmatch (inven[rightring].str, "add damage") &&
       inven[rightring].pdam != UNKNOWN)
-   gplusdam += inven[rightring].pdam;
+    gplusdam += inven[rightring].pdam;
 
   /* Set bonuses for weapons */
   wplushit = gplushit;
   wplusdam = gplusdam;
 
-  if (currentweapon != NONE)
-  { if (inven[currentweapon].phit != UNKNOWN)
+  if (currentweapon != NONE) {
+    if (inven[currentweapon].phit != UNKNOWN)
       wplushit += inven[currentweapon].phit;
 
     if (inven[currentweapon].pdam != UNKNOWN)

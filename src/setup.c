@@ -46,17 +46,18 @@ main (argc, argv)
 int   argc;
 char *argv[];
 
-{ int   ptc[2], ctp[2];
+{
+  int   ptc[2], ctp[2];
   int   child, score = 0, oldgame = 0;
   int   cheat = 0, noterm = 1, echo = 0, nohalf = 0, replay = 0;
   int   emacs = 0, rf = 0, terse = 0, user = 0, quitat = 2147483647;
   char  *rfile = "", *rfilearg = "", options[32];
   char  ropts[128], roguename[128];
 
-  while (--argc > 0 && (*++argv)[0] == '-')
-  { while (*++(*argv))
-    { switch (**argv)
-      { case 'c': cheat++;        break; /* Will use trap arrows! */
+  while (--argc > 0 && (*++argv)[0] == '-') {
+    while (*++(*argv)) {
+      switch (**argv) {
+        case 'c': cheat++;        break; /* Will use trap arrows! */
         case 'e': echo++;         break; /* Echo file to roguelog */
         case 'f': rf++;           break; /* Next arg is the rogue file */
         case 'h': nohalf++;       break; /* No halftime show */
@@ -67,37 +68,41 @@ char *argv[];
         case 'u': user++;         break; /* Start up in user mode */
         case 'w': noterm = 0;     break; /* Watched mode */
         case 'E': emacs++;        break; /* Emacs mode */
-        default:  printf 
-                  ("Usage: rogomatic [-cefhprstuwE] or rogomatic [file]\n");
-                  exit (1);
+        default:  printf
+          ("Usage: rogomatic [-cefhprstuwE] or rogomatic [file]\n");
+          exit (1);
       }
     }
 
-    if (rf) 
-    { if (--argc) rfilearg = *++argv;
+    if (rf) {
+      if (--argc) rfilearg = *++argv;
+
       rf = 0;
     }
   }
 
-  if (argc > 1)
-  { printf ("Usage: rogomatic [-cefhprstuwE] or rogomatic <file>\n");
+  if (argc > 1) {
+    printf ("Usage: rogomatic [-cefhprstuwE] or rogomatic <file>\n");
     exit (1);
   }
 
   /* Find which rogue to use */
-  if (*rfilearg)
-  { if (access (rfilearg, R_OK|X_OK) == 0)	rfile = rfilearg;
+  if (*rfilearg) {
+    if (access (rfilearg, R_OK|X_OK) == 0)	rfile = rfilearg;
     else				{ perror (rfilearg); exit (1); }
   }
   else if (access ("rogue", R_OK|X_OK) == 0)	rfile = "rogue";
+
 # ifdef NEWROGUE
   else if (access (NEWROGUE, R_OK|X_OK) == 0)	rfile = NEWROGUE;
+
 # endif
 # ifdef ROGUE
   else if (access (ROGUE, R_OK|X_OK) == 0)	rfile = ROGUE;
+
 # endif
-  else
-  { perror ("rogue");
+  else {
+    perror ("rogue");
     exit (1);
   }
 
@@ -111,39 +116,41 @@ char *argv[];
            "jump", "step", "nopassgo", "inven=slow", "seefloor");
 
   if (score)  { dumpscore (argc==1 ? argv[0] : DEFVER); exit (0); }
+
   if (replay) { replaylog (argc==1 ? argv[0] : ROGUELOG, options); exit (0); }
 
-  if ((pipe (ptc) < 0) || (pipe (ctp) < 0))
-  { fprintf (stderr, "Cannot get pipes!\n");
+  if ((pipe (ptc) < 0) || (pipe (ctp) < 0)) {
+    fprintf (stderr, "Cannot get pipes!\n");
     exit (1);
   }
 
   trogue = ptc[WRITE];
   frogue = ctp[READ];
 
-  if ((child = fork ()) == 0)
-  { close (0);
+  if ((child = fork ()) == 0) {
+    close (0);
     dup (ptc[READ]);
     close (1);
     dup (ctp[WRITE]);
 
-    if (setenv ("TERM", "vt100", 1) != 0)
-      {
-        fprintf (stderr, "can't setenv (\"TERM\", \"vt100\", 1)\n");
-      }
-    if (setenv ("ROGUEOPTS", ropts, 1) != 0)
-      {
-        fprintf (stderr, "can't setenv (\"ROGUEOPTS\", \"%s\", 1)\n",ropts);
-      }
+    if (setenv ("TERM", "vt100", 1) != 0) {
+      fprintf (stderr, "can't setenv (\"TERM\", \"vt100\", 1)\n");
+    }
+
+    if (setenv ("ROGUEOPTS", ropts, 1) != 0) {
+      fprintf (stderr, "can't setenv (\"ROGUEOPTS\", \"%s\", 1)\n",ropts);
+    }
 
     if (oldgame)  execl (rfile, rfile, "-r", 0);
+
     if (argc)     execl (rfile, rfile, argv[0], 0);
+
     execl (rfile, rfile, 0);
     _exit (1);
   }
 
-  else
-  { /* Encode the open files into a two character string */
+  else {
+    /* Encode the open files into a two character string */
     char ft[3];
     char rp[32];
 
@@ -165,7 +172,7 @@ char *argv[];
   }
 }
 
-/* 
+/*
  * replaylog: Given a log file name and an options string, exec the player
  * process to replay the game.  No Rogue process is needed (since we are
  * replaying an old game), so the frogue and trogue file descrptiors are
@@ -174,7 +181,8 @@ char *argv[];
 
 replaylog (fname, options)
 char *fname, *options;
-{ execl ("player", "player", "ZZ", "0", options, fname, 0);
+{
+  execl ("player", "player", "ZZ", "0", options, fname, 0);
 # ifdef PLAYER
   execl (PLAYER, "player", "ZZ", "0", options, fname, 0);
 # endif
@@ -189,13 +197,13 @@ char *fname, *options;
 
 author()
 {
-  switch (getuid())
-  { case 1337:	/* Fuzzy */
+  switch (getuid()) {
+    case 1337:	/* Fuzzy */
     case 1313:	/* Guy */
     case 1241:	/* Andrew */
     case 345:	/* Leonard */
     case 342:	/* Gordon */
-		return 1;
+      return 1;
     default:	return 0;
   }
 }

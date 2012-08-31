@@ -8,6 +8,17 @@ building:
 
 code bugs/changes:
 
+  - reformatted code.  enough reading of strange indents
+    already...
+
+  - working on fixing the 1y direction infinite loop bug
+    (repeatedly tries to walk into a wall).  the quick
+    fix i will release in the next version.  this way
+    at least there won't be an infinite loop, instead
+    rogomatic will give a fatal error message and then 
+    quit.  the actual figuring out of why and correcting 
+    it will take a different release.
+
   - wielding weapons can fail mid-weild causing troubles.
     fixed so that there is more and better checking of
     weapon traits -- this seems to eliminate several other
@@ -30,8 +41,6 @@ strange happenings:
  - repeatedly drops and picks up useless items
  - will starve to death standing on a
    scare monster scroll
- - falls down trap door on top of item, tries to
-   drop item when item already there
 
 
 screen not updating correctly:
@@ -53,7 +62,7 @@ someday:
 ===== rogue
 
 
-rogue 5.4.4 ant r1.0.4 (this is the version i use 
+rogue5.4.4-ant-r1.0.7 (this is the version i use 
 for testing rogomatic):
 
   [these are done]
@@ -74,13 +83,18 @@ for testing rogomatic):
    there is more than one of them
  - make the environment variable SEED useful for 
    testing (repeatable random number sequences)
+ - when changing levels make sure to drop down
+   on a space that is not occupied
+ - fix invalid reference to freed space
+ - cleaned up a few memory leftovers reported by
+   valgrind memcheck
 
 
-rogue 5.4.4 rgm (version for the purists):
+rogue5.4.4-rgm (version for the purists):
 
  - configuration fixes
  - fix for the nymph steals item bug
+ - fix reference to freed space
 
 
-One bug known for rogue 5.4.4 rgm or rogue 5.4.4 ant r1.0.4...
-Segfault (see TODO in rogue for details).
+No bugs known for rogue5.4.4-rgm or rogue5.4.4-ant-r1.0.7

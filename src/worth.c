@@ -37,30 +37,32 @@
 # include "types.h"
 # include "globals.h"
 
-int   objval[] = { 
-/* strange */      0,
-/* food */       900,
-/* potion */     500,
-/* scroll */     400,
-/* wand */       600,
-/* ring */       800,
-/* hitter */     100,
-/* thrower */    100,
-/* missile */    300,
-/* armor */      200,
-/* amulet */    5000,
-/* gold */      1000,
-/* none */         0};
+int   objval[] = {
+  /* strange */      0,
+  /* food */       900,
+  /* potion */     500,
+  /* scroll */     400,
+  /* wand */       600,
+  /* ring */       800,
+  /* hitter */     100,
+  /* thrower */    100,
+  /* missile */    300,
+  /* armor */      200,
+  /* amulet */    5000,
+  /* gold */      1000,
+  /* none */         0
+};
 
 worth (obj)
 int obj;
-{ int value, w;
+{
+  int value, w;
 
   /* Do we have an easy out? */
   if (useless (obj)) return (0);
 
   /* Poison has a use in RV52B and RV53A, so give it a low positive value */
-  if (stlmatch (inven[obj].str, "poison")) return (1);       
+  if (stlmatch (inven[obj].str, "poison")) return (1);
 
   /* Set base value */
   value = objval[(int) inven[obj].type];
@@ -69,14 +71,14 @@ int obj;
   if (itemis (obj, KNOWN))
     value += 50;
 
-  /* 
+  /*
    * Armor values are based on armor class, bonus for best, second
    * best, third best, or leather armor (leather doesnt rust)
    */
 
-  if (inven[obj].type == armor)
-  { value = (11 - armorclass (obj)) * 120;
-    
+  if (inven[obj].type == armor) {
+    value = (11 - armorclass (obj)) * 120;
+
     if (obj == havearmor (1, NOPRINT, ANY))		value += 2000;
     else if (obj == havearmor (2, NOPRINT, ANY))	value += 1500;
     else if (obj == havearmor (3, NOPRINT, ANY))	value += 800;
@@ -84,35 +86,36 @@ int obj;
     if (stlmatch (inven[obj].str, "leather"))		value += 300;
   }
 
-  /* 
+  /*
    * Bow values are based on bow class, bonus for best
    * or second best.
    */
 
-  else if (inven[obj].type == thrower)
-  { value = (bowclass (obj));
-    
+  else if (inven[obj].type == thrower) {
+    value = (bowclass (obj));
+
     if (obj == havebow (1, NOPRINT)) value += 1500;
     else if (obj == havebow (2, NOPRINT)) value += 300;
   }
 
   /* Weapons values are counted by hit potential, bonus for best */
-  else if ((w = weaponclass (obj)) > 0)
-  { value = w * 5;
-    
+  else if ((w = weaponclass (obj)) > 0) {
+    value = w * 5;
+
     if (obj == haveweapon (1, NOPRINT)) value += 2500;
     else if (obj == haveweapon (2, NOPRINT)) value += 1500;
   }
 
   /* Rings values are counted by bonus */
-  else if ((w = ringclass (obj)) > 0)
-  { if (w > 1000) w -= 500; /* Subtract part of food bonus */
+  else if ((w = ringclass (obj)) > 0) {
+    if (w > 1000) w -= 500; /* Subtract part of food bonus */
+
     value = w + 400;
   }
 
   /* For arbitrary things, bonus for plus item */
-  else
-  { if (inven[obj].phit != UNKNOWN)
+  else {
+    if (inven[obj].phit != UNKNOWN)
       value += inven[obj].phit * 75;
   }
 
@@ -168,7 +171,7 @@ int i;
        stlmatch (inven[i].str, "magic detection") ||
        stlmatch (inven[i].str, "thirst") ||
        (stlmatch (inven[i].str, "haste self") && doublehasted) ||
-       (stlmatch (inven[i].str, "see invisible") && 
+       (stlmatch (inven[i].str, "see invisible") &&
         havenamed (ring, "see invisible") != NONE)))
     return (1);
 

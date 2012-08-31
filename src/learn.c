@@ -37,9 +37,9 @@
 # define ALLELE		100
 # define ZEROSTAT	{0, 0, 0, 0, 0}
 
-typedef struct
-{ int   id, creation, father, mother, dna[MAXKNOB];
-        statistic score, level;
+typedef struct {
+  int   id, creation, father, mother, dna[MAXKNOB];
+  statistic score, level;
 }               genotype;
 
 extern int knob[];
@@ -80,10 +80,11 @@ static int badgene (register int e1, register int e2);
  */
 
 initpool (k, m)
-{ inittime = time (0);
+{
+  inittime = time (0);
 
   if (glog) fprintf (glog, "Gene pool initalized, k %d, m %d, %s",
-                     k, m, ctime (&inittime));
+                       k, m, ctime (&inittime));
 
   randompool (m);
 }
@@ -94,7 +95,8 @@ initpool (k, m)
 
 analyzepool (full)
 int full;
-{ register int g;
+{
+  register int g;
 
   qsort (genes, length, sizeof (*genes), compgene);
 
@@ -102,38 +104,39 @@ int full;
   printf ("Trials %d, births %d (crosses %d, mutations %d, shifts %d)\n",
           trialno, lastid, crosses, mutations, shifts);
   printf ("Mean score %1.0lf+%1.0lf, Mean level %3.1lf+%3.1lf\n\n",
-	  mean (&g_score), stdev (&g_score),
-	  mean (&g_level), stdev (&g_level));
+          mean (&g_score), stdev (&g_score),
+          mean (&g_level), stdev (&g_level));
 
   /* Give average of each gene */
-  if (full == 2)
-  { statistic gs;
+  if (full == 2) {
+    statistic gs;
     register int k;
     extern char *knob_name[];
-    
-    for (k=0; k<MAXKNOB; k++)
-    { clearstat (&gs);
-      
+
+    for (k=0; k<MAXKNOB; k++) {
+      clearstat (&gs);
+
       for (g=0; g<length; g++)
-      { addstat (&gs, genes[g]->dna[k]); }
-      
+        { addstat (&gs, genes[g]->dna[k]); }
+
       printf ("%s%5.2lf+%1.2lf\n", knob_name[k], mean (&gs), stdev (&gs));
     }
   }
 
   /* List detail of gene pool */
-  else
-  {
-    for (g=0; g<length; g++)
-    { printf ("Living: "); summgene (stdout, genes[g]);
-      if (full)
-      { if (genes[g]->mother)
-	  printf ("  Parents: %3d,%-3d", genes[g]->father, genes[g]->mother);
-	else
-	  printf ("  Parent:  %3d,   ", genes[g]->father);
-	printf ("  best %4.0lf/%-2.0lf",
-		  genes[g]->score.high, genes[g]->level.high);
-	printf ("    DNA  "); printdna (stdout, genes[g]); printf ("\n\n");
+  else {
+    for (g=0; g<length; g++) {
+      printf ("Living: "); summgene (stdout, genes[g]);
+
+      if (full) {
+        if (genes[g]->mother)
+          printf ("  Parents: %3d,%-3d", genes[g]->father, genes[g]->mother);
+        else
+          printf ("  Parent:  %3d,   ", genes[g]->father);
+
+        printf ("  best %4.0lf/%-2.0lf",
+                genes[g]->score.high, genes[g]->level.high);
+        printf ("    DNA  "); printdna (stdout, genes[g]); printf ("\n\n");
       }
     }
   }
@@ -145,8 +148,9 @@ int full;
 
 setknobs (newid, knb, best, avg)
 int *newid, *knb, *best, *avg;
-{ register int i, g;
-  
+{
+  register int i, g;
+
   ++trialno;
 
   g = pickgenotype ();	/* Pick one genotype */
@@ -165,13 +169,14 @@ int *newid, *knb, *best, *avg;
 
 evalknobs (gid, score, level)
 int gid, score, level;
-{ register int g;
+{
+  register int g;
 
   /* Find out which gene has the correct id */
   for (g=0; g<length; g++)
     if (gid == genes[g]->id) break;
 
-  /* If he got deleted by someone else, blow it off */  
+  /* If he got deleted by someone else, blow it off */
   if (g >= length) return;
 
   /* Add information about performance */
@@ -180,14 +185,14 @@ int gid, score, level;
   addstat (&(genes[g]->level), level);
   addstat (&g_level, level);
 
-  if (glog)
-  { fprintf (glog, "Trial %4d, Id %3d -> %4d/%-2d  ",
-      trialno, genes[g]->id, score, level);
+  if (glog) {
+    fprintf (glog, "Trial %4d, Id %3d -> %4d/%-2d  ",
+             trialno, genes[g]->id, score, level);
 
     fprintf (glog, "age %2d, %4.0lf+%-4.0lf  %4.1lf+%3.1lf\n",
-	     TRIALS(genes[g]),
-	     mean (&(genes[g]->score)), stdev (&(genes[g]->score)),
-	     mean (&(genes[g]->level)), stdev (&(genes[g]->level)));
+             TRIALS(genes[g]),
+             mean (&(genes[g]->score)), stdev (&(genes[g]->score)),
+             mean (&(genes[g]->level)), stdev (&(genes[g]->level)));
   }
 }
 
@@ -197,7 +202,8 @@ int gid, score, level;
 
 FILE *rogo_openlog (genelog)
 register char *genelog;
-{ glog = wopen (genelog, "a");    
+{
+  glog = wopen (genelog, "a");
   return (glog);
 }
 
@@ -206,7 +212,8 @@ register char *genelog;
  */
 
 void rogo_closelog ()
-{ if (glog) fclose (glog);
+{
+  if (glog) fclose (glog);
 }
 
 /*
@@ -214,13 +221,15 @@ void rogo_closelog ()
  */
 
 pickgenotype ()
-{ register int youth, father, mother, new;
-  
+{
+  register int youth, father, mother, new;
+
   /* Find genotype with fewer trials than needed to measure its performance */
   youth = untested ();
+
   if (youth >= 0) return (youth);
 
-  /* 
+  /*
    * Have a good measure of all genotypes, pick a father, a mother, and
    * a loser and create a new genotype using genetic operators.
    */
@@ -231,35 +240,35 @@ pickgenotype ()
 
   /* If no losers yet, return the youngest */
   if (new < 0) return (youngest ());
- 
+
   /* Shift a single genotype with probability pshift */
-  if (rogo_randint (100) < pshift)
-  { if (glog)
-    { fprintf (glog, "Select: "); summgene (glog, genes[father]);
+  if (rogo_randint (100) < pshift) {
+    if (glog) {
+      fprintf (glog, "Select: "); summgene (glog, genes[father]);
       fprintf (glog, "Death:  "); summgene (glog, genes[new]);
     }
- 
+
     shift (father, new);
   }
 
   /* Mutate a single genotype with probability pmutate */
-  else if (rogo_randint (100-pshift) < pmutate)
-  { if (glog)
-    { fprintf (glog, "Select: "); summgene (glog, genes[father]);
+  else if (rogo_randint (100-pshift) < pmutate) {
+    if (glog) {
+      fprintf (glog, "Select: "); summgene (glog, genes[father]);
       fprintf (glog, "Death:  "); summgene (glog, genes[new]);
     }
- 
+
     mutate (father, new);
   }
 
   /* Cross two genotypes with probability 1-pshift-pmutate */
-  else
-  { if (glog)
-    { fprintf (glog, "Select: "); summgene (glog, genes[father]);
+  else {
+    if (glog) {
+      fprintf (glog, "Select: "); summgene (glog, genes[father]);
       fprintf (glog, "Select: "); summgene (glog, genes[mother]);
       fprintf (glog, "Death:  "); summgene (glog, genes[new]);
     }
- 
+
     cross (father, mother, new);
   }
 
@@ -277,13 +286,14 @@ pickgenotype ()
 
 readgenes (genepool)
 register char *genepool;
-{ char buf[BUFSIZ];
+{
+  char buf[BUFSIZ];
   register char *b;
   register int g=0;
   FILE *gfil;
 
-  if ((gfil = fopen (genepool, "r")) == NULL)
-  { if (fexists (genepool))
+  if ((gfil = fopen (genepool, "r")) == NULL) {
+    if (fexists (genepool))
       quit (1, "Cannot open file '%s'\n", genepool);
     else
       return (0);
@@ -293,18 +303,19 @@ register char *genepool;
   b = buf;
   fgets (b, BUFSIZ, gfil);
   sscanf (b, "%d %d %d %d %d %d",
-	&inittime, &trialno, &lastid, &crosses, &shifts, &mutations);
+          &inittime, &trialno, &lastid, &crosses, &shifts, &mutations);
   SKIPTO ('|', b);
   parsestat (b, &g_score);
   SKIPTO ('|', b);
   parsestat (b, &g_level);
 
   /* Now read in each genotype */
-  while (fgets (buf, BUFSIZ, gfil) && length < MAXM-1)
-  { if (g >= length)
-    { genes[g] = (genotype *) malloc (sizeof (**genes));
+  while (fgets (buf, BUFSIZ, gfil) && length < MAXM-1) {
+    if (g >= length) {
+      genes[g] = (genotype *) malloc (sizeof (**genes));
       length++;
     }
+
     initgene (genes[g]);
     parsegene (buf, genes[g++]);
   }
@@ -321,17 +332,20 @@ register char *genepool;
 static parsegene (buf, gene)
 register char *buf;
 register genotype *gene;
-{ register int i;
+{
+  register int i;
 
   /* Get genotype specific info */
   sscanf (buf, "%d %d %d %d", &gene->id, &gene->creation,
-	  &gene->father, &gene->mother);
+          &gene->father, &gene->mother);
 
   /* Read each DNA gene */
   SKIPTO ('|', buf);
   SKIPCHAR (' ', buf);
-  for (i=0; ISDIGIT (*buf); i++)
-  { if (i < MAXKNOB) gene->dna[i] = atoi (buf);
+
+  for (i=0; ISDIGIT (*buf); i++) {
+    if (i < MAXKNOB) gene->dna[i] = atoi (buf);
+
     SKIPDIG (buf);
     SKIPCHAR (' ', buf);
   }
@@ -349,7 +363,8 @@ register genotype *gene;
 
 writegenes (genepool)
 register char *genepool;
-{ register FILE *gfil;
+{
+  register FILE *gfil;
   register int g;
 
   /* Open the gene file */
@@ -358,7 +373,7 @@ register char *genepool;
 
   /* Write the header line */
   fprintf (gfil, "%d %d %d %d %d %d",
-	   inittime, trialno, lastid, crosses, shifts, mutations);
+           inittime, trialno, lastid, crosses, shifts, mutations);
   fprintf (gfil, "|");
   writestat (gfil, &g_score);
   fprintf (gfil, "|");
@@ -368,7 +383,7 @@ register char *genepool;
   /* Loop through each genotype */
   for (g=0; g<length; g++)
     writegene (gfil, genes[g]);
-  
+
   fclose (gfil);
 }
 
@@ -379,17 +394,20 @@ register char *genepool;
 static writegene (gfil, g)
 register FILE *gfil;
 register genotype *g;
-{ register int i;
+{
+  register int i;
 
   /* Print genotype specific info */
   fprintf (gfil, "%3d %4d %3d %3d|", g->id, g->creation,
-	  g->father, g->mother);
+           g->father, g->mother);
 
   /* Write out dna */
-  for (i=0; i<MAXKNOB; i++) 
-  { fprintf (gfil, "%2d", g->dna[i]);
+  for (i=0; i<MAXKNOB; i++) {
+    fprintf (gfil, "%2d", g->dna[i]);
+
     if (i < MAXKNOB-1) fprintf (gfil, " ");
   }
+
   fprintf (gfil, "|");
 
   /* Write out statistics */
@@ -405,7 +423,8 @@ register genotype *g;
 
 static initgene (gene)
 register genotype *gene;
-{ register int i;
+{
+  register int i;
 
   /* Clear genoptye specific info */
   gene->id = gene->creation = gene->father = gene->mother = 0;
@@ -424,9 +443,10 @@ register genotype *gene;
 
 static int compgene (a, b)
 genotype **a, **b;
-{ register int result;
+{
+  register int result;
 
-  result = (int) mean (&((*b)->score)) - 
+  result = (int) mean (&((*b)->score)) -
            (int) mean (&((*a)->score));
 
   if (result) return (result);
@@ -440,8 +460,9 @@ genotype **a, **b;
 static summgene (f, gene)
 register FILE *f;
 register genotype *gene;
-{ fprintf (f, "%3d age %2d, created %4d, ",
-	   gene->id, TRIALS(gene), gene->creation);
+{
+  fprintf (f, "%3d age %2d, created %4d, ",
+           gene->id, TRIALS(gene), gene->creation);
   fprintf (f, "score %5.0lf+%-4.0lf level %4.1lf+%-3.1lf\n",
            mean (&(gene->score)), stdev (&(gene->score)),
            mean (&(gene->level)), stdev (&(gene->level)));
@@ -462,7 +483,7 @@ register genotype *gene;
   if (gene->mother)
     fprintf (f, "(%d,%d)", gene->father, gene->mother);
   else
-      fprintf (f, "(%d)", gene->father);
+    fprintf (f, "(%d)", gene->father);
 
   fprintf (f, " created %d, DNA ", gene->creation);
   printdna (f, gene);
@@ -476,13 +497,17 @@ register genotype *gene;
 static printdna (f, gene)
 FILE *f;
 register genotype *gene;
-{ register int i;
+{
+  register int i;
 
   fprintf (f, "(");
-  for (i=0; i < MAXKNOB; i++)
-  { fprintf (f, "%02d", gene->dna[i]);
+
+  for (i=0; i < MAXKNOB; i++) {
+    fprintf (f, "%02d", gene->dna[i]);
+
     if (i < MAXKNOB-1) fprintf (f, " ");
   }
+
   fprintf (f, ")");
 }
 
@@ -492,7 +517,8 @@ register genotype *gene;
 
 static cross (father, mother, new)
 register int father, mother, new;
-{ register int cpoint, i;
+{
+  register int cpoint, i;
 
   /* Set the new genotypes info */
   genes[new]->id = ++lastid;
@@ -501,27 +527,27 @@ register int father, mother, new;
   genes[new]->mother = genes[mother]->id;
   clearstat (&(genes[new]->score));
   clearstat (&(genes[new]->level));
-  
+
   /* Pick a crossover point and dominant parent */
   cpoint = rogo_randint (MAXKNOB-1) + 1;
 
   /* Fifty/fifty chance we swap father and mother */
   if (rogo_randint (100) < 50)
-  { father ^= mother; mother ^= father; father ^= mother; }
+    { father ^= mother; mother ^= father; father ^= mother; }
 
   /* Copy the dna over */
   for (i=0; i<MAXKNOB; i++)
     genes[new]->dna[i] = (i<cpoint) ?
-      genes[father]->dna[i] : genes[mother]->dna[i];
+                         genes[father]->dna[i] : genes[mother]->dna[i];
 
   makeunique (new);
 
-  /* Log the crossover */  
-  if (glog)
-  { fprintf (glog, "Crossing %d and %d produces %d\n",
-		genes[father]->id,  genes[mother]->id, genes[new]->id);
+  /* Log the crossover */
+  if (glog) {
+    fprintf (glog, "Crossing %d and %d produces %d\n",
+             genes[father]->id,  genes[mother]->id, genes[new]->id);
   }
-  
+
   crosses++;
 }
 
@@ -531,7 +557,8 @@ register int father, mother, new;
 
 static mutate (father, new)
 register int father, new;
-{ register int i;
+{
+  register int i;
 
   /* Set the new genotypes info */
   genes[new]->id = ++lastid;
@@ -541,21 +568,22 @@ register int father, new;
   clearstat (&(genes[new]->score));
   clearstat (&(genes[new]->level));
 
-  /* Copy the dna over */  
+  /* Copy the dna over */
   for (i=0; i<MAXKNOB; i++)
     genes[new]->dna[i] = genes[father]->dna[i];
 
   /* Randomly change genes until the new genotype is unique */
-  do
-  { i=rogo_randint (MAXKNOB);
+  do {
+    i=rogo_randint (MAXKNOB);
     genes[new]->dna[i] = (genes[new]->dna[i] +
-			  triangle (20) + ALLELE) % ALLELE;
-  } while (!unique (new));
+                          triangle (20) + ALLELE) % ALLELE;
+  }
+  while (!unique (new));
 
   /* Log the mutation */
-  if (glog)
-  { fprintf (glog, "Mutating %d produces %d\n",
-		genes[father]->id, genes[new]->id);
+  if (glog) {
+    fprintf (glog, "Mutating %d produces %d\n",
+             genes[father]->id, genes[new]->id);
   }
 
   mutations++;
@@ -567,8 +595,9 @@ register int father, new;
 
 static shift (father, new)
 register int father, new;
-{ register int i, offset;
-  
+{
+  register int i, offset;
+
   /* Set the new genotypes info */
   genes[new]->id = ++lastid;
   genes[new]->creation = trialno;
@@ -579,16 +608,17 @@ register int father, new;
 
   /* Pick an offset, triangularly distributed around 0, until unique */
   offset = triangle (20);
+
   for (i=0; i<MAXKNOB; i++)
-    genes[new]->dna[i] = (genes[father]->dna[i] + 
-			  offset + ALLELE) % ALLELE;
+    genes[new]->dna[i] = (genes[father]->dna[i] +
+                          offset + ALLELE) % ALLELE;
 
   makeunique (new);
 
   /* Now log the shift */
-  if (glog)
-  { fprintf (glog, "Shifting %d by %d produces %d\n",
-		genes[father]->id, offset, genes[new]->id);
+  if (glog) {
+    fprintf (glog, "Shifting %d by %d produces %d\n",
+             genes[father]->id, offset, genes[new]->id);
   }
 
   shifts++;
@@ -600,19 +630,23 @@ register int father, new;
 
 static randompool (m)
 register int m;
-{ register int i, g;
+{
+  register int i, g;
 
-  for (g=0; g<m; g++)
-  { if (g >= length)
-    { genes[g] = (genotype *) malloc (sizeof (**genes));
+  for (g=0; g<m; g++) {
+    if (g >= length) {
+      genes[g] = (genotype *) malloc (sizeof (**genes));
       length++;
     }
+
     initgene (genes[g]);
     genes[g]->id = ++lastid;
+
     for (i=0; i<MAXKNOB; i++) genes[g]->dna[i] = rogo_randint (ALLELE);
+
     birth (glog, genes[g]);
   }
-  
+
   length = m;
 }
 
@@ -622,28 +656,33 @@ register int m;
 
 static selectgene (e1, e2)
 register int e1, e2;
-{ register int total=0;
+{
+  register int total=0;
   register int g;
 
   /* Find the total worth */
-  for (g=0; g<length; g++)
-  { if (g==e1 || g==e2) continue;
+  for (g=0; g<length; g++) {
+    if (g==e1 || g==e2) continue;
+
     /* total += (int) mean (&(genes[g]->score)); */
     total += genes[g]->score.high;
   }
-  
+
   /* Pick a random number and find the corresponding gene */
-  if (total > 0)
-  { for (g=0, total=rogo_randint (total); g<length; g++)
-    { if (g==e1 || g==e2) continue;
+  if (total > 0) {
+    for (g=0, total=rogo_randint (total); g<length; g++) {
+      if (g==e1 || g==e2) continue;
+
       /* total -= (int) mean (&(genes[g]->score)); */
       total -= genes[g]->score.high;
+
       if (total < 0) return (g);
     }
   }
 
   /* Total worth zero, pick any gene at random */
   while ((g = rogo_randint (length))==e1 || g==e2) ;
+
   return (g);
 }
 
@@ -653,19 +692,22 @@ register int e1, e2;
 
 static unique (new)
 register int new;
-{ register int g, i, delta, sumsquares;
+{
+  register int g, i, delta, sumsquares;
 
-  for (g=0; g<length; g++)
-  { if (g != new)
-    { sumsquares = 0;
-      for (i=0; i<MAXKNOB; i++)
-      { delta = genes[g]->dna[i] - genes[new]->dna[i];
-	sumsquares += delta * delta;
+  for (g=0; g<length; g++) {
+    if (g != new) {
+      sumsquares = 0;
+
+      for (i=0; i<MAXKNOB; i++) {
+        delta = genes[g]->dna[i] - genes[new]->dna[i];
+        sumsquares += delta * delta;
       }
+
       if (sumsquares < mindiff) return (0);
     }
   }
-  
+
   return (1);
 }
 
@@ -676,15 +718,16 @@ register int new;
  */
 
 static untested ()
-{ register int g, y= -1, trials=1e9, newtrials, count=length;
-  
-  for (g = rogo_randint (length); count-- > 0; g = (g+1) % length)
-  { if (TRIALS (genes[g]) >= trials) continue;
+{
+  register int g, y= -1, trials=1e9, newtrials, count=length;
+
+  for (g = rogo_randint (length); count-- > 0; g = (g+1) % length) {
+    if (TRIALS (genes[g]) >= trials) continue;
 
     newtrials = trialno - genes[g]->creation;	/* Turns since creation */
 
     if (TRIALS (genes[g]) < newtrials / (4 * length) + mintrials)
-    { y = g; trials = TRIALS (genes[g]); }
+      { y = g; trials = TRIALS (genes[g]); }
   }
 
   return (y);
@@ -695,10 +738,12 @@ static untested ()
  */
 
 static youngest ()
-{ register int g, y=0, trials=1e9, newtrials, count=length;
-  
-  for (g = rogo_randint (length); count-- > 0; g = (g+1) % length)
-  { newtrials = TRIALS (genes[g]);
+{
+  register int g, y=0, trials=1e9, newtrials, count=length;
+
+  for (g = rogo_randint (length); count-- > 0; g = (g+1) % length) {
+    newtrials = TRIALS (genes[g]);
+
     if (newtrials < trials) { y=g; trials=newtrials; }
   }
 
@@ -711,12 +756,13 @@ static youngest ()
 
 static makeunique (new)
 register int new;
-{ register int i;
+{
+  register int i;
 
-  while (!unique (new))
-  { i=rogo_randint (MAXKNOB);
+  while (!unique (new)) {
+    i=rogo_randint (MAXKNOB);
     genes[new]->dna[i] = (genes[new]->dna[i] +
-		          triangle (20) + ALLELE) % ALLELE;
+                          triangle (20) + ALLELE) % ALLELE;
   }
 }
 
@@ -726,12 +772,14 @@ register int new;
 
 static triangle (n)
 register int n;
-{ register int val;
+{
+  register int val;
 
-  do
-  { val = rogo_randint (n) - rogo_randint (n);
-  } while (val==0);
-  
+  do {
+    val = rogo_randint (n) - rogo_randint (n);
+  }
+  while (val==0);
+
   return (val);
 }
 
@@ -742,20 +790,26 @@ register int n;
 
 static badgene (e1, e2)
 register int e1, e2;
-{ register int g, worst, trials;
+{
+  register int g, worst, trials;
   double worstval, bestval, avg, dev, value;
 
   worst = -1; worstval = 1.0e9;
   bestval = -1.0e9;
-    
-  for (g=0; g<length; g++)
-  { if ((trials = TRIALS (genes[g])) < mintrials) continue;
-    avg = mean (&(genes[g]->score));    
+
+  for (g=0; g<length; g++) {
+    if ((trials = TRIALS (genes[g])) < mintrials) continue;
+
+    avg = mean (&(genes[g]->score));
     dev = stdev (&(genes[g]->score)) / sqrt ((double) trials);
     value = avg - step * dev;
+
     if (value > bestval) { bestval=value; }
+
     if (g==e1 || g==e2) continue;
+
     value = avg + step * dev;
+
     if (value < worstval) { worst=g; worstval=value; }
   }
 

@@ -34,7 +34,8 @@
 
 findscore (rogue, roguename)
 register char *rogue, *roguename;
-{ register int score, best = -1;
+{
+  register int score, best = -1;
   char cmd[100], buffer[BUFSIZ];
   register char *s, *tmpfname = TEMPFL;
   FILE *tmpfil;
@@ -42,33 +43,39 @@ register char *rogue, *roguename;
   snprintf (tmpbuffer, 256, "%s", tmpfname);
 
   /* Run 'rogue -s', and put the scores into a temp file */
-  sprintf (cmd, "%s -s >%s", rogue, mktemp (tmpbuffer)); 
-  system (cmd); 
+  sprintf (cmd, "%s -s >%s", rogue, mktemp (tmpbuffer));
+  system (cmd);
 
   /* If no temp file created, return default score */
   if ((tmpfil = fopen (tmpbuffer, "r")) == NULL)
-    return (best); 
+    return (best);
 
   /* Skip to the line starting with 'Rank...'. */
   while (fgets (buffer, BUFSIZ, tmpfil) != NULL)
     if (stlmatch (buffer, "Rank")) break;
 
-  if (! feof (tmpfil)) 
-  { while (fgets (buffer, BUFSIZ, tmpfil) != NULL)
-    { s = buffer;				/* point s at buffer */
+  if (! feof (tmpfil)) {
+    while (fgets (buffer, BUFSIZ, tmpfil) != NULL) {
+      s = buffer;				/* point s at buffer */
+
       while (ISDIGIT (*s)) s++;			/* Skip over rank */
+
       while (*s == ' ' || *s == '\t') s++;	/* Skip to score */
+
       score = atoi (s);				/* Read score */
+
       while (ISDIGIT (*s)) s++;			/* Skip over score */
+
       while (*s == ' ' || *s == '\t') s++;	/* Skip to player */
 
-      if (stlmatch (s, roguename))		/* Found our heros name */
-      { if (best < 0) best = score;		/* Rogy is on top! */
-	break;					/* 'best' is now target */
+      if (stlmatch (s, roguename)) {	/* Found our heros name */
+        if (best < 0) best = score;		/* Rogy is on top! */
+
+        break;					/* 'best' is now target */
       }
 
-      if (score < BOGUS && 
-	  (score < best || best < 0))		/* Save smallest score */
+      if (score < BOGUS &&
+          (score < best || best < 0))		/* Save smallest score */
         best = score;				/*  above Rogy's score */
     }
   }

@@ -34,14 +34,14 @@
 
 int knob[MAXKNOB];
 char *knob_name[MAXKNOB] = {
-	"trap searching:   ",
-	"door searching:   ",
-	"resting:          ",
-	"using arrows:     ",
-	"experimenting:    ",
-	"retreating:       ",
-	"waking monsters:  ",
-	"hoarding food:    "
+  "trap searching:   ",
+  "door searching:   ",
+  "resting:          ",
+  "using arrows:     ",
+  "experimenting:    ",
+  "retreating:       ",
+  "waking monsters:  ",
+  "hoarding food:    "
 };
 
 char genelock[100];
@@ -51,29 +51,32 @@ char genepool[100];
 main (argc, argv)
 int   argc;
 char *argv[];
-{ int m=10, init=0, seed=0, version=RV53A, full=0;
+{
+  int m=10, init=0, seed=0, version=RV53A, full=0;
 
   /* Get the options */
-  while (--argc > 0 && (*++argv)[0] == '-')
-  { while (*++(*argv))
-    { switch (**argv)
-      { when 'a':	full=2;
-	when 'i':	init++;
-	when 'f':	full=1;
-	when 'm':	m = atoi(*argv+1); SKIPARG;
-			printf ("Gene pool size %d.\n", m);
-	when 's':	seed = atoi(*argv+1); SKIPARG;
-			printf ("Random seed %d.\n", m);
-	when 'v':	version = atoi(*argv+1); SKIPARG;
-			printf ("Rogue version %d.\n", version);
-	otherwise:	quit (1,
-			  "Usage: gene [-if] [-msv<value>] [genepool]\n");
+  while (--argc > 0 && (*++argv)[0] == '-') {
+    while (*++(*argv)) {
+      switch (**argv) {
+        case 'a':	full=2; break;
+        case 'i':	init++; break;
+        case 'f':	full=1; break;
+        case 'm':	m = atoi(*argv+1); SKIPARG;
+          printf ("Gene pool size %d.\n", m);
+          break;
+        case 's':	seed = atoi(*argv+1); SKIPARG;
+          printf ("Random seed %d.\n", m);
+          break;
+        case 'v':	version = atoi(*argv+1); SKIPARG;
+          printf ("Rogue version %d.\n", version);
+          break;
+        default:	quit (1,"Usage: gene [-if] [-msv<value>] [genepool]\n");
       }
     }
   }
 
-  if (argc > 0)
-  { if (readgenes (argv[0]))		/* Read the gene pool */
+  if (argc > 0) {
+    if (readgenes (argv[0]))		/* Read the gene pool */
       analyzepool (full);		/* Print a summary */
     else
       fprintf (stderr, "Cannot read file '%s'\n", argv[0]);
@@ -87,9 +90,10 @@ char *argv[];
   sprintf (genepool, "%s/GenePool%d", getRgmDir (), version);
 
   critical ();				/* Disable interrupts */
-  if (lock_file (genelock, MAXLOCK))
-  { if (init) 
-    { rogo_srand (seed);			/* Set the random number generator */
+
+  if (lock_file (genelock, MAXLOCK)) {
+    if (init) {
+      rogo_srand (seed);			/* Set the random number generator */
       rogo_openlog (genelog);		/* Open the gene log file */
       initpool (MAXKNOB, m);		/* Random starting point */
       writegenes (genepool);		/* Write out the gene pool */
@@ -98,7 +102,7 @@ char *argv[];
     else if (! readgenes (genepool))	/* Read the gene pool */
       quit (1, "Cannot read file '%s'\n", genepool);
 
-   unlock_file (genelock);
+    unlock_file (genelock);
   }
   else
     quit (1, "Cannot access file '%s'\n", genepool);
