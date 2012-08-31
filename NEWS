@@ -1,15 +1,18 @@
-Thu Aug 30 21:17:35 EDT 2012
+Fri Aug 31 19:07:35 EDT 2012
 
 most recent changes:
 
-  - reformatting the code using:
+  - catch a repeated command and print error messages and eventually
+	  exit.
 
-    astyle --indent=spaces=2 --style=k\&r --break-blocks --preserve-date --keep-one-line-statements --indent-blocks --indent-switches --keep-one-line-blocks --break-closing-brackets
+	  - for the command "1y" bug give a fatal error after
+	    it is repeated more than 10 times (see TODO).
 
-  if i'm going to keep reading through this it helps to
-have it consistently formatted.
+	  - for all other commands:
 
-  should be no changes to how rogomatic runs.
+	    - > 50 print an infomational message
+	    - > 100 print a warning
+	    - > 250 fatal error and exit
 
 
 -----

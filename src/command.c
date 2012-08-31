@@ -106,7 +106,7 @@ int tmode, a1, a2, a3, a4;
 
   /* If in a real game (not replaying), then check for looping */
   if (!replaying) {
-    debuglog ("command : compare ('%s', '%s')\n",lastcom, cmd);
+    debuglog ("command : compare ('%s', '%s') comcount %d  movedir %d\n",lastcom, cmd, comcount, movedir);
 
     if (streq (lastcom, cmd)) {
       comcount++;
@@ -114,6 +114,18 @@ int tmode, a1, a2, a3, a4;
       if (streq (cmd, "i") && comcount > 3)
         dwait (D_FATAL, "command: cannot synchronize inventory, invcount %d.",
                invcount);
+      else if (streq (cmd, "1y") && comcount > 10)
+        dwait (D_FATAL, "command: direction 1y more than 10 times.  (atrow,atcol) (%d,%d)",
+               atrow, atcol);
+      else if (comcount > 50)
+        dwait (D_INFORM, "command: doing %s more than 50 times?  comcount %d.  (atrow,atcol) (%d,%d)",
+               cmd, comcount, atrow, atcol);
+      else if (comcount > 100)
+        dwait (D_WARNING, "command: doing %s more than 100 times?  comcount %d.  (atrow,atcol) (%d,%d)",
+               cmd, comcount, atrow, atcol);
+      else if (comcount > 250)
+        dwait (D_FATAL, "command: doing %s more than 250 times?  comcount %d.  (atrow,atcol) (%d,%d)",
+               cmd, comcount, atrow, atcol);
     }
     else {
       strcpy (lastcom, cmd);

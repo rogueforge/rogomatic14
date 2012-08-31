@@ -8,17 +8,20 @@ building:
 
 code bugs/changes:
 
-  - reformatted code.  enough reading of strange indents
-    already...
-
-  - working on fixing the 1y direction infinite loop bug
+    [r1.0.4]
+  - working on fixing the "1y" direction infinite loop bug
     (repeatedly tries to walk into a wall).  the quick
-    fix i will release in the next version.  this way
-    at least there won't be an infinite loop, instead
-    rogomatic will give a fatal error message and then 
-    quit.  the actual figuring out of why and correcting 
-    it will take a different release.
+    fix is in this version.  this way at least there won't 
+    be an infinite loop, instead rogomatic will give a 
+    fatal error message and then quit.  the actual figuring 
+    out of why and correcting it will take a different 
+    release (i'm looking into it now as i get time).
 
+    [r1.0.3]
+  - reformatted code.  enough reading of strange indents
+    already...  no other changes than reformatting.
+
+    [r1.0.2]
   - wielding weapons can fail mid-weild causing troubles.
     fixed so that there is more and better checking of
     weapon traits -- this seems to eliminate several other
@@ -42,6 +45,12 @@ strange happenings:
  - will starve to death standing on a
    scare monster scroll
 
+wishlist items:
+ - do the same sort of thing for armor
+   handling that i did for weapon handling
+ - fix the repeated display of a pack item,
+   a cosmetic thing, but it's annoying to
+   keep seeing that message...
 
 screen not updating correctly:
 
@@ -53,7 +62,7 @@ screen not updating correctly:
    so this is a cosmetic bug
 
 
-someday:
+rogue rog-o-matic versions someday:
 
  - test against different versions of rogue 
    other than 5.4.4.
