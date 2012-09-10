@@ -1,18 +1,18 @@
-Fri Aug 31 19:07:35 EDT 2012
+Sun Sep  9 21:26:47 EDT 2012
 
 most recent changes:
 
   - catch a repeated command and print error messages and eventually
-	  exit.
+    exit.  first version was incorrect.  should be fixed now...
 
-	  - for the command "1y" bug give a fatal error after
-	    it is repeated more than 10 times (see TODO).
+    - for the command "1y" bug give a fatal error after
+      it is repeated more than 10 times (see TODO).
 
-	  - for all other commands:
+    - for all other commands:
 
-	    - > 50 print an infomational message
-	    - > 100 print a warning
-	    - > 250 fatal error and exit
+      - > 50 print an infomational message
+      - > 100 print a warning
+      - > 250 fatal error and exit
 
 
 -----

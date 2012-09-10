@@ -8,6 +8,10 @@ building:
 
 code bugs/changes:
 
+    [r1.0.5]
+  - fixed my mistake in last change.  it would not have 
+    worked well.
+ 
     [r1.0.4]
   - working on fixing the "1y" direction infinite loop bug
     (repeatedly tries to walk into a wall).  the quick
