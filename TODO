@@ -8,6 +8,20 @@ building:
 
 code bugs/changes:
 
+    [r1.0.6]
+  - io.c scrolling caused problems, one bug fixed, but another
+    still remains to be solved.
+
+  - rooms.c fixed a debugging use of (v,h) to now use directional
+    letters (u,d,l,r) instead, makes things a little clearer.
+
+  - explore.c fixed small bug in debugging info display during
+    monster avoiding.
+
+  - command.c bumped up limits for error reporting.
+
+  - got rid of deciphervt100.c and adjusted src/Makefile.am.
+
     [r1.0.5]
   - fixed my mistake in last change.  it would not have 
     worked well.
@@ -66,13 +80,16 @@ screen not updating correctly:
    so this is a cosmetic bug
 
 
-rogue rog-o-matic versions someday:
+rogue and rog-o-matic versions someday:
 
  - test against different versions of rogue 
    other than 5.4.4.
 
 
 ===== rogue
+
+
+No bugs known for rogue5.4.4-rgm-r1.0.2 or rogue5.4.4-ant-r1.0.7
 
 
 rogue5.4.4-ant-r1.0.7 (this is the version i use 
@@ -103,11 +120,9 @@ for testing rogomatic):
    valgrind memcheck
 
 
-rogue5.4.4-rgm (version for the purists):
+rogue5.4.4-rgm-r1.0.2 (version for the purists):
 
  - configuration fixes
  - fix for the nymph steals item bug
  - fix reference to freed space
 
-
-No bugs known for rogue5.4.4-rgm or rogue5.4.4-ant-r1.0.7

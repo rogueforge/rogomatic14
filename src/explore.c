@@ -833,10 +833,12 @@ avoidmonsters ()
 
   /* Avoid each monster in turn */
   for (i=0; i<mlistlen; i++) {
+
     /* First check whether this monster is really wimpy */
     if (maxhit(i) < Hp/2) {
       AVOID (mlist[i].mrow, mlist[i].mcol, '$')
     }
+
     /* If not a wimp and awake, avoid him all together */
     else if (mlist[i].q == AWAKE) {
       int d, dr, dc, mr = mlist[i].mrow, mc = mlist[i].mcol;
@@ -852,16 +854,19 @@ avoidmonsters ()
         caddycorner (dr, dc, (d+2) & 7, d, '$');
       }
     }
+
     /* If he'll wake up, give him a wide berth */
     else if (!wearingstealth) {
       for (r = mlist[i].mrow-1; r<= mlist[i].mrow+1; r++)
         for (c = mlist[i].mcol-1; c<= mlist[i].mcol+1; c++)
-          AVOID (r, c, '$')
-        }
+          if (!onrc (WALL, r, c))
+            AVOID (r, c, '$')
+    }
+
     /* He's asleep, don't try to run through him */
     else
       AVOID (mlist[i].mrow, mlist[i].mcol, '$')
-    }
+  }
 
   /* Don't avoid current position */
   avdmonsters[searchstartr][searchstartc] = 0;

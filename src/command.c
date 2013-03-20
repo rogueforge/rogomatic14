@@ -117,14 +117,15 @@ int tmode, a1, a2, a3, a4;
       else if (streq (cmd, "1y") && comcount > 10)
         dwait (D_FATAL, "command: direction 1y more than 10 times.  (atrow,atcol) (%d,%d)",
                atrow, atcol);
+
       else if (comcount > 250)
         dwait (D_FATAL, "command: doing %s more than 250 times?  comcount %d.  (atrow,atcol) (%d,%d)",
                cmd, comcount, atrow, atcol);
-      else if (comcount > 100)
-        dwait (D_WARNING, "command: doing %s more than 100 times?  comcount %d.  (atrow,atcol) (%d,%d)",
+      else if (comcount > 225)
+        dwait (D_WARNING, "command: doing %s more than 225 times?  comcount %d.  (atrow,atcol) (%d,%d)",
                cmd, comcount, atrow, atcol);
-      else if (comcount > 50)
-        dwait (D_INFORM, "command: doing %s more than 50 times?  comcount %d.  (atrow,atcol) (%d,%d)",
+      else if (comcount > 200)
+        dwait (D_INFORM, "command: doing %s more than 200 times?  comcount %d.  (atrow,atcol) (%d,%d)",
                cmd, comcount, atrow, atcol);
     }
     else {

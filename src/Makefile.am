@@ -1,7 +1,6 @@
 bin_PROGRAMS =  \
   player        \
 	gene          \
-	deciphervt100 \
 	rgmplot       \
 	histplot      \
   rogomatic
@@ -55,8 +54,7 @@ noinst_PROGRAMS = \
   rgmplot         \
   datesub         \
   histplot        \
-  gene            \
-  deciphervt100
+  gene
 
 rgmplot_SOURCES = \
   globals.h       \
@@ -83,14 +81,6 @@ gene_SOURCES = \
   learn.c      \
   stats.c      \
   utility.c
-
-deciphervt100_SOURCES = \
-  globals.h             \
-  types.h               \
-  deciphervt100.c       \
-  getroguetoken.h       \
-  getroguetoken.c       \
-  debuglog.c
 
 # special case for lex output
 datesub.c: datesub.l

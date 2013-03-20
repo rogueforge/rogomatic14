@@ -854,7 +854,9 @@ register int r, c;
 {
   register int i, j, k;
 
-  int inc, rm, end1, end2, end, dropout = 0, dir= NONE;
+  int inc, rm, end1, end2, end, dropout = 0, dir = NONE;
+
+  char dirch = ' ';
 
   for (k = 0; k < 8; k += 2) {
     if (onrc (HALL, r + deltr[k], c + deltc[k]))      /* Hall has been seen */
@@ -868,6 +870,12 @@ register int r, c;
   if (dir < 0) return;
 
   if (dir % 4 == 0) {		     /* If horizontal dir */
+
+    if (dir == 0)
+      dirch = 'l';
+    else
+      dirch = 'r';
+
     inc = -deltc[dir]; rm = whichroom (r, c);
     end1 = bounds[rm].top; end2 = bounds[rm].bot;
 
@@ -878,7 +886,7 @@ register int r, c;
 
     for (j = c+inc; j*inc < end; j += inc) {
       for (i = end1; i <= end2; i++) {
-        if (debug (D_SCREEN | D_SEARCH | D_INFORM)) mvaddch (i, j, 'h');
+        if (debug (D_SCREEN | D_SEARCH | D_INFORM)) mvaddch (i, j, dirch);
 
         if (onrc (DOOR | WALL | ROOM | HALL, i, j)) {
           /* Modified only to find doors on vertical walls */
@@ -895,6 +903,12 @@ register int r, c;
   }
 
   else {
+
+    if (dir == 2)
+      dirch = 'd';
+    else
+      dirch = 'u';
+
     inc = -deltr[dir]; rm = whichroom (r, c);
     end1 = bounds[rm].left; end2 = bounds[rm].right;
 
@@ -905,7 +919,7 @@ register int r, c;
 
     for (i = r+inc; i*inc < end; i += inc) {
       for (j = end1; j <= end2; j++) {
-        if (debug (D_SCREEN | D_SEARCH | D_INFORM)) mvaddch (i, j, 'v');
+        if (debug (D_SCREEN | D_SEARCH | D_INFORM)) mvaddch (i, j, dirch);
 
         if (onrc (DOOR | WALL | ROOM | HALL, i, j)) {
           /* Modified only to find doors on horizontal walls */

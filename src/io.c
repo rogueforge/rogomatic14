@@ -73,6 +73,8 @@ scrollup (void)
   int r;
   int c;
 
+  newdoors = doorlist;
+
   for (r = s_row1; r < s_row2; r++) {
     for (c = 0; c < 80; c++) {
       screen[r][c] = screen[r+1][c];
@@ -315,6 +317,7 @@ int   onat;                             /* 0 ==> Wait for waitstr
         debuglog ("LF_TOK      check for scroll %d > %d\n",row, s_row2);
 
         if (row > s_row2) {
+          debuglog ("LF_TOK      scroll up\n");
           scrollup ();
         }
 
