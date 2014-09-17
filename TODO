@@ -1,3 +1,4 @@
+Wed Sep 17 12:40:26 EDT 2014
 
 ===== rogomatic
 
@@ -5,8 +6,24 @@ building:
 
  - should build and compile
 
+ - i have a report of this not working on a 64 
+   bit system, but details are still unknown.
+
 
 code bugs/changes:
+
+    [r1.0.7]
+  - changed configure.ac to fix configure error about
+    missing "missing" script.
+
+  - rooms.c currentrectangle was setting negative values
+    added checks to make sure that doesn't happen again.
+
+  - things.c wield weapon handling doesn't work quite right,
+    fixed bug in sendcnow, but then just commented the call
+    out for now as it wasn't doing what i expected.  will 
+    continue researching this for the next release.
+
 
     [r1.0.6]
   - io.c scrolling caused problems, one bug fixed, but another
@@ -22,10 +39,12 @@ code bugs/changes:
 
   - got rid of deciphervt100.c and adjusted src/Makefile.am.
 
+
     [r1.0.5]
   - fixed my mistake in last change.  it would not have 
     worked well.
  
+
     [r1.0.4]
   - working on fixing the "1y" direction infinite loop bug
     (repeatedly tries to walk into a wall).  the quick
@@ -35,9 +54,11 @@ code bugs/changes:
     out of why and correcting it will take a different 
     release (i'm looking into it now as i get time).
 
+
     [r1.0.3]
   - reformatted code.  enough reading of strange indents
     already...  no other changes than reformatting.
+
 
     [r1.0.2]
   - wielding weapons can fail mid-weild causing troubles.
@@ -48,6 +69,7 @@ code bugs/changes:
 
 strange happenings:
 
+ - weapon handling oddities
  - running around without armor on
  - fighting a close up monster with another 
    behind it at a distance (switches between
@@ -63,12 +85,14 @@ strange happenings:
  - will starve to death standing on a
    scare monster scroll
 
+
 wishlist items:
  - do the same sort of thing for armor
    handling that i did for weapon handling
  - fix the repeated display of a pack item,
    a cosmetic thing, but it's annoying to
    keep seeing that message...
+
 
 screen not updating correctly:
 
@@ -77,13 +101,26 @@ screen not updating correctly:
  - monster letters don't get removed
  - #'s get put to the left
  - the internal representation of the screen is correct
-   so this is a cosmetic bug
+   so these are what seems to be cosmetic flaws.
 
 
 rogue and rog-o-matic versions someday:
 
  - test against different versions of rogue 
-   other than 5.4.4.
+   other than my 5.4.4. altered version.
+
+   - yes, finally did some of this and it looks like
+     making changes for the bsdgames-nonfree version of
+     rogue is too large.  skip this...
+
+   - the rogue fork versions at coredumpcentral.org seem
+     to actually work somewhat, but alas, i really hate
+     how different versions are handled and it's a mess
+     i might never fix.  we'll see...
+
+     - rogue 5.4.5 looks like it doesn't get as far as 
+       the other two versions.  those seem to have
+       similar problems to each other.
 
 
 ===== rogue

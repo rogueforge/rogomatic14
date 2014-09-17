@@ -1,37 +1,19 @@
-Wed Mar 20 14:32:18 EDT 2013
+Wed Sep 17 12:40:04 EDT 2014
 
 most recent changes:
 
-  - scrolling in io.c confuses searching in some cases.
-    one change is made which fixes one bug (but another
-    still remains to be figured out).
+  - configure.ac tweaked to get rid of missing script
+    error.
 
-  - fixed a small bug in explore.c where when avoiding monsters the
-    debugging info was printing $'s over the wall characters.
+  - rooms.c currentrectangle was setting curt or curl
+    negative at times, causing a rare bug.
 
-  - also changed rooms.c to use direction letters (u,d,l,r) for 
-    debugging instead of using (h,v).  v is also used by search
-    debugging output on the screen and that was making it hard 
-    to read what was happening.
+  - things.c wield was incorrectly working.  i had
+    introduced a bug by using sendcnow to send a string
+    instead of a character.  commented out sendnow until
+    i can look into further.  there's a once in a while
+    strange change/use of weapons.
 
-  - command.c bumped up the numbers so that error messages don't 
-    actually show up until something is wrong.  previously there 
-    were some times during the game when the hero is resting or
-    healing and hit the previous limits. 
-
-      - > 200 print an infomational message
-      - > 225 print a warning
-      - > 250 fatal error and exit
-
-  - deciphervt100.c is removed as it didn't work and i have no
-    plans to fix it.  it was a copy of a part of getroguetoken.c 
-    that parsed screen codes from rogue.  for debugging i have a 
-    different program called vtrogue which is a separate project 
-    and should be available in:
-
-      http://www.anthive.com/rog/other/things.html
-
-  - src/Makefile.am was adjusted to reflect the removal.
 
 -----
 

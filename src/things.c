@@ -100,7 +100,7 @@ int obj;
 
       /* current weapon might be cursed, test wield first */
       if (currentweapon != NONE) {
-        sendcnow("w");
+        /* not working as intended...  needs more debugging sendcnow('w'); */
 
         /* if this comes back ok, then change weapons */
         if (itemis(currentweapon, UNCURSED))

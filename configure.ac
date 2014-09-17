@@ -2,7 +2,10 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([rogomatic], [r1.0.6], [ant@anthive.com])
+AC_INIT([rogomatic], [r1.0.7], [ant@anthive.com])
+
+AM_INIT_AUTOMAKE
+
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADERS([config.h])
 
@@ -32,5 +35,4 @@ AC_FUNC_REALLOC
 AC_CHECK_FUNCS([memset setenv sqrt])
 
 AC_CONFIG_FILES([Makefile src/Makefile src/install.h])
-AM_INIT_AUTOMAKE
 AC_OUTPUT

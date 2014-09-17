@@ -324,17 +324,17 @@ currentrectangle ()
       any = 0;
 
       if (flags & fT)
-        for (r = curt - 1, c = curl - 1; c <= curr + 1; c++)
+        for (r = curt - 1, c = curl - 1; r > 0 && c > 0 && c <= curr + 1; c++)
           if (onrc (ROOM, r, c))      { curt--; any = 1; break; }
           else if (seerc ('-', r, c)) { flags &= ~fT; break; }
 
       if (flags & fB)
-        for (r = curb + 1, c = curl - 1; c <= curr + 1; c++)
+        for (r = curb + 1, c = curl - 1; r > 0 && c > 0 && c <= curr + 1; c++)
           if (onrc (ROOM, r, c))      { curb++; any = 1; break; }
           else if (seerc ('-', r, c)) { flags &= ~fB; break; }
 
       if (flags & fL)
-        for (r = curt, c = curl - 1; r <= curb; r++)
+        for (r = curt, c = curl - 1; r > 0 && c > 0 && r <= curb; r++)
           if (onrc (ROOM, r, c))      { curl--; any = 1; break; }
           else if (seerc ('|', r, c)) { flags &= ~fL; break; }
 
