@@ -1,6 +1,9 @@
-Wed Sep 17 12:40:26 EDT 2014
+Fri Sep 26 20:34:40 EDT 2014
+
+
 
 ===== rogomatic
+
 
 building:
 
@@ -11,6 +14,12 @@ building:
 
 
 code bugs/changes:
+
+
+    [r1.0.8]
+  - command.c, bumped up limits so that errors that were
+    previously considered fatal have enough time to finish.
+
 
     [r1.0.7]
   - changed configure.ac to fix configure error about
@@ -70,6 +79,7 @@ code bugs/changes:
 strange happenings:
 
  - weapon handling oddities
+   - throwing arrows without wielding the bow
  - running around without armor on
  - fighting a close up monster with another 
    behind it at a distance (switches between
@@ -87,11 +97,14 @@ strange happenings:
 
 
 wishlist items:
+
  - do the same sort of thing for armor
    handling that i did for weapon handling
  - fix the repeated display of a pack item,
    a cosmetic thing, but it's annoying to
    keep seeing that message...
+ - fix configure/automake stuff to work with
+   ncurses debugging includes and libraries
 
 
 screen not updating correctly:
@@ -114,22 +127,18 @@ rogue and rog-o-matic versions someday:
      rogue is too large.  skip this...
 
    - the rogue fork versions at coredumpcentral.org seem
-     to actually work somewhat, but alas, i really hate
-     how different versions are handled and it's a mess
-     i might never fix.  we'll see...
+     to actually work somewhat, but i don't think any of
+     them get very far...
 
-     - rogue 5.4.5 looks like it doesn't get as far as 
-       the other two versions.  those seem to have
-       similar problems to each other.
 
 
 ===== rogue
 
 
-No bugs known for rogue5.4.4-rgm-r1.0.2 or rogue5.4.4-ant-r1.0.7
+No bugs known for rogue5.4.4-rgm-r1.0.2 or rogue5.4.4-ant-r1.0.8
 
 
-rogue5.4.4-ant-r1.0.7 (this is the version i use 
+rogue5.4.4-ant-r1.0.8 (this is the version i use 
 for testing rogomatic):
 
   [these are done]
@@ -155,6 +164,8 @@ for testing rogomatic):
  - fix invalid reference to freed space
  - cleaned up a few memory leftovers reported by
    valgrind memcheck
+ - fixed maze/room generation bug that was causing
+   an infinite loop
 
 
 rogue5.4.4-rgm-r1.0.2 (version for the purists):
@@ -162,4 +173,5 @@ rogue5.4.4-rgm-r1.0.2 (version for the purists):
  - configuration fixes
  - fix for the nymph steals item bug
  - fix reference to freed space
+
 
