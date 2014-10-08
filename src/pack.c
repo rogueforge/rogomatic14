@@ -33,7 +33,7 @@
 # include "globals.h"
 
 static char *stuffmess [] = {
-  "strange object", "food", "potion", "scroll",
+  "strange", "food", "potion", "scroll",
   "wand", "ring", "hitter", "thrower",
   "missile", "armor", "amulet", "gold",
   "none"
@@ -455,7 +455,7 @@ char *msgstart, *msgend;
 
   for (p = objname, q = xbeg; q < xend;  p++, q++) *p = *q;
 
-  dwait (D_PACK, "inv: %s '%s', hit %d, dam %d, chg %d, knw %d",
+  dwait (D_PACK, "inv %s '%s' ht %d dm %d ch %d kn %d",
          stuffmess[(int) what], objname, plushit, plusdam, charges, xknow);
 
   /* Ring bonus is printed differently in Rogue 5.3 */

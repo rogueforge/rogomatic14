@@ -165,6 +165,7 @@ int   didreadmap = 0;		/* Last level we read a map on */
 int   doorlist[40];		/* List of doors on this level */
 int   doublehasted = 0; 	/* True if double hasted (Rogue 3.6) */
 int   droppedscare = 0;		/* True if we dropped 'scare' on this level */
+int   diddrop = 0;	/* True if we dropped anything on this spot */
 int   emacs = 0;		/* True ==> format output for Emacs */
 int   exploredlevel = 0;	/* We completely explored this level */
 int   floating = 0;		/* True if we are levitating */

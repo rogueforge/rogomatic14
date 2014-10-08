@@ -46,6 +46,7 @@
 # define MAXMON      (128)
 # define SUCCESS     (1)
 # define FAILURE     (0)
+# define MAXSAMECOM  (1600)
 
 # define USLEEP   (14000)  /* set to 0 for full blast.  not using the "-w"
                               option also skips these delays.
@@ -183,7 +184,9 @@
 # define T_DOORSRCH  (9)
 # define T_LISTLEN   (10)
 
-/* Bit value for debugging types (for debugging function dwait) */
+/* Bit value for debugging types (for debugging function dwait and
+   screen message debugging).  If D_MESSAGE is set the screen must 
+   be at least 31x80 information displayed to fit.  */
 
 # define D_FATAL   (00001)
 # define D_ERROR   (00002)
@@ -222,7 +225,7 @@
 # define HELD   (10)
 
 /* Constants for handling inventory */
-# define UNKNOWN  -99999
+# define UNKNOWN  -99
 # define INVMAX   25
 
 /* Pack item attributes  DR UTexas 25 Jan 84 */

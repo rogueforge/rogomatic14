@@ -1,5 +1,4 @@
-Fri Sep 26 20:34:40 EDT 2014
-
+Tue Oct  7 21:39:41 EDT 2014
 
 
 ===== rogomatic
@@ -9,15 +8,41 @@ building:
 
  - should build and compile
 
- - i have a report of this not working on a 64 
-   bit system, but details are still unknown.
+ - i have a report of this not working on a 64 bit system, 
+   but details are still unknown.
 
 
 code bugs/changes:
 
 
+    [r1.0.9]
+  - command.c added more checks on wielding, so that if the
+    hero wanted to do a test wield (a 'w' immediately followed
+    by an ESC) that would not crash the player.
+
+  - also related to wielding, changes were made to mess.c, 
+    strategy.c and things.c hoping to finally fix this for
+    good.
+
+  - additional cosmetic changes to pack.c to shorten up the
+    description for dwait when D_PACK debugging is turned on.
+
+  - fixed up a few comments that were wrong (screen size should
+    be at least 31x80 when D_PACK is set) in mess.c and changed
+    a few messages to be consistent with the rest (they weren't
+    capitalized for some reason).
+
+  - bumped repeat limits up further in command.c.
+
+  - added global variable diddrop to keep the hero from
+    dropping something on top of something else.
+
+  - added MAXSAMECOM so that changing the repeat count is 
+    quicker.
+
+
     [r1.0.8]
-  - command.c, bumped up limits so that errors that were
+  - command.c bumped up limits so that errors that were
     previously considered fatal have enough time to finish.
 
 

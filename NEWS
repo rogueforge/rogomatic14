@@ -1,17 +1,31 @@
-Fri Sep 26 20:35:12 EDT 2014
+Tue Oct  7 21:42:46 EDT 2014
+
 
 most recent changes:
 
-  - command.c, bumped up limits on error messages as there
-    were times marked fatal errors that weren't.
+  - command.c, made it possible for the hero to do a
+    test wield (if the current weapon is unknown or
+    suspected of being cursed one way to find out is
+    to try to wield another weapon) by doing a 'w'
+    immediately followed by an ESC character.  previously,
+    the player was having a hard time doing the right 
+    thing with such a sequence, and my attempts at using
+    a much longer sequence didn't go well either.
 
-  - the most recent versions don't seem to be doing as well
-    (looking at my list of the first 500 SEEDS and comparing 
-    it to the previous versions).  this could be because of 
-    poor weapon handling or the changes to the version of
-    rogue.  i'm looking into this now (as long as i don't 
-    find easier bugs to tackle along the way -- which is what
-    happened with rogue this past few days...).
+  - related changes to the above were done in mess.c and 
+    things.c.
+
+  - cosmetic changes to pack.c, mess.c and types.h, some
+    debugging flags will generate long lines that wrap 
+    around and clobber the second line of the display and
+    a few messages were inconsistent.
+
+  - bumped repeat command error limits up further and made 
+    it a global constant MAXSAMECOM.
+
+  - added global variable diddrop to track if the hero has
+    moved or not after dropping something.  needed to keep
+    from dropping something on top of something else.
 
 
 -----
@@ -97,11 +111,11 @@ install:
     may have.
 
   - i am currently using a version of rogue (5.4.4) 
-    distributed with this version of rogomatic, slightly 
-    fixed (see the downloads list for the most recent 
-    version i have posted).  the best results will be 
-    from running that version of rogue since i haven't 
-    tested this updated rogomatic against any other 
+    distributed with this version of rogomatic and it is
+    being debugged (see the downloads list for the most 
+    recent version i have posted).  the best results will 
+    be from running that version of rogue since i haven't 
+    tested this updated rogomatic much against any other 
     versions.  see the README in that archive for how 
     to install.  it places binaries in /usr/local/bin
     too by default.
@@ -150,18 +164,18 @@ debugging:
 
   - if you turn on debugging flags (via types.h or
     interactively) you will need to make the window
-    bigger as more information is displayed below.
+    bigger as more information is displayed below the
+    24th line.
 
-  - D_MESSAGE, D_PACK are both very helpful.
+  - D_MESSAGE, D_PACK are both very helpful, increase
+    screen size to 31x80 minimum.
 
   - there is a separate archive of the debugging
-    environment i've been using.  it contains 
-    scripts for replicating runs and comparing 
-    series of runs (with and without learning).
-    see the Things webpage.
+    environment i've been using.  it contains scripts 
+    for replicating runs and comparing series of runs 
+    (with and without learning).  see the webpage:
 
-  - i focus on the first 500 SEEDS for testing and
-    comparison with previous versions.
+    www.anthive.com/rog/other/things.html
 
 
 -----

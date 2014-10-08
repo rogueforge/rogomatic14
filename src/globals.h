@@ -90,6 +90,7 @@ extern int didreadmap;		/* Last magically mapped level */
 extern int doorlist[], *newdoors; /* Holds r,c of new doors found */
 extern int doublehasted;	/* True if double hasted (3.6 only) */
 extern int droppedscare;	/* Number of scare mon. on this level */
+extern int diddrop;	/* If we've dropped anything on this spot */
 extern int emacs;		/* True if in emacs mode */
 extern int exploredlevel;	/* We completely explored this level */
 extern int floating;		/* True if we are levitating */

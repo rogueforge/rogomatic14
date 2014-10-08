@@ -1246,6 +1246,8 @@ statusline ()
 
   if (droppedscare)		strcat (s, "dropped scare, ");
 
+  if (diddrop)		strcat (s, "dropped something, ");
+
   if (floating)			strcat (s, "floating, ");
 
   if (hasted)			strcat (s, "hasted, ");

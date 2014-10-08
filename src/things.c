@@ -85,31 +85,25 @@ int obj;
       return (0);
     }
     else if (currentweapon == NONE) {
-      command (T_HANDLING, "w%c%c", LETTER (obj), ESC);
+      command (T_HANDLING, "w%c", LETTER (obj));
     }
     else if (itemis(currentweapon, UNCURSED)) {
       cursedweapon=0;
-      command (T_HANDLING, "w%c%c", LETTER (obj), ESC);
+      command (T_HANDLING, "w%c", LETTER (obj));
     }
     else if (itemis(currentweapon, ENCHANTED)) {
       remember(currentweapon, UNCURSED);
       cursedweapon=0;
-      command (T_HANDLING, "w%c%c", LETTER (obj), ESC);
+      command (T_HANDLING, "w%c", LETTER (obj));
     }
     else {
 
-      /* current weapon might be cursed, test wield first */
+      /* current weapon might be cursed */
       if (currentweapon != NONE) {
-        /* not working as intended...  needs more debugging sendcnow('w'); */
-
-        /* if this comes back ok, then change weapons */
-        if (itemis(currentweapon, UNCURSED))
-          command (T_HANDLING, "w%c%c", LETTER (obj), ESC);
-        else {
-          cursedweapon=1;
-          return (0);
-        }
+        lastdrop = currentweapon;
+        command (T_HANDLING, "w%c", ESC);
       }
+    return (0);
     }
   }
 
@@ -134,10 +128,12 @@ int obj;
 drop (obj)
 int obj;
 {
-  /* Cant if not there, in use, or on something else */
+  /* Can't if not there, in use, or on something else or
+     dropped something else already */
   if (inven[obj].count < 1 ||
       itemis (obj, INUSE) ||
-      on (STUFF | TRAP | STAIRS | DOOR))
+      on (STUFF | TRAP | STAIRS | DOOR) ||
+      diddrop)
     return (0);
 
   /* read unknown scrolls or good scrolls rather than dropping them */

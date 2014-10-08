@@ -116,7 +116,7 @@ terpmes ()
 
     mend = m;
 
-    /* :ANT: for debugging screen now has to be at least 29x80 */
+    /* :ANT: for debugging screen now has to be at least 31x80 */
     if debug(D_MESSAGE) {
       at (24,0);
       printw (">%-79.79s",screen);
@@ -254,7 +254,7 @@ register char *mess, *mend;
         else if (MATCH("defeated it*")) { echoit=0; killed("it"); }
         else if (MATCH("defeated *")) { echoit=0; killed(res1); }
         else if (MATCH("drop what*")) echoit=0;
-        else if (MATCH("dropped *")) ;
+        else if (MATCH("dropped *")) diddrop = 1;
         else unknown++;
 
         break;
@@ -668,7 +668,7 @@ register char *mess, *mend;
     dwait(D_WARNING, "More Loop ->%s<-.", mess);
   }
   else if (morecount >= 100) {
-    dwait(D_FATAL, "More Loop Exit.");
+    dwait(D_FATAL, "More Loop Exit ->%s<-.", mess);
   }
   else if (unknown)
     dwait (D_WARNING, "Unknown message '%s'", mess);
@@ -958,7 +958,7 @@ char *monster;
   if ((mh = getmonhist (monster, 1)) != NONE)
     { monster = monhist[mh].m_name; m = monsternum (monster); }
 
-  dwait (D_MONSTER, "was hit by a '%s'", monster);
+  dwait (D_MONSTER, "Was hit by a '%s'", monster);
 
   timeshit++;			/* Bump global count */
 
@@ -987,7 +987,7 @@ char *monster;
   if ((mh = getmonhist (monster, 1)) != NONE)
     { monster = monhist[mh].m_name; m = monsternum (monster); }
 
-  dwait (D_MONSTER, "was missed by a '%s'", monster);
+  dwait (D_MONSTER, "Was missed by a '%s'", monster);
 
   timesmissed++;		/* Bump global count */
 

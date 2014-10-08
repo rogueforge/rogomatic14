@@ -118,15 +118,15 @@ int tmode, a1, a2, a3, a4;
         dwait (D_FATAL, "command: direction 1y more than 100 times.  (atrow,atcol) (%d,%d)",
                atrow, atcol);
 
-      else if (comcount > 500)
-        dwait (D_FATAL, "command: doing %s more than 500 times?  comcount %d.  (atrow,atcol) (%d,%d)",
-               cmd, comcount, atrow, atcol);
-      else if (comcount > 475)
-        dwait (D_WARNING, "command: doing %s more than 475 times?  comcount %d.  (atrow,atcol) (%d,%d)",
-               cmd, comcount, atrow, atcol);
-      else if (comcount > 450)
-        dwait (D_INFORM, "command: doing %s more than 450 times?  comcount %d.  (atrow,atcol) (%d,%d)",
-               cmd, comcount, atrow, atcol);
+      else if (comcount > MAXSAMECOM)
+        dwait (D_FATAL, "command: doing %s more than %d times?  comcount %d.  (atrow,atcol) (%d,%d)",
+               cmd, MAXSAMECOM, comcount, atrow, atcol);
+      else if (comcount > (MAXSAMECOM - 25))
+        dwait (D_WARNING, "command: doing %s more than %d times?  comcount %d.  (atrow,atcol) (%d,%d)",
+               cmd, MAXSAMECOM - 25, comcount, atrow, atcol);
+      else if (comcount > (MAXSAMECOM - 50))
+        dwait (D_INFORM, "command: doing %s more than %d times?  comcount %d.  (atrow,atcol) (%d,%d)",
+               cmd, MAXSAMECOM - 50, comcount, atrow, atcol);
     }
     else {
       strcpy (lastcom, cmd);
@@ -151,6 +151,8 @@ int tmode, a1, a2, a3, a4;
   /* Do the inventory stuff */
   if (movedir == NOTAMOVE)
     adjustpack (cmd);
+  else
+    diddrop = 0;
 
   /* If we have a ring of searching, take that into account */
   if (wearing ("searching") != NONE)
@@ -187,6 +189,23 @@ char *cmd;
 }
 
 /*
+ * functionesc: return true if the next character after
+ *              a function letter is an ESC.
+ */
+
+int
+functionesc (cmd)
+char *cmd;
+{
+  register char *s = cmd;
+
+  while (ISDIGIT (*s) || *s == 'f') s++;
+
+  s++;
+  return ((*s == ESC));
+}
+
+/*
  * commandarg: return the nth argument of a command.
  */
 
@@ -212,8 +231,10 @@ char *cmd;
   int neww, obj;
 
   switch (functionchar (cmd)) {
-    case 'd':	setrc (STUFF | USELESS, atrow, atcol);
+    case 'd':	if (!diddrop) {
+      setrc (STUFF | USELESS, atrow, atcol);
       deleteinv (OBJECT (commandarg (cmd, 1)));
+      }
       break;
 
     case 'e':   removeinv (OBJECT (commandarg (cmd, 1)));
@@ -242,7 +263,8 @@ char *cmd;
       hitstokill -= 1; /* Dont blame weapon if arrow misses */
       break;
 
-    case 'w':	if (currentweapon != NONE)
+    case 'w': if (!functionesc (cmd)) {
+      if (currentweapon != NONE)
         forget (currentweapon, INUSE);
 
       neww = OBJECT (commandarg (cmd, 1));
@@ -261,6 +283,7 @@ char *cmd;
       badarrow = goodarrow = poorarrow = hitstokill = 0;
       newweapon = 1;
       setbonuses ();
+      }
       break;
 
     case 'p': case 'z':
