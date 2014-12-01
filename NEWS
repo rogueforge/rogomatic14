@@ -1,31 +1,12 @@
-Tue Oct  7 21:42:46 EDT 2014
+Sun Nov 30 19:30:07 EST 2014
 
 
 most recent changes:
 
-  - command.c, made it possible for the hero to do a
-    test wield (if the current weapon is unknown or
-    suspected of being cursed one way to find out is
-    to try to wield another weapon) by doing a 'w'
-    immediately followed by an ESC character.  previously,
-    the player was having a hard time doing the right 
-    thing with such a sequence, and my attempts at using
-    a much longer sequence didn't go well either.
-
-  - related changes to the above were done in mess.c and 
-    things.c.
-
-  - cosmetic changes to pack.c, mess.c and types.h, some
-    debugging flags will generate long lines that wrap 
-    around and clobber the second line of the display and
-    a few messages were inconsistent.
-
-  - bumped repeat command error limits up further and made 
-    it a global constant MAXSAMECOM.
-
-  - added global variable diddrop to track if the hero has
-    moved or not after dropping something.  needed to keep
-    from dropping something on top of something else.
+ - too many to rewrite again, see TODO...  mostly
+   changes related to database of items and identify
+   scroll workings.  but other changes too including
+   some long wanted bug fixes.
 
 
 -----
@@ -66,7 +47,7 @@ project info:
     me a note about something i already have listed.
 
   - i would appreciate help and should put more items in
-    the TODO list marked HELP so if you find something in
+    the TODO list marked help so if you find something in
     there to work on let me know.
 
   - if i've made errors or introduced other bugs, that's 
@@ -168,7 +149,7 @@ debugging:
     24th line.
 
   - D_MESSAGE, D_PACK are both very helpful, increase
-    screen size to 31x80 minimum.
+    screen size to 32x80.
 
   - there is a separate archive of the debugging
     environment i've been using.  it contains scripts 
@@ -191,5 +172,8 @@ compatibility:
 
   - i'm using fairly up to date versions of the autotools, 
     compiler, make, etc. when they appear in the testing or
-    sometimes the unstable Debian archives.
+    sometimes the unstable or experimental Debian archives.
 
+  - that all said, this code may work on older Debian
+    releases or even other distributions, but i haven't 
+    got the setups for testing them out.

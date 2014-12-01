@@ -192,7 +192,7 @@ register char *mess, *mend;
         if (MATCH("a secret door*")) echoit=0;
         else if (MATCH("as you read the scroll, it vanishes*")) echoit=0;
         else if (MATCH("a cloak of darkness falls around you*"))
-          { infer ("blindness"); blinded=1; }
+          { infer ("blindness", potion); blinded=1; }
         else if (MATCH("a teleport trap*")) nametrap (TELTRAP,NEAR);
         else if (MATCH("a trapdoor*")) nametrap (TRAPDOR,NEAR);
         else if (MATCH("an arrow shoots *"))
@@ -216,11 +216,14 @@ register char *mess, *mend;
 
         /* :ANT: */
 
-        else if (MATCH("a ring *")) ;
-        else if (MATCH("a wand *")) ;
-        else if (MATCH("a staff *")) ;
-        else if (MATCH("a scroll *")) ;
-        else if (MATCH("a potion *")) ;
+        else if (MATCH("a new monster is nearby*")) infer ("create monster", Scroll);
+        else if (MATCH("a staff of * [*](*)*")) infer (res1, wand);
+        else if (MATCH("a wand of * [*](*)*")) infer (res1, wand);
+        else if (MATCH("a ring of *(*)*")) infer (res1, ring);
+        else if (MATCH("a wand of * (*)*")) infer (res1, wand);
+        else if (MATCH("a staff of *(*)*")) infer (res1, wand);
+        else if (MATCH("a scroll of *")) infer (res1, Scroll);
+        else if (MATCH("a potion of *(*)*")) infer (res1, potion);
         else if (MATCH("a +*")) ;
         else if (MATCH("an +*")) ;
         else if (MATCH("a -*")) ;
@@ -231,9 +234,9 @@ register char *mess, *mend;
 
       case 'b':
 
-        if (MATCH("bolt bounces*")) infer ("lightning");
-        else if (MATCH("bolt hits*")) infer ("lightning");
-        else if (MATCH("bolt misses*")) infer ("lightning");
+        if (MATCH("bolt bounces*")) infer ("lightning", wand);
+        else if (MATCH("bolt hits*")) infer ("lightning", wand);
+        else if (MATCH("bolt misses*")) infer ("lightning", wand);
         else if (MATCH("bummer, this food tastes awful*")) ;
         else if (MATCH("bummer!  you've hit the ground*")) floating=0;
         else if (MATCH("bite has no effect*")) ;
@@ -244,6 +247,7 @@ register char *mess, *mend;
       case 'c':
 
         if (MATCH("call it*")) { echoit=0; }
+        else if (MATCH("call what*")) { echoit=0; }
         else unknown++;
 
         break;
@@ -254,6 +258,8 @@ register char *mess, *mend;
         else if (MATCH("defeated it*")) { echoit=0; killed("it"); }
         else if (MATCH("defeated *")) { echoit=0; killed(res1); }
         else if (MATCH("drop what*")) echoit=0;
+        else if (MATCH("destroyed *"))
+          { darkturns = 0; darkdir = NONE; targetmonster = 0; echoit=0; }
         else if (MATCH("dropped *")) diddrop = 1;
         else unknown++;
 
@@ -285,7 +291,7 @@ register char *mess, *mend;
 
       case 'h':
 
-        if (MATCH("hey, this tastes great*")) infer ("restore strength");
+        if (MATCH("hey, this tastes great*")) infer ("restore strength", potion);
         else if (MATCH("huh? what? who?*")) ;
         else if (MATCH("heavy!  that's a nasty critter!*")) ;
         else unknown++;
@@ -322,8 +328,8 @@ register char *mess, *mend;
 
       case 'm':
 
-        if (MATCH("missile vanishes*")) infer ("magic missile");
-        else if (MATCH("missle vanishes*")) infer ("magic missile");
+        if (MATCH("missile vanishes*")) infer ("magic missile", wand);
+        else if (MATCH("missle vanishes*")) infer ("magic missile", wand);
         else if (MATCH("my, that was a yummy *")) ;
         else if (MATCH("moved onto *")) set (STUFF);
 
@@ -338,10 +344,13 @@ register char *mess, *mend;
 
       case 'n':
 
-        if (MATCH("nothing happens*")) inven[lastwand].charges = 0;
+        if (MATCH("nothing happens*")) {
+          remember (lastwand, WORTHLESS);
+        }
         else if (MATCH("no more *")) ;
         else if (MATCH("nothing appropriate*")) sendnow ("%c;",ESC);
         else if (MATCH("no room*")) ;
+        else if (MATCH("not wearing armor*")) ;
         else unknown++;
 
         break;
@@ -351,13 +360,13 @@ register char *mess, *mend;
         if (MATCH("oh no! an arrow shot *"))
           { arrowshot=1; nametrap(ARROW,HERE); }
         else if (MATCH("oh, now this scroll has a map *"))
-          { infer ("magic mapping"); didreadmap = Level; }
+          { infer ("magic mapping", Scroll); didreadmap = Level; }
         else if (MATCH("oh, bummer!  everything is dark!  help!*"))
-          { infer ("blindness"); blinded=1; }
+          { infer ("blindness", potion); blinded=1; }
         else if (MATCH("oh, wow!  everything seems so cosmic!*"))
-          { infer ("hallucination"); cosmic=1; }
+          { infer ("hallucination", potion); cosmic=1; }
         else if (MATCH("oh, wow!  you're floating in the air!*"))
-          { infer ("levitation"); floating=1; }
+          { infer ("levitation", potion); floating=1; }
         else if (MATCH("oh, wow, that tasted good*")) ;
         else unknown++;
 
@@ -422,8 +431,8 @@ register char *mess, *mend;
         else if (MATCH("the * appears confused*")) ;
         else if (MATCH("the rust vanishes instantly*"))
           { if (gushed) { gushed = 0; nametrap (WATERAP, HERE); } }
-        else if (MATCH("the room is lit*")) { setnewgoal (); infer ("light"); }
-        else if (MATCH("the corridor glows*")) { infer ("light"); }
+        else if (MATCH("the room is lit*")) { setnewgoal (); infer ("light", wand); }
+        else if (MATCH("the corridor glows*")) { infer ("light", wand); }
         else if (MATCH("the * has confused you*")) confused = 1;
         else if (MATCH("this scroll is an identify scroll scroll*"))
           { readident ("identify scroll"); }
@@ -436,10 +445,10 @@ register char *mess, *mend;
         else if (MATCH("the veil of darkness lifts*")) blinded=0;
         else if (MATCH("the scroll turns to dust*"))
           { deletestuff (atrow, atcol); unset(SCAREM | STUFF); droppedscare--; }
-        else if (MATCH("this potion tastes * dull*")) infer ("thirst quenching");
-        else if (MATCH("this potion tastes pretty*")) infer ("thirst quenching");
-        else if (MATCH("this potion tastes like apricot juice*"))
-          { infer ("see invisible"); if (version == RV36A) sendnow ("%c", ESC); }
+        else if (MATCH("this potion tastes * dull*")) infer ("thirst quenching", potion);
+        else if (MATCH("this potion tastes pretty*")) infer ("thirst quenching", potion);
+        else if (MATCH("this potion tastes like * juice*"))
+          { infer ("see invisible", potion); if (version == RV36A) sendnow ("%c", ESC); }
         else if (MATCH("this scroll seems to be blank*")) infer ("blank paper");
         else if (MATCH("the * bounces*")) ;
         else if (MATCH("the * vanishes as it hits the ground*"))
@@ -486,13 +495,13 @@ register char *mess, *mend;
         else if (MATCH("wielding a*")) ;
         else if (MATCH("wear what*")) echoit=0;
         else if (MATCH("what monster*")) echoit=0;
-        else if (MATCH("wait, what's going*")) {infer("confusion"); confused=1;}
+        else if (MATCH("wait, what's going*")) {infer("confusion", potion); confused=1;}
         else if (MATCH("wait*that's a *")) ;
-        else if (MATCH("what a*feeling*")) { infer("confusion"); confused=1; }
-        else if (MATCH("what a*piece of paper*")) infer ("blank paper");
+        else if (MATCH("what a*feeling*")) { infer("confusion", potion); confused=1; }
+        else if (MATCH("what a*piece of paper*")) infer ("blank paper", Scroll);
         else if (MATCH("welcome to level *")) ;
         else if (MATCH("was wearing*")) ;
-        else if (MATCH("what bulging muscles*")) infer ("gain strength");
+        else if (MATCH("what bulging muscles*")) infer ("gain strength", potion);
         else if (MATCH("wearing *")) ;
         else unknown++;
 
@@ -515,25 +524,24 @@ register char *mess, *mend;
         else if (MATCH("you can't carry anything else*"))
           { echoit=0; set (STUFF); maxobj=objcount; }
         else if (MATCH("you can*")) curseditem ();
-        else if (MATCH("you begin to feel greedy*")) infer ("gold detection");
-        else if (MATCH("you begin to feel better*")) infer ("healing");
-        else if (MATCH("you begin to feel much better*")) infer("extra healing");
+        else if (MATCH("you begin to feel better*")) infer ("healing", potion);
+        else if (MATCH("you begin to feel much better*")) infer("extra healing", potion);
         else if (MATCH("you begin to sense the presence of monsters*"))
-          { infer("monster detection"); }
-        else if (MATCH("you feel a strange sense of loss*")) infer("hold monster");
+          { infer("monster detection", potion); }
+        else if (MATCH("you feel a strange sense of loss*")) infer("hold monster", Scroll);
         else if (MATCH("you feel a wrenching sensation in your gut*")) ;
-        else if (MATCH("you feel stronger, now*")) infer ("gain strength");
-        else if (MATCH("you feel very sick now*")) infer ("poison");
-        else if (MATCH("you feel momentarily sick*")) infer ("poison");
+        else if (MATCH("you feel stronger, now*")) infer ("gain strength", potion);
+        else if (MATCH("you feel very sick now*")) infer ("poison", potion);
+        else if (MATCH("you feel momentarily sick*")) infer ("poison", potion);
         else if (MATCH("you suddenly feel much more skillful*"))
-          { infer("raise level"); }
-        else if (MATCH("your nose tingles*")) infer ("food detection");
+          { infer("raise level", potion); }
+        else if (MATCH("your nose tingles*")) infer ("food detection", Scroll);
         else if (MATCH("you start to float in the air*"))
-          { infer ("levitation"); floating=1; }
+          { infer ("levitation", potion); floating=1; }
         else if (MATCH("you're floating off the ground!*")) floating=1;
         else if (MATCH("you float gently to the ground*")) floating=0;
         else if (MATCH("you feel yourself moving much faster*"))
-          { infer ("haste self"); hasted = 1; }
+          { infer ("haste self", potion); hasted = 1; }
         else if (MATCH("you feel yourself slowing down*"))
           { hasted = 0; doublehasted = 0; }
         else if (MATCH("you faint from exhaustion*"))
@@ -543,12 +551,12 @@ register char *mess, *mend;
         else if (MATCH("your * vanishes as it hits the ground*"))
           { darkturns = 0; darkdir = NONE; echoit=0; }
         else if (MATCH("your hands begin to glow *"))
-          { infer ("monster confusion"); redhands = 1; }
+          { infer ("monster confusion", Scroll); redhands = 1; }
         else if (MATCH("your hands stop glowing *")) redhands = 0;
 
         else if (MATCH("you feel as if somebody is watching over you*") ||
                  MATCH("you feel in touch with the universal onenes*")) {
-          infer ("remove curse");
+          infer ("remove curse", Scroll);
           forget (currentarmor, CURSED);
           remember (currentarmor, UNCURSED);
           cursedarmor=0;
@@ -564,16 +572,19 @@ register char *mess, *mend;
           if (gushed) { gushed=0; nametrap (WATERAP,HERE); }
         }
 
-        else if (MATCH("your scalp itches")) infer ("protect armor");
+        else if (MATCH("your scalp itches")) infer ("protect armor", Scroll);
         else if (MATCH("your armor is covered by a shimmering * shield*")) {
-          infer ("protect armor");
+          infer ("protect armor", Scroll);
+          forget (currentarmor, CURSED);
+          remember (currentarmor, UNCURSED);
+          cursedarmor = 0;
           protected++;
           remember (currentarmor, PROTECTED);
         }
 
-        else if (MATCH("your arms tingle")) infer ("enchant armor");
+        else if (MATCH("your arms tingle")) infer ("enchant armor", Scroll);
         else if (MATCH("your armor glows * for a moment*")) {
-          infer ("enchant armor");
+          infer ("enchant armor", Scroll);
           cursedarmor = 0;
           newarmor = 1;
           inven[currentarmor].phit++;
@@ -584,9 +595,9 @@ register char *mess, *mend;
           forget (currentarmor, CURSED);
           remember (currentarmor, UNCURSED);
         }
-        else if (MATCH("your hands tingle")) infer ("enchant weapon");
+        else if (MATCH("your hands tingle")) infer ("enchant weapon", Scroll);
         else if (MATCH("your * glows * for a moment*")) {
-          infer ("enchant weapon");
+          infer ("enchant weapon", Scroll);
           cursedweapon = 0;
           newweapon = 1;
 
@@ -597,24 +608,26 @@ register char *mess, *mend;
           remember (currentweapon, UNCURSED);
         }
         else if (MATCH("you hear a high pitched humming noise*"))
-          { infer ("aggravate monsters"); wakemonster (9); aggravated = 1; }
-        else if (MATCH("you hear maniacal laughter*")) infer ("scare monster");
-        else if (MATCH("you hear a faint cry*")) infer ("create monster");
-        else if (MATCH("you fall asleep*")) infer ("sleep");
+          { infer ("aggravate monsters", Scroll); wakemonster (9); aggravated = 1; }
+        else if (MATCH("you hear maniacal laughter*")) infer ("scare monster", Scroll);
+        else if (MATCH("you hear a faint cry*")) infer ("create monster", Scroll);
+        else if (MATCH("you fall asleep*")) infer ("sleep", Scroll);
         else if (MATCH("you have been granted the boon of genocide*"))
-          { infer ("genocide"); echoit=0; rampage (); }
-        else if (MATCH("you have a tingling feeling*")) infer ("drain life");
-        else if (MATCH("you are too weak to use it*")) infer ("drain life");
-        else if (MATCH("you begin to feel greedy*")) infer ("gold detection");
-        else if (MATCH("you feel a pull downward*")) infer ("gold detection");
+          { infer ("genocide", Scroll); echoit=0; rampage (); }
+        else if (MATCH("you have a tingling feeling*")) infer ("drain life", wand);
+        else if (MATCH("you are too weak to use it*")) infer ("drain life", wand);
+        else if (MATCH("you begin to feel greedy*")) infer ("gold detection", potion);
+        else if (MATCH("you feel a pull downward*")) infer ("gold detection", potion);
         else if (MATCH("you begin to feel a pull downward*"))
-          { infer ("gold detection"); }
+          { infer ("gold detection", potion); }
         else if (MATCH("you are caught *")) nametrap (BEARTRP,HERE);
         else if (MATCH("your purse feels lighter*")) ;
         else if (MATCH("you suddenly feel weaker*")) ;
         else if (MATCH("you must identify something*")) ;
-        else if (MATCH("you have a * feeling for a moment, then it passes*")) infer ("detect monsters");
-        else if (MATCH("you daydream of * for a moment, then it passes*")) infer ("detect magic");
+        else if (MATCH("you have a * feeling for a moment, then it passes*")) infer ("monster detection", potion);
+        else if (MATCH("you have a * feeling for a moment*")) infer ("monster detection", potion);
+        else if (MATCH("you daydream of * for a moment, then it passes*")) infer ("magic detection", potion);
+        else if (MATCH("you feel deeply moved*")) infer ("teleportation", Scroll);
 
         else if (MATCH("you are transfixed*")) ;
         else if (MATCH("you are frozen*")) washit ("ice monster");
@@ -623,7 +636,7 @@ register char *mess, *mend;
         else if (MATCH("you fell into a trap!*")) ;
         else if (MATCH("yum*")) echoit=0;
         else if (MATCH("yuk*")) echoit=0;
-        else if (MATCH("you sense the presence of magic*")) echoit=0;
+        else if (MATCH("you sense the presence of magic*")) { infer ("magic detection", potion); echoit=0; }
 
         /* :ANT: let's tag this as a BEARTRP for now */
         else if (MATCH("you are suddenly in a parallel dimension*")) nametrap (BEARTRP, HERE);
@@ -721,13 +734,15 @@ register char *dat, *pat, **res;
 }
 
 /*
- * readident: read an identify scroll.
+ * readident: we have read an identify scroll.
  */
 
 readident (name)
 char *name;
 {
   int obj; char id = '*';	/* Default is "* for list" */
+  stuff item_type = none;
+  char lookup_name[NAMSIZ];
 
   if (!replaying && version < RV53A &&
       (nextid < LETTER (0) || nextid > LETTER (invcount))) {
@@ -735,7 +750,7 @@ char *name;
            nextid, afterid, invcount);
   }
 
-  infer (name);		/* Record what kind of scroll this is */
+  infer (name, Scroll);		/* Record what kind of scroll this is */
 
   at (0,0);
   clrtoeol ();
@@ -758,13 +773,28 @@ char *name;
   }
   else {			/* Rogue 5.3 */
     if (streq (name, "identify ring, wand or staff")) {
-      if ((obj = unknown (ring)) != NONE || (obj = unknown (wand)) != NONE ||
-          (obj = have (ring)) != NONE    || (obj = have (wand)) != NONE)
+      if ((obj = unknown (ring)) != NONE) {
         id = LETTER (obj);
+        item_type = ring;
+      }
+      else if ((obj = unknown (wand)) != NONE) {
+        id = LETTER (obj);
+        item_type = wand;
+      }
+      else if ((obj = have (ring)) != NONE) {
+        id = LETTER (obj);
+        item_type = ring;
+      }
+      else if ((obj = have (wand)) != NONE) {
+        id = LETTER (obj);
+        item_type = wand;
+      }
     }
     else if (streq (name, "identify potion")) {
-      if ((obj = unknown (potion)) != NONE || (obj = have (potion)) != NONE)
+      if ((obj = unknown (potion)) != NONE || (obj = have (potion)) != NONE) {
         id = LETTER (obj);
+        item_type = potion;
+      }
     }
     else if (streq (name, "identify armor")) {
       if ((obj = unknown (armor)) != NONE || (obj = have (armor)) != NONE)
@@ -780,12 +810,24 @@ char *name;
         id = LETTER (obj);
     }
     else if (streq (name, "identify scroll") || streq (name, "identify")) {
-      if ((obj = unknown (Scroll)) != NONE || (obj = have (Scroll)) != NONE)
+      if ((obj = unknown (Scroll)) != NONE || (obj = have (Scroll)) != NONE) {
         id = LETTER (obj);
+        item_type = Scroll;
+      }
+    }
+
+    if ((id != '*') &&
+        (item_type == ring || item_type == wand || item_type == potion || item_type == Scroll)) {
+      memset (lastname, '\0', NAMSIZ);
+      memset (lookup_name, '\0', NAMSIZ);
+      strncpy (lookup_name, inven[obj].str, NAMSIZ-1);
+      strncpy (lastname, findentry_getfakename (lookup_name, item_type), NAMSIZ-1);
     }
 
     waitfor ("not a valid item");
     sendnow (" %c;", id);		/* Pick an object to identify */
+    if (id == '*')
+      memset (lastname, '\0', NAMSIZ);
     usesynch = 0; justreadid=1;		/* Must reset inventory */
   }
 
@@ -837,7 +879,7 @@ rampage ()
  * curseditem: the last object we tried to drop (unwield, etc.)  was cursed.
  *
  * Note that cursed rings are not a problem since we only put on
- * Good rings we have identified, so dont bother marking rings.
+ * Good rings we have identified, so don't bother marking rings.
  */
 
 curseditem ()
@@ -860,7 +902,7 @@ curseditem ()
       { currentweapon = lastdrop; cursedweapon = 1; return; }
   }
 
-  /* Dont know what was cursed, so assume the worst */
+  /* Don't know what was cursed, so assume the worst */
   cursedarmor=1;
   cursedweapon=1;
 
@@ -872,19 +914,22 @@ curseditem ()
  * base, and then zap that name into all of the same objects
  */
 
-infer (objname)
+infer (objname, item_type)
 char *objname;
+stuff item_type;
 {
   register int i;
 
   if (*lastname && *objname && !stlmatch (objname, lastname)) {
-    infername (lastname, objname);
-
-    for (i=0; i<MAXINV; i++)
-      if (stlmatch (inven[i].str, lastname)) {
-        strcpy (inven[i].str, objname);
+    infername (lastname, objname, item_type);
+    for (i=0; i<MAXINV; i++) {
+      if ((inven[i].count > 0) && 
+           streq (inven[i].str, lastname) && inven[i].type == item_type) {
+        memset (inven[i].str, '\0', NAMSIZ);
+        strncpy (inven[i].str, objname, NAMSIZ-1);
         remember (i, KNOWN);
       }
+    }
   }
 }
 

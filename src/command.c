@@ -260,7 +260,7 @@ char *cmd;
       break;
 
     case 't':	removeinv (OBJECT (commandarg (cmd, 2)));
-      hitstokill -= 1; /* Dont blame weapon if arrow misses */
+      hitstokill -= 1; /* Don't blame weapon if arrow misses */
       break;
 
     case 'w': if (!functionesc (cmd)) {
@@ -301,7 +301,7 @@ char *cmd;
           inven[lastwand].charges--;
       }
 
-      hitstokill -= 1; /* Dont blame weapon if wand misses */
+      hitstokill -= 1; /* Don't blame weapon if wand misses */
       break;
 
     case 's':   bumpsearchcount ();
@@ -392,9 +392,16 @@ showcommand (cmd)
 char *cmd;
 {
   register char *s;
+  register int i = 72;
+
   at (23,72); standout (); printw (" ");
 
-  for (s=cmd; *s; s++) printw ("%s", unctrl (*s));
+  for (s=cmd; *s; s++) {
+    if ((i + strlen (unctrl(*s))) < 78) {
+      printw ("%s", unctrl (*s));
+    }
+    i += strlen (unctrl(*s));
+  }
 
   printw (" "); standend (); clrtoeol (); at (row, col); refresh ();
   cmdonscreen = 1;

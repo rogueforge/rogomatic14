@@ -299,7 +299,8 @@ inventory (msgstart, msgend)
 char *msgstart, *msgend;
 {
   register char *p, *q, *mess = msgstart, *mend = msgend;
-  char objname[100], *realname();
+  char objname[100];
+  char dbname[NAMSIZ];
   int  n, ipos, xknow = 0, newitem = 0, inuse = 0, printed = 0, len = 0;
   int  plushit = UNKNOWN, plusdam = UNKNOWN, charges = UNKNOWN;
   stuff what;
@@ -323,9 +324,9 @@ char *msgstart, *msgend;
     mend-=1;
 
   if (mess[1] == ')')
-    { ipos= DIGIT(*mess); mess+=3;}
+    { newitem = 1; ipos = DIGIT(*mess); mess += 3;}
   else
-    { ipos= DIGIT(mend[-2]); mend -= 4; }
+    { ipos = DIGIT(mend[-2]); mend -= 4; }
 
 
   if ((ipos < 0) || (ipos > MAXINV)) {
@@ -338,13 +339,12 @@ char *msgstart, *msgend;
   else {
     deletestuff (atrow, atcol);
     unsetrc (USELESS, atrow, atcol);
-    newitem = 1;
   }
 
   if (ISDIGIT(*mess))
-    { n=atoi(mess); mess += 2+(n>9); }
+    { n = atoi(mess); mess += 2+(n>9); }
   else {
-    n=1;
+    n = 1;
 
     if (*mess == 'a') mess++;   /* Eat the determiner A/An/The */
 
@@ -390,13 +390,13 @@ char *msgstart, *msgend;
   while (mend[-1]==')') {
     while (*--mend != '(') ;		/* on exit mend -> '(' */
 
-    if (stlmatch(mend,"(being worn)") )
+    if (stlmatch (mend,"(being worn)") )
       { currentarmor = ipos; inuse = INUSE; }
-    else if (stlmatch(mend,"(weapon in hand)") )
+    else if (stlmatch (mend,"(weapon in hand)") )
       { currentweapon = ipos; inuse = INUSE; }
-    else if (stlmatch(mend,"(on left hand)") )
+    else if (stlmatch (mend,"(on left hand)") )
       { leftring = ipos; inuse = INUSE; }
-    else if (stlmatch(mend,"(on right hand)") )
+    else if (stlmatch (mend,"(on right hand)") )
       { rightring = ipos; inuse = INUSE; }
 
     while ((mend[-1]==' ') && (mend > mess)) mend--;
@@ -412,9 +412,9 @@ char *msgstart, *msgend;
     xknow = KNOWN;
   }
 
-  /* Undo plurals by removing trailing 's' (but not for "blindne->ss<-") */
   while (mend[-1] == ' ') mend--;
 
+  /* Undo plurals by removing trailing 's' (but not for "blindne->ss<-") */
   if ((mend[-1]=='s') && (mend[-2] != 's')) mend--;
 
   /* Now find what we have picked up: */
@@ -427,14 +427,26 @@ char *msgstart, *msgend;
   else if (stlmatch(mess,"staff of ")) xtr(wand,9,0,KNOWN)
   else if (stlmatch(mess,"wand of ")) xtr(wand,8,0,KNOWN)
   else if (stlmatch(mess,"ring of "))  xtr(ring,8,0,KNOWN)
-  else if (stlmatch(mend-4,"mail")) xtr(armor,0,0,0)
-  else if (stlmatch(mend-6,"potion")) xtr(potion,0,7,0)
-  else if (stlmatch(mess,"scroll titled '")) xtr(Scroll,15,1,0)
+  else if (stlmatch(mess,"scrolls called ")) xtr(Scroll,15,0,KNOWN)
+  else if (stlmatch(mess,"scroll called ")) xtr(Scroll,14,0,KNOWN)
   else if (stlmatch(mess,"scrolls titled '")) xtr(Scroll,16,1,0)
+  else if (stlmatch(mess,"scroll titled '")) xtr(Scroll,15,1,0)
+  else if (stlmatch(mess,"potions called ")) xtr(potion,15,0,KNOWN)
+  else if (stlmatch(mess,"potion called ")) xtr(potion,14,0,KNOWN)
+  else if (stlmatch(mess,"ring called ")) xtr(ring,12,0,KNOWN)
+  else if (stlmatch(mess,"wand called ")) xtr(wand,12,0,KNOWN)
+  else if (stlmatch(mess,"staff called ")) xtr(wand,13,0,KNOWN)
+  else if (stlmatch(mess,"apricot")) xtr(food,0,0,KNOWN)
+  else if (stlmatch(mess,"mango")) xtr(food,0,0,KNOWN)
+  else if (stlmatch(mess,"slime-mold")) xtr(food,0,0,KNOWN)
+  else if (stlmatch(mend-5,"arrow")) xtr(missile,0,0,0)
+  else if (stlmatch(mend-8,"shuriken")) xtr(missile,0,0,0)
+  else if (stlmatch(mend-6,"scroll")) xtr(Scroll,0,7,0)
+  else if (stlmatch(mend-6,"potion")) xtr(potion,0,7,0)
   else if (stlmatch(mend-5,"staff")) xtr(wand,0,6,0)
   else if (stlmatch(mend-4,"wand"))  xtr(wand,0,5,0)
   else if (stlmatch(mend-4,"ring")) xtr(ring,0,5,0)
-  else if (stlmatch(mess,"apricot")) xtr(food,0,0,KNOWN)
+  else if (stlmatch(mend-4,"mail")) xtr(armor,0,0,0)
   else if (stlmatch(mend-5,"sword")) xtr(hitter,0,0,0)
   else if (stlmatch(mend-4,"mace")) xtr(hitter,0,0,0)
   else if (stlmatch(mend-6,"dagger")) xtr(missile,0,0,0)
@@ -443,11 +455,9 @@ char *msgstart, *msgend;
   else if (stlmatch(mend-3,"arm")) xtr(armor,0,0,0)
   else if (stlmatch(mend-3,"bow")) xtr(thrower,0,0,0)
   else if (stlmatch(mend-5,"sling")) xtr(thrower,0,0,0)
-  else if (stlmatch(mend-5,"arrow")) xtr(missile,0,0,0)
   else if (stlmatch(mend-4,"dart")) xtr(missile,0,0,0)
   else if (stlmatch(mend-4,"rock")) xtr(missile,0,0,0)
   else if (stlmatch(mend-4,"bolt")) xtr(missile,0,0,0)
-  else if (stlmatch(mend-8,"shuriken")) xtr(missile,0,0,0)
   else xtr(strange,0,0,0)
 
   /* Copy the name of the object into a string */
@@ -455,20 +465,29 @@ char *msgstart, *msgend;
 
   for (p = objname, q = xbeg; q < xend;  p++, q++) *p = *q;
 
-  dwait (D_PACK, "inv %s '%s' ht %d dm %d ch %d kn %d",
-         stuffmess[(int) what], objname, plushit, plusdam, charges, xknow);
-
   /* Ring bonus is printed differently in Rogue 5.3 */
   if (version >= RV53A && what == ring && charges != UNKNOWN)
     { plushit = charges; charges = UNKNOWN; }
 
+  dwait (D_PACK, "inv %s '%s' ht %d dm %d ch %d kn %d",
+         stuffmess[(int) what], objname, plushit, plusdam, charges, xknow);
+
+  /* make sure all unknown potion, Scroll, wand, rings 
+     are in dbase */
+  if (!xknow && (what == potion || what == Scroll || what == wand || what == ring)) {
+    addobj (objname, ipos, what);
+  }
+
   /* If the name of the object matches something in the database, */
   /* slap the real name into the slot and mark it as known */
-  if ((what == potion || what == Scroll || what == wand) && !xknow) {
-    char *dbname = realname (objname);
+  if (!xknow && (what == potion || what == Scroll || what == wand || what == ring)) {
+    memset (dbname, '\0', NAMSIZ);
+    strncpy (dbname, findentry_getrealname (objname, what), NAMSIZ-1);
 
-    if (*dbname) {
+    if (strlen (dbname) > 0) {
       strcpy (objname, dbname);
+      strcpy (pending_call_name, dbname);
+      pending_call_letter = LETTER (ipos);
       xknow = KNOWN;
 
       if (newitem) {

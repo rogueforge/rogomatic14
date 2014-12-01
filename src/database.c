@@ -25,14 +25,14 @@
  * database.c:
  *
  * This file contains the code which handles the database of objects which
- * have been used, and what the real names of the items are. There are
- * five functions:
+ * have been used, and what the real names of the items are.
  *
- *      useobj (oldname)             enter the object type into the database
- *      infername (oldname, name)    make the real name of obj be name
- *      used (oldname)               returns TRUE if we have entered obj
- *      know (name)                  returns TRUE if we have inferred name
- *      realname (oldname)           returns the inferred name of obj
+ * Note: pack_index was first used to keep certain errors from happening.
+ *       various fixes seem to have worked so it is no longer needed, but
+ *       it is nice to have when dumping the table...  with that said,
+ *       we do not bother to keep the pack_index reference back to the 
+ *       inventory accurate later on.  only new items get it set.
+ *
  */
 
 # include <curses.h>
@@ -44,11 +44,42 @@
 # define NOTFOUND  (-1)
 
 struct  {
-  char  fakename[64];
-  char  roguenam[64];
+  int   used;
+  int   pack_index;
+  stuff item_type;
+  char  fakename[NAMSIZ];
+  char  realname[NAMSIZ];
 } dbase[TABLESIZE];
 
 int datalen = 0;
+
+/*
+ * findfake: find the fakename database entry for 'string'
+ *           and of item_type (both must match exactly).
+ */
+
+findfake (string, item_type)
+char  *string;
+stuff item_type;
+{
+  register int i;
+
+  for (i = 0; i < datalen; i++)
+    if (streq (dbase[i].fakename, string) &&
+       (dbase[i].item_type == item_type))
+      return (i);
+    else {
+      if (dbase[i].pack_index != -1) {
+        if (inven[dbase[i].pack_index].type != dbase[i].item_type)
+          dbase[i].pack_index = -1;
+        else if (!(streq (inven[dbase[i].pack_index].str, dbase[i].fakename) ||
+          streq (inven[dbase[i].pack_index].str, dbase[i].realname)))
+          dbase[i].pack_index = -1;
+      }
+    }
+
+  return (NOTFOUND);
+}
 
 /*
  * findentry: find the database entry for 'string'
@@ -61,67 +92,135 @@ char *string;
 
   for (i = 0; i < datalen; i++)
     if (streq (dbase[i].fakename, string) ||
-        *dbase[i].roguenam && streq (dbase[i].roguenam, string))
+        *dbase[i].realname && streq (dbase[i].realname, string))
       return (i);
 
   return (NOTFOUND);
 }
 
 /*
- * useobj: Indicate that we have used (i.e. read, quaffed, or zapped) an
- *         object with name 'oldname'.
+ * findentry_getfakename: find the database entry for 'string' and item_type,
+ *     item_type must match, but the string can match either the fakename or
+ *     the realname.  returns pointer to the fakename or "".
  */
 
-useobj (oldname)
-char *oldname;
-{
-  if (findentry (oldname) == NOTFOUND) {
-    strcpy (dbase[datalen].fakename, oldname);
-    strcpy (dbase[datalen++].roguenam, "");
-  }
-}
-
-/*
- * infername: Note that we now think that the object named 'oldname' is
- * really named 'name' (e.g. scroll 'google plex' is really a scroll of
- * light).
- */
-
-infername (oldname, name)
-char *oldname;
-char *name;
-{
-  register int i;
-
-  i = findentry (oldname);
-
-  if (i == NOTFOUND) {
-    strcpy (dbase[datalen].fakename, oldname);
-    strcpy (dbase[datalen++].roguenam, name);
-  }
-  else {
-    if (*dbase[i].roguenam && strcmp (dbase[i].roguenam, name))
-      dwait (D_ERROR, "Inconsistent inference '%s', '%s'",
-             dbase[i].roguenam, name);
-    else
-      strcpy (dbase[i].roguenam, name);
-  }
-}
-
-/*
- * used: Return true if we have marked 'oldname' as used.
- */
-
-int used (oldname)
-char *oldname;
+char *findentry_getfakename (string, item_type)
+char  *string;
+stuff item_type;
 {
   register int i;
 
   for (i = 0; i < datalen; i++)
-    if (streq (dbase[i].fakename, oldname))
-      return (TRUE);
+    if ((dbase[i].item_type == item_type) && 
+       (streq (dbase[i].fakename, string) ||
+        *dbase[i].realname && streq (dbase[i].realname, string)))
+      return (dbase[i].fakename);
 
-  return (FALSE);
+  return ("");
+}
+
+/*
+ * findentry_getrealname: find the database entry for 'string' and item_type,
+ *     item_type must match, but the string can match either the fakename or
+ *     the realname.  returns pointer to the realname or "".
+ */
+
+char *findentry_getrealname (string, item_type)
+char  *string;
+stuff item_type;
+{
+  register int i;
+
+  for (i = 0; i < datalen; i++)
+    if ((dbase[i].item_type == item_type) && 
+       (streq (dbase[i].fakename, string) ||
+        *dbase[i].realname && streq (dbase[i].realname, string)))
+      return (dbase[i].realname);
+
+  return ("");
+}
+
+/*
+ * addobj: Add item to dbase.
+ */
+
+addobj (codename, pack_index, item_type)
+char  *codename;
+int   pack_index;
+stuff item_type;
+{
+  if (findfake (codename, item_type) == NOTFOUND) {
+    dbase[datalen].pack_index = pack_index;
+    dbase[datalen].item_type = item_type;
+    memset (dbase[datalen].fakename, '\0', NAMSIZ);
+    strncpy (dbase[datalen].fakename, codename, NAMSIZ-1);
+    memset (dbase[datalen].realname, '\0', NAMSIZ);
+    datalen++;
+  }
+}
+
+/*
+ * useobj: Indicate that we have used (i.e. read, quaffed, or zapped) an
+ *         object with name 'string'.
+ */
+
+useobj (string)
+char *string;
+{
+  int i = findentry (string);
+
+  if (i != NOTFOUND) {
+    dbase[i].used = TRUE;
+  }
+}
+
+/*
+ * infername: Note that we now think that the object named 'codename' is
+ * really named 'name' (e.g. scroll 'google plex' is really a scroll of
+ * light).
+ */
+
+infername (codename, name, item_type)
+char  *codename;
+char  *name;
+stuff item_type;
+{
+  register int i;
+
+  i = findfake (codename, item_type);
+
+  if (i == NOTFOUND) {
+    dbase[datalen].item_type = item_type;
+    memset (dbase[datalen].fakename, '\0', NAMSIZ);
+    strncpy (dbase[datalen].fakename, codename, NAMSIZ-1);
+    memset (dbase[datalen].realname, '\0', NAMSIZ);
+    strncpy (dbase[datalen].realname, name, NAMSIZ-1);
+    datalen++;
+  }
+  else {
+    if (*dbase[i].realname && strcmp (dbase[i].realname, name))
+      dwait (D_ERROR, "Inconsistent inference, infername: dbase[i].realname '%s', name '%s'",
+             dbase[i].realname, name);
+    else {
+      memset (dbase[i].realname, '\0', NAMSIZ);
+      strncpy (dbase[i].realname, name, NAMSIZ-1);
+    }
+  }
+}
+
+/*
+ * used: Return true if we have marked 'codename' as used.
+ */
+
+int used (codename)
+char *codename;
+{
+  register int i;
+
+  for (i = 0; i < datalen; i++)
+    if (streq (dbase[i].fakename, codename))
+      return (dbase[i].used);
+
 }
 
 /*
@@ -134,30 +233,30 @@ char *name;
   register int i;
 
   for (i = 0; i < datalen; i++)
-    if (*dbase[i].roguenam && streq (dbase[i].roguenam, name))
+    if (*dbase[i].realname && streq (dbase[i].realname, name))
       return (TRUE);
 
   return (FALSE);
 }
 
 /*
- * realname: Returns the real name of an object nmed 'oldname'.
+ * realname: Returns the real name of an object named 'codename'.
  */
 
-char *realname (oldname)
-char *oldname;
+char *realname (codename)
+char *codename;
 {
   register int i;
 
   for (i = 0; i < datalen; i++)
-    if (*dbase[i].roguenam && streq (dbase[i].fakename, oldname))
-      return (dbase[i].roguenam);
+    if (*dbase[i].realname && streq (dbase[i].fakename, codename))
+      return (dbase[i].realname);
 
   return ("");
 }
 
 /*
- * dumpdatabase: Debugging, dump the database one the screen.
+ * dumpdatabase: Debugging, dump the database on the screen.
  */
 
 dumpdatabase ()
@@ -166,6 +265,8 @@ dumpdatabase ()
 
   for (i = 0; i < datalen; i++) {
     at (i+1, 0);
-    printw ("%-32s '%s'", dbase[i].roguenam, dbase[i].fakename);
+    printw ("%02d %c|%01d|%01d %-32s %02d '%s'", 
+      i, (dbase[i].pack_index != -1) ? LETTER(dbase[i].pack_index) : ' ', dbase[i].item_type, dbase[i].used, 
+      dbase[i].realname, i, dbase[i].fakename);
   }
 }

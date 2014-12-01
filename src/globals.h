@@ -43,6 +43,8 @@ extern char lastname[];		/* Name of last potion/scroll/wand */
 extern char nextid;		/* Next object to identify */
 extern char ourkiller[];	/* What was listed on the tombstone */
 extern char *parmstr;		/* Pointer to argument space */
+extern char pending_call_letter;	/* Pack object we know a name for */
+extern char pending_call_name[];	/* Pack object name for letter */
 extern char queue[];		/* stuff to be sent to Rogue */
 extern char *roguename;		/* Name we are playing under */
 extern char screen[24][80];	/* characters drawn by Rogue */
@@ -53,7 +55,7 @@ extern char versionstr[];	/* Version of Rogue we are playing */
 /* character and string functions */
 extern int getlogtoken();
 extern char *getname(), *itemstr();
-extern char logchar(), *monname(), *realname();
+extern char logchar(), *monname(), *findentry_getfakename(), *findentry_getrealname();
 
 /* double precision floating point functions */
 double prob(), mean(), stdev();	/* For stats.c */

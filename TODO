@@ -1,4 +1,4 @@
-Tue Oct  7 21:39:41 EDT 2014
+Sun Nov 30 19:39:05 EST 2014
 
 
 ===== rogomatic
@@ -8,11 +8,150 @@ building:
 
  - should build and compile
 
- - i have a report of this not working on a 64 bit system, 
-   but details are still unknown.
+ - i have a report of rogomatic not working on a 64 bit 
+   system, but details are still unknown.
 
 
-code bugs/changes:
+code changes/fixes summary:
+
+  welcome to the latest version that i've been working on
+for the past few months.  many changes here detailed below...
+some of these changes are possibly temporary or may need 
+further adjustment as i continue testing.  the good news is
+that all these changes fixed the following long standing bugs
+that i've wanted to tackle (i hope :)):
+
+  1. incorrect inferences
+  2. repeated display of certain items
+  3. identified items not in the database correctly
+  4. golden and silvery in rogue were reverted back
+     to gold and silver now that the database keeps 
+     track of what type of item.  we can now have a 
+     silver potion and a silver wand and rogomatic 
+     won't be confused.
+
+  and others...  pretty much the entire database code
+was gone through and either revised or made sure it
+worked how i expected it.  also, the database itself
+was revised to keep track of all interesting items and
+not just those items used.  this may have implications
+for other bits of code that i've not exercised yet.
+
+  you are not getting untested code.  i've run a
+few thousand SEEDs and also stress tested this version
+of rogomatic by using a rigged version of rogue (to
+put down a lot of items and many cursed or tricky 
+things).  only one "Error" is being reported by these
+tests (so far :) ) (the below mentioned: Followmap: 
+direction invalid error bug).  this does not mean this
+program is perfect, far from it, but i'm gradually
+tracking down bugs which cause it to stop completely
+or to sit and spin until the hero starves or similar
+things like searching over and over again and not
+finding something that looks obvious to me.  some of
+these sorts of bugs take a great deal of time to 
+figure out so i may not get them all done at once.
+be patient or help out.
+
+
+  because there have been so many changes...  major version
+bump.
+
+
+    [r2.0.0]  <--  version 2 at last!
+
+  - globals.h, added pending_call_letter and pending_call_name[]
+		which made it possible to fix the bug that was happening when
+    there were things being identified.  *realname() was replaced
+    by *findentry_getrealname() and *findentry_getfakename() was
+    added.
+
+  - types.h, removed constant INVMAX (not used anywhere).
+
+  - command.c, fixed bug in displaying long commands (they
+    would wrap to the next line).
+
+  - database.c, added more info to the database array (type of
+    object, pack_index (thought i would use it, but ends up i
+    didn't but when dumping the table it's nice to have so 
+    left it in)), renamed things a bit.  now rogomatic will not
+    confuse gold/silver potions with gold/silver wands and it
+    will also not make incorrect inferences based upon a wrong
+    entry in the database.  so this fixes two outstanding bugs
+    that i've wanted to get done for a few years now.  :)
+
+    notes:  (about why some things may not appear to be working
+             right away...(but they are))
+
+      when dumping the dbase table it isn't a bug if the 
+    pack_index is missing or incorrect because they are not 
+    used for anything important.  only when the item is first 
+    added to the dbase is that index correct.  afterwards, as 
+    items get picked up, dropped, used, etc. it isn't worth it
+    to update the pack_index (because it wasn't being used for 
+    anything other than cosmetic when dumping the table).
+
+      because of how rogomatic handles items quaffed, zapped,
+    read, etc. (anything that ends up calling the function infer())
+    after they've been used (and the "Call it" comes back, but
+    gets cancelled) it may be the case that the dbase will know 
+    the name of the item, but rogue has been told to use the code
+    name (when the "Call it" gets cancelled).  so the next time
+    the item shows up in the game it will be known, but it will
+    show up with the code name, the next inventory reset will create
+    a deferred pending "Call it" to let rogue know we know the real 
+    name of the item.
+
+      i tried various approaches to this problem (and the related
+    problem of how to fix the identifying scroll reading bugs that 
+    were happening) for a few weeks, but ended up concluding that 
+    the least intrusive fix was to set it up so that it eventually
+    gets triggered at the top strategy level.  at least then it
+    does not interfere with other pending tasks.
+
+      also (yes, i know this is a lot of writing :) ), the dbase
+    now keeps track of every item of interest (scroll, potion,
+    ring, wand, staff), whereas before it only kept track of
+    items that were used.  which means a flag for being used
+    was added to the dbase itself and various functions adjusted
+    to work with that.  the dump of the dbase was also revised.
+
+  - main.c, new variables noted above for globals.h, while i was
+    making changes, i replaced the 64s with NAMSIZ so if i need
+    to adjust them again i can do it with one change instead of
+    having to play "hunt the string with this length" game again.
+
+  - mess.c, many many changes, mostly to infer() related things
+    because now that the dbase keeps track of what type of item
+    it is that information has to be passed through.  readident(),
+    infer() were revised.  some messages were also added or
+    altered to pick up the changes i made to rogue.
+
+  - pack.c, add all interesting items to the dbase.  later on
+    when an inventory reset happens we'll scan through the whole
+    pack again, so that is when we can pick up on items that
+    rogue still is using the code name for and we know the 
+    real name.  when that happens a deferred pending "Call it"
+    will be created and eventually strategize() will notice
+    that has happened and run it.
+
+  - rooms.c, lightroom() didn't know when a wand/staff became
+    WORTHLESS and would keep zapping...
+
+  - strategy.c, added function callitpending() to deal with items
+    that need to be renamed by rogue.  also many fixes to words
+    like "dont" a few typoes, etc.
+
+  - tactics.c, trywand() and readscroll() revised, other "dont"s
+    fixed.
+
+  - things.c, added function destroyjunk() (a version of dropjunk
+    from strategy.c), drop() was revised, but i think needs a lot
+    more reconsideration.  point() added a check for USELESS, 
+    unknown() removed the unused condition, haveuseless() revised
+    and may need rethinking too, we'll see how further testing goes...
+
+  - worth.c, useless() added a check for WORTHLESS.
 
 
     [r1.0.9]
@@ -101,35 +240,33 @@ code bugs/changes:
     bugs/error messages that were happening.
 
 
-strange happenings:
+strange happenings and known bugs:
 
- - weapon handling oddities
-   - throwing arrows without wielding the bow
- - running around without armor on
- - fighting a close up monster with another 
-   behind it at a distance (switches between
-   thrower and hitter but doesn't look like
-   it actually accomplishes much of anything 
-   and then gets killed)
- - more loop when next to an Aquator and an
-   Ice Monster
+ - Followmap: direction invalid error
  - doesn't find some passageways when searching
- - tries to go down when not on stairway
- - doesn't use detect scrolls/potions
- - repeatedly drops and picks up useless items
  - will starve to death standing on a
    scare monster scroll
 
 
-wishlist items:
+wishlist items and help me out things:
 
  - do the same sort of thing for armor
    handling that i did for weapon handling
- - fix the repeated display of a pack item,
-   a cosmetic thing, but it's annoying to
-   keep seeing that message...
  - fix configure/automake stuff to work with
    ncurses debugging includes and libraries
+   - go through and make sure what is there is
+     correct and useful (get rid of old stuff
+     which may no longer apply)
+ - find a better home for this code than my
+   machine.  must be free and useable by
+ - get 64 bit issue sorted out
+ - some of the code has been commented out
+   dealing with signals, i don't think i'll
+   look at it anytime soon, but if you can
+   sort it out that would be great
+ - see next section (ask me if i'm working on
+   something before putting time into it as
+   i'd rather you work on something i'm not...)
 
 
 screen not updating correctly:
@@ -139,7 +276,9 @@ screen not updating correctly:
  - monster letters don't get removed
  - #'s get put to the left
  - the internal representation of the screen is correct
-   so these are what seems to be cosmetic flaws.
+   so these are what seems to be cosmetic flaws and i
+   can probably point you to the code which needs 
+   tweaking...
 
 
 rogue and rog-o-matic versions someday:
@@ -153,20 +292,24 @@ rogue and rog-o-matic versions someday:
 
    - the rogue fork versions at coredumpcentral.org seem
      to actually work somewhat, but i don't think any of
-     them get very far...
+     them get very far...  skip this...
 
+
+bug reports, fixes, questions:
+
+  ant at anthive dot com
 
 
 ===== rogue
 
 
-No bugs known for rogue5.4.4-rgm-r1.0.2 or rogue5.4.4-ant-r1.0.8
+No bugs known for rogue5.4.4-ant-r1.1.0
 
 
-rogue5.4.4-ant-r1.0.8 (this is the version i use 
+rogue5.4.4-ant-r1.1.0 (this is the version i use 
 for testing rogomatic):
 
-  [these are done]
+  [these are done, see that README]
 
  - configuration changes
  - fix several messages (grammar)
@@ -191,6 +334,9 @@ for testing rogomatic):
    valgrind memcheck
  - fixed maze/room generation bug that was causing
    an infinite loop
+ - reverted change to gold/silver above (no longer
+   needed)
+ - added some messages for a few items when used
 
 
 rogue5.4.4-rgm-r1.0.2 (version for the purists):
@@ -199,4 +345,5 @@ rogue5.4.4-rgm-r1.0.2 (version for the purists):
  - fix for the nymph steals item bug
  - fix reference to freed space
 
+  NOTE: no more changed being made to r1.0.2 by me.
 

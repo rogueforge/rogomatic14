@@ -154,6 +154,10 @@ int i;
   if (itemis (i, INUSE))
     return (0);
 
+  /* item has been tagged WORTHLESS someplace else */
+  if (itemis (i, WORTHLESS))
+    return (1);
+
   /* Worn out or bad wands are useless */
   if ((inven[i].type == wand) &&
       (inven[i].charges == 0 ||

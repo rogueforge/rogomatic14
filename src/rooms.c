@@ -256,15 +256,17 @@ lightroom ()
 {
   int obj;
 
-  /* not in a room nor on door or room lit?? */
-  if (blinded || !darkroom ())
+  /* not in a room nor on door, blinded or room lit?? */
+  if ((!on (DOOR | ROOM)) || blinded || !darkroom ())
     return (0);
 
-  if ((obj = havenamed (Scroll, "light")) >=0 && reads (obj))
+  if ((obj = havenamed (Scroll, "light")) && (obj >= 0) && reads (obj))
     return (1);
 
-  if ((obj = havewand ("light")) >=0 && point (obj, 0))
-    return (1);
+  if ((obj = havewand ("light")) && (obj >= 0) && (itemis (obj, WORTHLESS)))
+    return (0);
+  else if ((obj = havewand ("light")) && (obj >= 0) && (!itemis (obj, WORTHLESS)))
+    return (point (obj, 0));
 
   return (0);
 }

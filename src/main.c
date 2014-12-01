@@ -100,6 +100,7 @@
 # include <setjmp.h>
 # include <string.h>
 # include <stdlib.h>
+# include <unistd.h>
 # include "types.h"
 # include "termtokens.h"
 # include "install.h"
@@ -123,14 +124,16 @@ char  genelog[100];		/* Genetic learning log file */
 char  genepool[100];		/* Gene pool */
 char  *genocide;		/* List of monsters to be genocided */
 char  genocided[100];		/* List of monsters genocided */
-char  lastcmd[64];		/* Copy of last command sent to Rogue */
-char  lastname[64];		/* Name of last potion/scroll/wand */
+char  lastcmd[NAMSIZ];		/* Copy of last command sent to Rogue */
+char  lastname[NAMSIZ];		/* Name of last potion/scroll/wand */
 char  nextid = '\0';            /* Next object to identify */
 char  screen[24][80];		/* Map of current Rogue screen */
 char  sumline[128];		/* Termination message for Rogomatic */
-char  ourkiller[64];		/* How we died */
+char  ourkiller[NAMSIZ];		/* How we died */
 char  versionstr[32];		/* Version of Rogue being used */
 char  *parmstr;			/* Pointer to process arguments */
+char  pending_call_letter = ' ';	/* If non-blank we have a call it to do */
+char  pending_call_name[NAMSIZ];	/*   and this is the name to use */
 
 /* Integers */
 int   aggravated = 0;		/* True if we have aggravated this level */

@@ -81,7 +81,7 @@ handlearmor ()
   if (obj != NONE && armorclass (obj) > 9 && itemis (obj, KNOWN))
     { obj = NONE; }
 
-  /* If we are wearing the right armor, then dont bother */
+  /* If we are wearing the right armor, then don't bother */
   if (obj == currentarmor)
     { newarmor = 0; return (0); }
 
@@ -244,14 +244,14 @@ readscroll ()
   register int obj, obj2;
 
   /* Check the item specific identify scrolls first */
-  if (((obj = havenamed (Scroll, "identify armor")) != NONE &&
+  if (((obj = havenamed (Scroll, "identify scroll")) != NONE &&
+       (obj2 = unknown (Scroll)) != NONE) ||
+      ((obj = havenamed (Scroll, "identify armor")) != NONE &&
        (obj2 = unknown (armor)) != NONE) ||
       ((obj = havenamed (Scroll, "identify weapon")) != NONE &&
        (obj2 = unknown (hitter)) != NONE) ||
       ((obj = havenamed (Scroll, "identify potion")) != NONE &&
        (obj2 = unknown (potion)) != NONE) ||
-      ((obj = havenamed (Scroll, "identify scroll")) != NONE &&
-       (obj2 = unknown (Scroll)) != NONE) ||
       ((obj = havenamed (Scroll, "identify ring, wand or staff")) != NONE &&
        ((obj2 = unknown (ring)) != NONE || (obj2 = unknown (wand)) != NONE))) {
     prepareident (obj2, obj);
@@ -496,14 +496,14 @@ register int dir, turns;
  */
 
 godownstairs (running)
-register int running; /* True ==> dont do anything fancy */
+register int running; /* True ==> don't do anything fancy */
 {
   register int p;
   int genericinit(), downvalue();
 
-  /* We dont want to go down if we have just gotten an arrow, since */
+  /* We don't want to go down if we have just gotten an arrow, since */
   /* It is probably bad, and we will want to go back to the trap;   */
-  /* Dont go down until we have killed five monsters in one blow.   */
+  /* Don't go down until we have killed five monsters in one blow.   */
   /* While waiting, run back and forth to look for monsters.        */
 
   if (cheat && version <= RV36B && !running &&
@@ -684,7 +684,7 @@ int running;
       sendnow ("< ");
 
       /* Now read chars until we have the end of the inventory. */
-      /* Note misspelling in Rogue 'Peices', so dont assume anything */
+      /* Note misspelling in Rogue 'Peices', so don't assume anything */
       waitfor ("Gold P");
 
       /* Note that quitrogue sends a '\n' to get the score */
@@ -717,19 +717,19 @@ int running;
  * teleport traps).
  *
  * Then rest by searching 's'.  If one blow would not kill us, and we
- * dont plan to shoot arrows, then rest up so as to heal one hit point.
+ * don't plan to shoot arrows, then rest up so as to heal one hit point.
  * If we are critically low, rest up one turn at a time.
  *
- * Other considerations:	Dont move if confused or cosmic.
+ * Other considerations:	Don't move if confused or cosmic.
  *				Drink healing potions if really low.
- *				Dont rest when hungry (and no food)
+ *				Don't rest when hungry (and no food)
  */
 
 restup ()
 {
   register int obj, turns;
 
-  /* If we are confused, sit still so we dont bump into anything bad */
+  /* If we are confused, sit still so we don't bump into anything bad */
   if (confused) { command (T_RESTING, "s"); return (1); }
 
   /* If cosmic and plenty of hit points and food, rest for long periods */
@@ -757,7 +757,7 @@ restup ()
       quaff (obj))
     { return (1); }
 
-  /* Dont rest when we havent enough to eat */
+  /* Don't rest when we havent enough to eat */
   if (hungry ()) return (0);
 
   display ("Resting up...");
@@ -771,7 +771,7 @@ restup ()
   /*
    * If we are very ill, or we are very deep, or we are in a lit room
    * and can shoot at things as they come ate us, rest only one turn so
-   * monsters dont get the first shot. Otherwise rest enough turns
+   * monsters don't get the first shot. Otherwise rest enough turns
    * to heal one step.
    */
 
@@ -881,12 +881,14 @@ trywand ()
 {
   register int obj, dir, r, c, count;
 
-  /* If we arent in a room, if there are monsters around,  */
-  /* or we are in the dark, then we cant try this strategy */
+  /* If we aren't in a room, if there are monsters around,  */
+  /* or we are in the dark, then we can't try this strategy */
   if (!on (ROOM) || mlistlen || darkroom ()) return (0);
 
   /* Have we a wand to identify? */
-  if ((obj = unknown (wand)) == NONE)
+  if (((obj = unknown (wand)) == NONE) || (itemis (obj, WORTHLESS)))
+    return (0);
+  else if (used (inven[obj].str))
     return (0);
 
   /* Look for a wall either 3 or 4 away */
@@ -902,8 +904,7 @@ trywand ()
   /* If we couldnt find room, then fail */
   if (dir > 7) return (0);
 
-  /* Set to do a reset inventory (usesynch) and point the wand */
-  usesynch = 0;
+  /* point the wand */
   return (point (obj, dir));
 }
 

@@ -30,6 +30,7 @@
 # include <stdio.h>
 # include <ctype.h>
 # include <curses.h>
+# include <string.h>
 # include "types.h"
 # include "globals.h"
 # include "install.h"
@@ -64,6 +65,9 @@ int   strategize ()
 
   /* ----------------------- Production Rules --------------------------- */
 
+
+  if (callitpending ())         /* We have this to do */
+    return (1);
 
   if (fightmonster ())          /* We are under attack! */
     return (1);
@@ -211,6 +215,25 @@ int   strategize ()
 }
 
 /*
+ * callitpending : When going through the inventory we found this to
+ *                 do, but we wanted to wait until we were no longer
+ *                 in the middle of something else to tag this item
+ *                 with this name.
+ */
+
+int callitpending ()
+{
+
+  if (pending_call_letter != ' ') {
+    command (T_OTHER, "c%c%s\n", pending_call_letter, pending_call_name);
+    pending_call_letter = ' ';
+    memset (pending_call_name, '\0', NAMSIZ);
+    return (1);
+  }
+  return (0);
+}
+
+/*
  * fightmonster: looks for adjacent monsters. If found, it calls
  * battlestations to prepare for battle otherwise hacks with the
  * weapon already in hand.
@@ -246,7 +269,7 @@ int   fightmonster ()
 
     /*
      * If the monster is adjacent and is either awake or
-     * we dont know yet whether he is asleep, but we havent
+     * we don't know yet whether he is asleep, but we havent
      * see any alert monsters yet.
      */
 
@@ -547,7 +570,7 @@ int adj;		/* How many attackers are there? */
     { dwait (D_BATTLE, "Switching to sword [2]"); return (1); }
 
   /*
-   * Dont waste magic when on a scare monster scroll
+   * Don't waste magic when on a scare monster scroll
    */
 
   if (on (SCAREM) && !streq (monster, "dragon")) {
@@ -584,7 +607,7 @@ int adj;		/* How many attackers are there? */
 
   /*
    * Run away if we are sure of the direction and we are in trouble
-   * Dont try to run if a fungi has ahold of us. If we are confused,
+   * Don't try to run if a fungi has ahold of us. If we are confused,
    * we will try other things, and we will decide to run later.
    * If we are on a door, wait until the monster is on us (that way
    * we can shoot arrows at him, if we want to).
@@ -851,7 +874,7 @@ int adj;		/* How many attackers are there? */
 
   /*
    * We can live for a while, try to get to a position where we can run
-   * away if we really get into trouble.  Dont run away from dragons,
+   * away if we really get into trouble.  Don't run away from dragons,
    * they'll just flame you!!!
    */
 
@@ -883,9 +906,9 @@ int adj;		/* How many attackers are there? */
   if (live_for (2) && (Level > 8 || streq (monster, "rattlesnake") ||
                        streq (monster, "giant ant")) &&
       mdir != NONE && on(ROOM) && mdist < 6 &&
-      ((obj = unknown (wand)) != NONE) && point (obj, mdir)) {
+      ((obj = unknown (wand)) != NONE) && (!used (inven[obj].str))) { 
+    point (obj, mdir);
     usesynch = 0;
-    /* zappedunknown = TRUE; */		/* DR UTexas  19 Jan 84 */
     return (1);
   }
 
@@ -960,16 +983,16 @@ int tostuff ()
   int   which, wrow, wcol;
   stuff what;
 
-  /* If we don't see anything (or dont care), return failure */
+  /* If we don't see anything (or don't care), return failure */
   if (slistlen == 0 || Level == 1 && have (amulet) != NONE) return (0);
 
   /*
-   * Now find the closest thing to pick up.  Dont consider things we have
+   * Now find the closest thing to pick up.  Don't consider things we have
    * already dropped (those squares have the USELESS bit set), unless we
    * have dropped a scroll of SCARE MONSTER, in which case we want our
-   * pack to be full.  Dont be fooled by stairs when hallucinating.
+   * pack to be full.  Don't be fooled by stairs when hallucinating.
    *
-   * NOTE: Dont pick up the scaremonster scroll!!!    MLM
+   * NOTE: Don't pick up the scaremonster scroll!!!    MLM
    */
 
   for (i = 0, which = NONE, closest = 999; i < slistlen; i++) {
@@ -1007,14 +1030,14 @@ int tostuff ()
     if (inven[i].count && !itemis (i, INUSE) && (w = worth (i)) < worstval)
       { worst = i; worstval = w; }
 
-    /* Once we have found a toally useless item, stop looking */
+    /* Once we have found a totally useless item, stop looking */
     if (worstval == 0) break;
   }
 
   /* Found an item, drop it */
   if (worst != NONE) return (drop (worst));
 
-  /* Pack is full and we cant find something to drop, fail */
+  /* Pack is full and we can't find something to drop, fail */
   return (0);
 }
 
@@ -1184,10 +1207,8 @@ pickupafter ()
 /*
  * dropjunk: This doesnt just drop something.  It destroys it.
  *           When an object is thrown diagonally into a corner,
- *           Rogue cant find a place to put it, and the object is
- *           removed from the game.  Used to get rid of empty wands
- *           and staves.  This way, we dont pick them up later,
- *           and mistake them for fresh wands.
+ *           Rogue can't find a place to put it, and the object is
+ *           removed from the game.
  */
 
 dropjunk ()
@@ -1204,8 +1225,8 @@ dropjunk ()
  * quitforhonors: We are in mortal danger.  Do we want to quit?
  *
  * Strategy:	'quitat' is the score to beat (set in setup);
- *		If we will beat it anyway, dont quit.  If we
- *		wont beat it anyway, dont quit.  If we will just
+ *		If we will beat it anyway, don't quit.  If we
+ *		wont beat it anyway, don't quit.  If we will just
  *		beat the score by quiting, then do so.
  *
  * Assumes a 10 percent death tax.

@@ -119,10 +119,24 @@ int obj;
 }
 
 /*
+ * destroyjunk: When an object is thrown diagonally into a corner,
+ *           Rogue can't find a place to put it, and the object is
+ *           removed from the game (adapted from dropjunk).
+ */
+
+destroyjunk (obj)
+int obj;
+{
+
+  if ((obj != NONE) && (gotocorner () || throw (obj, 7)))
+    return (1);
+
+  return (0);
+}
+
+/*
  * drop: called with an integer from 0 to 25, drops the object if possible
- * and returns 1 if it wins and 0 if it fails. Could be extended to
- * throw object into a wall to destroy it, but currently it merely sets
- * the USELESS bit for that square.
+ * and returns 1 if it wins and 0 if it fails.
  */
 
 drop (obj)
@@ -135,6 +149,9 @@ int obj;
       on (STUFF | TRAP | STAIRS | DOOR) ||
       diddrop)
     return (0);
+
+  if ((obj != NONE) && (inven[obj].type == wand))
+    return (destroyjunk (obj));
 
   /* read unknown scrolls or good scrolls rather than dropping them */
   if (inven[obj].type == Scroll &&
@@ -155,14 +172,14 @@ int obj;
   /* quaff unknown potions or good potions rather than dropping them */
   if (inven[obj].type == potion &&
       (!itemis (obj, KNOWN) ||
-       stlmatch (inven[obj].str, "extra healing") ||
-       stlmatch (inven[obj].str, "gain strength") ||
-       stlmatch (inven[obj].str, "haste self") && !hasted ||
-       stlmatch (inven[obj].str, "healing") ||
        stlmatch (inven[obj].str, "magic detection") ||
        stlmatch (inven[obj].str, "monster detection") ||
        stlmatch (inven[obj].str, "raise level") ||
-       stlmatch (inven[obj].str, "restore strength")) &&
+       stlmatch (inven[obj].str, "healing") ||
+       stlmatch (inven[obj].str, "haste self") && !hasted ||
+       stlmatch (inven[obj].str, "extra healing") ||
+       stlmatch (inven[obj].str, "restore strength") ||
+       stlmatch (inven[obj].str, "gain strength")) &&
       quaff (obj))
     { return (1); }
 
@@ -216,10 +233,14 @@ int obj, dir;
     return (0);
   }
 
-  command (T_HANDLING, "%c%c%c",
-           (version < RV52A) ? 'p' : 'z',	/* R5.2 MLM */
-           keydir[dir], LETTER (obj));
-  return (1);
+  if (itemis (obj, USELESS))
+    return (0);
+  else {
+    command (T_HANDLING, "%c%c%c",
+             (version < RV52A) ? 'p' : 'z',	/* R5.2 MLM */
+             keydir[dir], LETTER (obj));
+    return (1);
+  }
 }
 
 /*
@@ -395,8 +416,7 @@ stuff otype;
   for (i=0; i<invcount; ++i)
     if (inven[i].count &&
         (inven[i].type == otype) &&
-        (itemis (i, KNOWN) == 0) &&
-        (!used (inven[i].str)))
+        (itemis (i, KNOWN) == 0))
       return (i);
 
   return (NONE);
@@ -569,18 +589,71 @@ int haveminus ()
 }
 
 /*
- * haveuseless: return the index of useless arrows, and empty wands.
+ * haveuseless: return the index of useless stuff, in order by:
+ *          - empty wands/staffs
+ *          - worthless arrows
+ *          - yucky potions
+ *          - nasty scrolls
+ *          - tarnished rings
+ *          - dented armor
+ *          - dull weapons
+ *          - stringless bows
+ *
+ *   Below level 15 we leave armor, weapons and bows alone, but
+ *    after level 14 we only leave the top two of each alone...
+ *
+ *   and if all those fail return NONE
  */
 
 int haveuseless ()
 {
   register int i;
 
-  for (i=0; i<invcount; ++i)
-    if (inven[i].count &&
-        inven[i].type == wand && inven[i].charges == 0 ||
-        itemis (i, WORTHLESS) && streq (inven[i].str, "arrow"))
+  for (i=0; i<invcount; ++i) {
+    if (inven[i].count > 0) {
+      if (inven[i].type == wand && inven[i].charges == 0 ||
+          stlmatch (inven[i].str, "teleport to") ||
+          stlmatch (inven[i].str, "haste monster") ||
+          itemis (i, WORTHLESS) && streq (inven[i].str, "arrow"))
+        return (i);
+      else if (inven[i].type == potion &&
+        (stlmatch (inven[i].str, "blindness") ||
+         stlmatch (inven[i].str, "poison") ||
+         stlmatch (inven[i].str, "confusion") ||
+         stlmatch (inven[i].str, "magic detection") ||
+         stlmatch (inven[i].str, "paralysis") ||
+         stlmatch (inven[i].str, "hallucination") ||
+         stlmatch (inven[i].str, "thirst") ||
+         stlmatch (inven[i].str, "food detection") ||
+         stlmatch (inven[i].str, "monster detection")))
+        return (i);
+      else if (inven[i].type == Scroll &&
+        (stlmatch (inven[i].str, "sleep") ||
+         stlmatch (inven[i].str, "blank") ||
+         stlmatch (inven[i].str, "create monster") ||
+         stlmatch (inven[i].str, "gold detection") ||
+         stlmatch (inven[i].str, "aggravate monsters")))
+        return (i);
+      else if (!itemis (i, INUSE) && itemis (i, KNOWN) &&
+        (inven[i].type == missile) &&
+        (((inven[i].phit != UNKNOWN) && (inven[i].phit < 0)) ||
+         ((inven[i].pdam != UNKNOWN) && (inven[i].pdam < 0))))
+        return (i);
+      else if (inven[i].type == ring &&
+        (stlmatch (inven[i].str, "teleport") ||
+         stlmatch (inven[i].str, "adornment") ||
+         stlmatch (inven[i].str, "aggravate monster")))
+        return (i);
+    }
+  }
+  if (Level > 14) {
+    if (((i = havearmor (3, NOPRINT, ANY)) != NONE) && (!itemis (i, INUSE)))
       return (i);
+    else if (((i = haveweapon (3, NOPRINT)) != NONE) && (!itemis (i, INUSE)))
+      return (i);
+    else if (((i = havebow (3, NOPRINT)) != NONE) && (!itemis (i, INUSE)))
+      return (i);
+  }
 
   return (NONE);
 }

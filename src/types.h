@@ -226,7 +226,6 @@
 
 /* Constants for handling inventory */
 # define UNKNOWN  -99
-# define INVMAX   25
 
 /* Pack item attributes  DR UTexas 25 Jan 84 */
 # define KNOWN     (0000000001)
