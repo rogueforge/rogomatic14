@@ -1,4 +1,4 @@
-Sun Nov 30 19:39:05 EST 2014
+Thu Dec 18 10:58:40 EST 2014
 
 
 ===== rogomatic
@@ -6,264 +6,160 @@ Sun Nov 30 19:39:05 EST 2014
 
 building:
 
- - should build and compile
+ - should compile and link
 
- - i have a report of rogomatic not working on a 64 bit 
+ - i have a report for Lubuntu 14.0.1 32 Bit as able to 
+   compile and run.  thank you for the report!
+
+ - also have a report of rogomatic not working on a 64 bit 
    system, but details are still unknown.
 
 
 code changes/fixes summary:
 
-  welcome to the latest version that i've been working on
-for the past few months.  many changes here detailed below...
-some of these changes are possibly temporary or may need 
-further adjustment as i continue testing.  the good news is
-that all these changes fixed the following long standing bugs
-that i've wanted to tackle (i hope :)):
-
-  1. incorrect inferences
-  2. repeated display of certain items
-  3. identified items not in the database correctly
-  4. golden and silvery in rogue were reverted back
-     to gold and silver now that the database keeps 
-     track of what type of item.  we can now have a 
-     silver potion and a silver wand and rogomatic 
-     won't be confused.
-
-  and others...  pretty much the entire database code
-was gone through and either revised or made sure it
-worked how i expected it.  also, the database itself
-was revised to keep track of all interesting items and
-not just those items used.  this may have implications
-for other bits of code that i've not exercised yet.
-
-  you are not getting untested code.  i've run a
-few thousand SEEDs and also stress tested this version
-of rogomatic by using a rigged version of rogue (to
-put down a lot of items and many cursed or tricky 
-things).  only one "Error" is being reported by these
-tests (so far :) ) (the below mentioned: Followmap: 
-direction invalid error bug).  this does not mean this
-program is perfect, far from it, but i'm gradually
-tracking down bugs which cause it to stop completely
-or to sit and spin until the hero starves or similar
-things like searching over and over again and not
-finding something that looks obvious to me.  some of
-these sorts of bugs take a great deal of time to 
-figure out so i may not get them all done at once.
-be patient or help out.
-
-
-  because there have been so many changes...  major version
-bump.
-
-
-    [r2.0.0]  <--  version 2 at last!
-
-  - globals.h, added pending_call_letter and pending_call_name[]
-		which made it possible to fix the bug that was happening when
-    there were things being identified.  *realname() was replaced
-    by *findentry_getrealname() and *findentry_getfakename() was
-    added.
-
-  - types.h, removed constant INVMAX (not used anywhere).
-
-  - command.c, fixed bug in displaying long commands (they
-    would wrap to the next line).
-
-  - database.c, added more info to the database array (type of
-    object, pack_index (thought i would use it, but ends up i
-    didn't but when dumping the table it's nice to have so 
-    left it in)), renamed things a bit.  now rogomatic will not
-    confuse gold/silver potions with gold/silver wands and it
-    will also not make incorrect inferences based upon a wrong
-    entry in the database.  so this fixes two outstanding bugs
-    that i've wanted to get done for a few years now.  :)
-
-    notes:  (about why some things may not appear to be working
-             right away...(but they are))
-
-      when dumping the dbase table it isn't a bug if the 
-    pack_index is missing or incorrect because they are not 
-    used for anything important.  only when the item is first 
-    added to the dbase is that index correct.  afterwards, as 
-    items get picked up, dropped, used, etc. it isn't worth it
-    to update the pack_index (because it wasn't being used for 
-    anything other than cosmetic when dumping the table).
-
-      because of how rogomatic handles items quaffed, zapped,
-    read, etc. (anything that ends up calling the function infer())
-    after they've been used (and the "Call it" comes back, but
-    gets cancelled) it may be the case that the dbase will know 
-    the name of the item, but rogue has been told to use the code
-    name (when the "Call it" gets cancelled).  so the next time
-    the item shows up in the game it will be known, but it will
-    show up with the code name, the next inventory reset will create
-    a deferred pending "Call it" to let rogue know we know the real 
-    name of the item.
-
-      i tried various approaches to this problem (and the related
-    problem of how to fix the identifying scroll reading bugs that 
-    were happening) for a few weeks, but ended up concluding that 
-    the least intrusive fix was to set it up so that it eventually
-    gets triggered at the top strategy level.  at least then it
-    does not interfere with other pending tasks.
-
-      also (yes, i know this is a lot of writing :) ), the dbase
-    now keeps track of every item of interest (scroll, potion,
-    ring, wand, staff), whereas before it only kept track of
-    items that were used.  which means a flag for being used
-    was added to the dbase itself and various functions adjusted
-    to work with that.  the dump of the dbase was also revised.
-
-  - main.c, new variables noted above for globals.h, while i was
-    making changes, i replaced the 64s with NAMSIZ so if i need
-    to adjust them again i can do it with one change instead of
-    having to play "hunt the string with this length" game again.
-
-  - mess.c, many many changes, mostly to infer() related things
-    because now that the dbase keeps track of what type of item
-    it is that information has to be passed through.  readident(),
-    infer() were revised.  some messages were also added or
-    altered to pick up the changes i made to rogue.
-
-  - pack.c, add all interesting items to the dbase.  later on
-    when an inventory reset happens we'll scan through the whole
-    pack again, so that is when we can pick up on items that
-    rogue still is using the code name for and we know the 
-    real name.  when that happens a deferred pending "Call it"
-    will be created and eventually strategize() will notice
-    that has happened and run it.
-
-  - rooms.c, lightroom() didn't know when a wand/staff became
-    WORTHLESS and would keep zapping...
-
-  - strategy.c, added function callitpending() to deal with items
-    that need to be renamed by rogue.  also many fixes to words
-    like "dont" a few typoes, etc.
-
-  - tactics.c, trywand() and readscroll() revised, other "dont"s
-    fixed.
-
-  - things.c, added function destroyjunk() (a version of dropjunk
-    from strategy.c), drop() was revised, but i think needs a lot
-    more reconsideration.  point() added a check for USELESS, 
-    unknown() removed the unused condition, haveuseless() revised
-    and may need rethinking too, we'll see how further testing goes...
-
-  - worth.c, useless() added a check for WORTHLESS.
-
-
-    [r1.0.9]
-  - command.c added more checks on wielding, so that if the
-    hero wanted to do a test wield (a 'w' immediately followed
-    by an ESC) that would not crash the player.
-
-  - also related to wielding, changes were made to mess.c, 
-    strategy.c and things.c hoping to finally fix this for
-    good.
-
-  - additional cosmetic changes to pack.c to shorten up the
-    description for dwait when D_PACK debugging is turned on.
-
-  - fixed up a few comments that were wrong (screen size should
-    be at least 31x80 when D_PACK is set) in mess.c and changed
-    a few messages to be consistent with the rest (they weren't
-    capitalized for some reason).
-
-  - bumped repeat limits up further in command.c.
-
-  - added global variable diddrop to keep the hero from
-    dropping something on top of something else.
-
-  - added MAXSAMECOM so that changing the repeat count is 
-    quicker.
-
-
-    [r1.0.8]
-  - command.c bumped up limits so that errors that were
-    previously considered fatal have enough time to finish.
-
-
-    [r1.0.7]
-  - changed configure.ac to fix configure error about
-    missing "missing" script.
-
-  - rooms.c currentrectangle was setting negative values
-    added checks to make sure that doesn't happen again.
-
-  - things.c wield weapon handling doesn't work quite right,
-    fixed bug in sendcnow, but then just commented the call
-    out for now as it wasn't doing what i expected.  will 
-    continue researching this for the next release.
-
-
-    [r1.0.6]
-  - io.c scrolling caused problems, one bug fixed, but another
-    still remains to be solved.
-
-  - rooms.c fixed a debugging use of (v,h) to now use directional
-    letters (u,d,l,r) instead, makes things a little clearer.
-
-  - explore.c fixed small bug in debugging info display during
-    monster avoiding.
-
-  - command.c bumped up limits for error reporting.
-
-  - got rid of deciphervt100.c and adjusted src/Makefile.am.
-
-
-    [r1.0.5]
-  - fixed my mistake in last change.  it would not have 
-    worked well.
- 
-
-    [r1.0.4]
-  - working on fixing the "1y" direction infinite loop bug
-    (repeatedly tries to walk into a wall).  the quick
-    fix is in this version.  this way at least there won't 
-    be an infinite loop, instead rogomatic will give a 
-    fatal error message and then quit.  the actual figuring 
-    out of why and correcting it will take a different 
-    release (i'm looking into it now as i get time).
-
-
-    [r1.0.3]
-  - reformatted code.  enough reading of strange indents
-    already...  no other changes than reformatting.
-
-
-    [r1.0.2]
-  - wielding weapons can fail mid-weild causing troubles.
-    fixed so that there is more and better checking of
-    weapon traits -- this seems to eliminate several other
-    bugs/error messages that were happening.
+ - see the file ChangeLog.
 
 
 strange happenings and known bugs:
 
- - Followmap: direction invalid error
+ - there are no crashes or segfaults that i can
+   find (for the moment) in rogomatic and i haven't
+   broken rogue in several months.
+
+ - scrmap[][] is not reset between levels other
+   than by unsetting STUFF.  this may be a cause
+   for other obscure searching related bugs or ?
+   i'm hoping to test this out for 2.0.2 or soon
+   after.
+
  - doesn't find some passageways when searching
- - will starve to death standing on a
-   scare monster scroll
+   and that ends up wasting a lot of time or 
+   causing starvation.  some searches find a new
+   square but it looks like the player doesn't
+   notice it (not made a new goal to explore?...
+   dunno why).  SEED=3 is a good current example
+   where the search fails for a long time and
+   then the player is killed shortly before 
+   starving.
+
+ - the scroll related error that used to show up
+   is back, but i've worked around it for now by
+   using a slightly modified vt100 terminfo.  see
+   NEWS for details on the workaround if you want
+   to use it.  figure this out in detail (very low
+   priority as long as the work around keeps working
+   and doesn't introduce new bugs/issues).
+
+ - i've seen the search count go negative at times
+   and have yet to look into why.
+
+ - slist is not big enough if the hero dies in a
+   room with a lot of things in it, because when
+   the tombstone is shown on the screen much of it
+   is interpreted as items.  a very rare event yet
+   an easy fix for this is to increase slist size.
+
+ - i've greatly increased the number in command.c
+   (MAXSAMECOM) so that the player will starve to
+   death instead of causing an error to be written
+   to the /var/games/rogomatic/error5.4.4 file:
+
+
+   this is intentional!
+
+
+                         the goal is to get the 
+   player to win or die in all cases it is 
+   presented with so that the learning/genetic
+   portions of the code and the long term memory
+   files will build up enough information to make
+   better decisions.  i am not sure if that is
+   actually happening yet because i rarely get 
+   beyond a few thousand test runs before i work 
+   on something else (which changes the random 
+   number generation and that impacts the entire 
+   learning/history).  in some cases i've noticed
+   changes starting to appear in decisions after 
+   750 runs.  that's a tremendous number of 
+   decisions each affected by the previous one
+   all the way back to the first random number
+   generated based upon whichever SEED is being
+   used to start from.
+
+   the only way i know i've made a difference over
+   the longer haul is to compare several thousand
+   cases of each version of the program and see how
+   far they get and what kinds of issues are 
+   noticeable.  right now the starvation and searching
+   and not finding seem to be the next major bit of 
+   research to dig into, but first it is more likely
+   that i will ---\
+                  |
+                  |
+                  |
+                 \ /
+                  .
+                  .
+
+  - look into weapon handling again.  i really dislike
+    how it is currently happening and have been trying
+    some different approaches...
+
+
+completely new areas of coding:
+
+ - some scrolls, potions, wands/staffs, rings,
+   etc are not used or any information they might
+   provide is looking like it is ignored.
+
+ - goals could be stacked and popped or 
+   interrupted and subgoals established.
+
+ - searching looks like it completely misses
+   some rooms or areas and perhaps another 
+   method could be used after the others have
+   failed.
+
+ - making more genes and incorporating them into
+   the player.
+
+ - detecting cycles of commands so that searching
+   can be more efficient (tradeoff likely).
 
 
 wishlist items and help me out things:
 
  - do the same sort of thing for armor
    handling that i did for weapon handling
+   (actually, this is now in question as i
+   keep finding things that aren't quite
+   right with weapon handling).
+
  - fix configure/automake stuff to work with
    ncurses debugging includes and libraries
    - go through and make sure what is there is
      correct and useful (get rid of old stuff
-     which may no longer apply)
+     which may no longer apply).
+
  - find a better home for this code than my
-   machine.  must be free and useable by
- - get 64 bit issue sorted out
+   machine.  must be free and useable by me.
+
+ - get 64 bit issue sorted out.
+
  - some of the code has been commented out
    dealing with signals, i don't think i'll
    look at it anytime soon, but if you can
-   sort it out that would be great
+   sort it out that would be great.
+
+ - some of the other programs i've actually
+   never tried or know what they do.
+
+ - are the docs generated going to the right
+   place in the man pages?  are they still
+   accurated?
+
+ - license verification and documenting it.
+
  - see next section (ask me if i'm working on
    something before putting time into it as
    i'd rather you work on something i'm not...)
@@ -271,79 +167,36 @@ wishlist items and help me out things:
 
 screen not updating correctly:
 
+  the internal representation of the screen is correct
+so these are what seems to be cosmetic flaws.
+
  - leftover '.', '@' and other characters in dark rooms
+
  - passages are sometimes blank instead of '#'
+
  - monster letters don't get removed
- - #'s get put to the left
- - the internal representation of the screen is correct
-   so these are what seems to be cosmetic flaws and i
-   can probably point you to the code which needs 
-   tweaking...
+
+ - #'s get put to the left of where they belong
 
 
-rogue and rog-o-matic versions someday:
+rogue and rog-o-matic other versions (someday maybe):
 
  - test against different versions of rogue 
    other than my 5.4.4. altered version.
 
    - yes, finally did some of this and it looks like
      making changes for the bsdgames-nonfree version of
-     rogue is too large.  skip this...
+     rogue would be too large.  i'm going to skip this, 
+     i'd rather work on other things.
 
    - the rogue fork versions at coredumpcentral.org seem
      to actually work somewhat, but i don't think any of
-     them get very far...  skip this...
+     them get very far...  i'll skip this too.  some day
+     perhaps i'll get back to it.
 
 
 bug reports, fixes, questions:
 
   ant at anthive dot com
 
-
-===== rogue
-
-
-No bugs known for rogue5.4.4-ant-r1.1.0
-
-
-rogue5.4.4-ant-r1.1.0 (this is the version i use 
-for testing rogomatic):
-
-  [these are done, see that README]
-
- - configuration changes
- - fix several messages (grammar)
- - fix spelling of missle to missile
- - change colors so they aren't the same (fixes 
-   invalid inference/reference problem in 
-   rogomatic), gold -> golden, silver -> silvery
- - change even more messages from potions and
-   scrolls to eliminate other invalid inference/
-   reference problems in rogomatic
- - fix the bug from when the nymph stole an item,
-   it was an invalid reference to a freed space
-   that caused rogue to return an octal 310.  the
-   nymph now steals all of an item if she hits and
-   there is more than one of them
- - make the environment variable SEED useful for 
-   testing (repeatable random number sequences)
- - when changing levels make sure to drop down
-   on a space that is not occupied
- - fix invalid reference to freed space
- - cleaned up a few memory leftovers reported by
-   valgrind memcheck
- - fixed maze/room generation bug that was causing
-   an infinite loop
- - reverted change to gold/silver above (no longer
-   needed)
- - added some messages for a few items when used
-
-
-rogue5.4.4-rgm-r1.0.2 (version for the purists):
-
- - configuration fixes
- - fix for the nymph steals item bug
- - fix reference to freed space
-
-  NOTE: no more changed being made to r1.0.2 by me.
 

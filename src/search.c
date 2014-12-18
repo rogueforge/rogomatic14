@@ -122,8 +122,19 @@ register int movetype;
   dir=mvdir[atrow][atcol]-FROM; dr=deltr[dir]; dc=deltc[dir];
 
   if (dir > 7 || dir < 0) {
-    dwait (D_ERROR, "Followmap: direction invalid!");
-    return (0);			      /* Something Broke */
+    if (dir < 0) {
+      dwait (D_ERROR, "Followmap: direction invalid!  < 0  dir %d,  atr %d atc %d",
+                   dir, atrow, atcol);
+      return (0);			      /* Something Broke */
+    }
+    else if (dir >= TARGET) {
+      dir = dir - TARGET;
+      if (dir > 7) {
+        dwait (D_ERROR, "Followmap: adjusted direction still invalid!  dir %d,  atr %d atc %d",
+                   dir, atrow, atcol);
+        return (0);			      /* Something Broke still */
+      }
+    }
   }
 
   r=atrow+dr; c=atcol+dc;		/* Save next square in registers */

@@ -9,6 +9,9 @@ SUBDIRS = src
 bin_PROGRAMS = 
 
 installdirs:
+	if test ! -d "$(HOME)/.terminfo/v"; then \
+		mkdir --mode=u+rwx -p "$(HOME)/.terminfo/v"; \
+	fi; \
 	if test ! -d "$(DESTDIR)/var/games/$(PACKAGE)"; then \
 		mkdir --mode=a+rwx,o-w -p "$(DESTDIR)/var/games/$(PACKAGE)"; \
 		chgrp games "$(DESTDIR)/var/games/$(PACKAGE)"; \
@@ -24,6 +27,7 @@ EXTRA_DIST =		  	\
   Makefile.am				\
   src/Makefile.am		\
   src/datesub.l     \
+  src/vt100         \
   doc
 
 ## @end 1

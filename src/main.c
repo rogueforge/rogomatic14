@@ -100,10 +100,12 @@
 # include <setjmp.h>
 # include <string.h>
 # include <stdlib.h>
+# include <sys/types.h>
 # include <unistd.h>
 # include "types.h"
 # include "termtokens.h"
 # include "install.h"
+
 
 /* FIXME: get rid of this prototype in the correct way */
 FILE *rogo_openlog (char *genelog);
@@ -362,6 +364,33 @@ char *argv[];
   sprintf (versionstr, "");
 
   for (i = 80 * 24; i--; ) screen[0][i] = ' ';
+
+  /*
+   * Get the process id of this player program if the 
+   * environment variable is set which requests this be
+   * done.  Then create the file name with the PID so
+   * that the debugging scripts can find it and use the
+   * PID.
+   *
+   * This code can be removed if you don't need to use
+   * the debugging scripts.
+   *
+   */
+
+  /* Process ID */
+  pid_t pid;
+  char pidfilename[NAMSIZ];
+  FILE *pidfp;
+
+  if (getenv("GETROGOMATICPID") != NULL) {
+    pid = getpid ();
+    memset (pidfilename, '\0', NAMSIZ);
+    sprintf (pidfilename, "rogomaticpid.%d", pid);
+    if ((pidfp = fopen (pidfilename, "w")) == NULL) {
+      fprintf (stderr, "Can't open '%s'.\n", pidfilename);
+      exit(1);
+    }
+  }
 
   /*
    * The first argument to player is a two character string encoding
