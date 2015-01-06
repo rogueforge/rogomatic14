@@ -36,7 +36,7 @@
 
 # define EQUAL 0
 
-static int cmdonscreen = 0, comcount = 0;
+static int cmdonscreen = 0;
 
 /* Move one square in direction 'd' */
 move1 (d)
@@ -80,7 +80,6 @@ int tmode, a1, a2, a3, a4;
 {
   int times;
   char cmd[128], functionchar ();
-  static char lastcom[32] = "";
 
   /* Build the command */
   sprintf (cmd, f, a1, a2, a3, a4);
@@ -102,36 +101,6 @@ int tmode, a1, a2, a3, a4;
     case 'J': movedir = 6; wakemonster (movedir); break;
     case 'N': movedir = 7; wakemonster (movedir); break;
     default:  movedir = NOTAMOVE;
-  }
-
-  /* If in a real game (not replaying), then check for looping */
-  if (!replaying) {
-    debuglog ("command : compare ('%s', '%s') comcount %d  movedir %d\n",lastcom, cmd, comcount, movedir);
-
-    if (streq (lastcom, cmd)) {
-      comcount++;
-
-      if (streq (cmd, "i") && comcount > 3)
-        dwait (D_FATAL, "command: cannot synchronize inventory, invcount %d.",
-               invcount);
-      else if (streq (cmd, "1y") && comcount > 100)
-        dwait (D_FATAL, "command: direction 1y more than 100 times.  (atrow,atcol) (%d,%d)",
-               atrow, atcol);
-
-      else if (comcount > MAXSAMECOM)
-        dwait (D_FATAL, "command: doing %s more than %d times?  comcount %d.  (atrow,atcol) (%d,%d)",
-               cmd, MAXSAMECOM, comcount, atrow, atcol);
-      else if (comcount > (MAXSAMECOM - 25))
-        dwait (D_WARNING, "command: doing %s more than %d times?  comcount %d.  (atrow,atcol) (%d,%d)",
-               cmd, MAXSAMECOM - 25, comcount, atrow, atcol);
-      else if (comcount > (MAXSAMECOM - 50))
-        dwait (D_INFORM, "command: doing %s more than %d times?  comcount %d.  (atrow,atcol) (%d,%d)",
-               cmd, MAXSAMECOM - 50, comcount, atrow, atcol);
-    }
-    else {
-      strcpy (lastcom, cmd);
-      comcount = 1;
-    }
   }
 
   /* If command takes time to execute, mark monsters as sleeping */

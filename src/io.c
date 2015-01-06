@@ -1208,7 +1208,7 @@ clearscreen ()
   for (i = 0; i < 24; i++)
     for (j = 0; j < 80; j++) {
       screen[i][j] = ' ';
-      unsetrc (STUFF, i, j);
+      scrmap[i][j] = SCRMINIT;
     }
 
   initstufflist ();

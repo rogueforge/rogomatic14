@@ -48,6 +48,7 @@ newlevel ()
   int   i, j;
 
   initstufflist ();			/* Delete the list of items */
+  diddrop = 0;				/* Clear dropped item flag */
   droppedscare = 0;			/* Old stuff gone */
   maxobj = 22;				/* Reset maximum # of objs */
   newmonsterlevel ();			/* Do new monster stuff */
@@ -67,6 +68,7 @@ newlevel ()
   compression = Level < 13;		/* Set move compression */
   newarmor = newweapon = newring = 1;	/* Reevaluate our items */
   foundnew ();				/* Reactivate all rules */
+  clearsendqueue ();	/* Clear old commands */
 
   /*
    * Clear the highlevel map
@@ -84,7 +86,7 @@ newlevel ()
 
   for (i = 1; i < 23; i++)
     for (j = 0; j < 80; j++) {  /* Forall screen positions */
-      scrmap[i][j] = 0;
+      scrmap[i][j] = SCRMINIT;
       timessearched[i][j] = 0;
       updatepos (screen[i][j], i, j);
     }

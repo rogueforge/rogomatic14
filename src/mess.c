@@ -220,7 +220,7 @@ register char *mess, *mend;
         else if (MATCH("a staff of * [*](*)*")) infer (res1, wand);
         else if (MATCH("a wand of * [*](*)*")) infer (res1, wand);
         else if (MATCH("a ring of *(*)*")) infer (res1, ring);
-        else if (MATCH("a wand of * (*)*")) infer (res1, wand);
+        else if (MATCH("a wand of *(*)*")) infer (res1, wand);
         else if (MATCH("a staff of *(*)*")) infer (res1, wand);
         else if (MATCH("a scroll of *")) infer (res1, Scroll);
         else if (MATCH("a potion of *(*)*")) infer (res1, potion);
@@ -260,7 +260,14 @@ register char *mess, *mend;
         else if (MATCH("drop what*")) echoit=0;
         else if (MATCH("destroyed *"))
           { darkturns = 0; darkdir = NONE; targetmonster = 0; echoit=0; }
-        else if (MATCH("dropped *")) diddrop = 1;
+        else if (MATCH("dropped a scroll * scare monster")) {
+          set (STUFF | SCAREM);
+          diddrop = 1;
+        }
+        else if (MATCH("dropped *")) {
+          set (STUFF | USELESS);
+          diddrop = 1;
+        }
         else unknown++;
 
         break;

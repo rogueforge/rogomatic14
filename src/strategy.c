@@ -369,7 +369,7 @@ int   fightmonster ()
 int   tomonster ()
 {
   register int i, dist, rr, cc, mdir = NONE, mbad = NONE;
-  int   closest, which, danger = 0, adj = 0;
+  int   closest, which, danger = 0, adj = 0, alert = 0;
   char  monc = ':', monchar = ':', *monster;
 
   /* If no monsters, fail */
@@ -429,8 +429,11 @@ int   tomonster ()
   /* Get a string which names the monster */
   monster = monname (monc);
 
+  /* Is the monster alert */
+  alert = (mlist[which].q == AWAKE) ? 1 : 0;
+
   /* If 'battlestations' has an action, use that action */
-  if (battlestations (which, monster, mbad, danger, mdir, closest, 1, adj))
+  if (battlestations (which, monster, mbad, danger, mdir, closest, alert, adj))
     return (1);
 
   /* If he is an odd number of squares away, lie in wait for him */
@@ -543,7 +546,10 @@ int adj;		/* How many attackers are there? */
   turns = hasted ? (mdist-1)*2 : (mdist-1);
 
   /* No point in wasting resources when we are invulnerable */
-  if (on (SCAREM) && (turns > 0 || confused) && !streq(monster, "dragon")) {
+  if (on (SCAREM) && 
+      (turns > 0 || confused) && 
+      !streq(monster, "dragon") &&
+      (Hp < percent (Hpmax, 95))) {
     command (T_RESTING, "s");
     display ("Resting on scare monster");
     dwait (D_BATTLE, "Battlestations: resting, on scaremonster.");
@@ -755,6 +761,7 @@ int adj;		/* How many attackers are there? */
 
   if (die_in (1) && mdir != NONE && turns == 0 &&
       (obj = havewand ("teleport away")) != NONE &&
+      ! (itemis (obj, WORTHLESS)) &&
       point (obj, mdir)) {
     if (streq (monster, "violet fungi")) beingheld = 0;
 
@@ -806,7 +813,9 @@ int adj;		/* How many attackers are there? */
 
   if (die_in (2) && Hp > 40 && turns < 3 &&
       !(streq (monster, "purple worm") || streq (monster, "jabberwock")) &&
-      (obj = havewand ("drain life")) != NONE)
+      (obj = havewand ("drain life")) != NONE &&
+      ! (itemis (obj, WORTHLESS))
+     )
     return (point (obj, 0));
 
   if (mdir != NONE && die_in (2) &&
@@ -816,7 +825,9 @@ int adj;		/* How many attackers are there? */
        streq (monster, "xorn")       || streq (monster, "violet fungi")  ||
        streq (monster, "griffin")    || streq (monster, "venus flytrap") ||
        streq (monster, "umber hulk") || streq (monster, "black unicorn")) &&
-      (obj = havewand ("polymorph")) != NONE)
+      (obj = havewand ("polymorph")) != NONE &&
+      ! (itemis (obj, WORTHLESS))
+      )
     return (point (obj, mdir));
 
   /*
@@ -826,14 +837,18 @@ int adj;		/* How many attackers are there? */
   if ((die_in (1) || (turns == 0 && streq (monster, "floating eye")) ||
        (turns == 0 && streq (monster, "ice monster"))) &&
       mdir != NONE && mdist < 6 && !on(DOOR) &&
-      ((obj = havewand ("fire")) != NONE &&  !streq(monster, "dragon") ||
+      ((obj = havewand ("fire")) != NONE && !streq(monster, "dragon") ||
        (obj = havewand ("cold")) != NONE ||
-       (obj = havewand ("lightning")) != NONE))
+       (obj = havewand ("lightning")) != NONE) &&
+      ! (itemis (obj, WORTHLESS))
+     )
     return (point (obj, mdir));
 
   if (die_in (2) && mdir != NONE && !slowed && (turns>0 || live_for (2)) &&
       (obj = havewand ("slow monster")) != NONE &&
-      (slowed = 5))
+      (slowed = 5) &&
+      ! (itemis (obj, WORTHLESS))
+     )
     return (point (obj, mdir));
 
   if (mdir != NONE && !cancelled && turns == 0 &&
@@ -845,7 +860,9 @@ int adj;		/* How many attackers are there? */
        streq (monster, "violet fungi") ||
        streq (monster, "venus flytrap")) &&
       (obj = havewand ("cancellation")) != NONE &&
-      (cancelled = 10)) {
+      (cancelled = 10) &&
+      ! (itemis (obj, WORTHLESS))
+     ) {
     if (streq (monster, "violet fungi") || streq (monster, "venus flytrap"))
       beingheld = 0;
 
@@ -857,7 +874,9 @@ int adj;		/* How many attackers are there? */
        (turns == 0 && streq (monster, "ice monster"))) &&
       mdir != NONE &&
       (((obj = havewand ("magic missile")) != NONE && turns > 0) ||
-       ((obj = havewand ("striking")) != NONE && turns == 0)))
+       ((obj = havewand ("striking")) != NONE && turns == 0)) &&
+      ! (itemis (obj, WORTHLESS))
+     )
     return (point (obj, mdir));
 
   /*
@@ -906,7 +925,9 @@ int adj;		/* How many attackers are there? */
   if (live_for (2) && (Level > 8 || streq (monster, "rattlesnake") ||
                        streq (monster, "giant ant")) &&
       mdir != NONE && on(ROOM) && mdist < 6 &&
-      ((obj = unknown (wand)) != NONE) && (!used (inven[obj].str))) { 
+      ((obj = unknown (wand)) != NONE) && (!used (inven[obj].str)) &&
+      ! (itemis (obj, WORTHLESS))
+     ) { 
     point (obj, mdir);
     usesynch = 0;
     return (1);
@@ -993,6 +1014,9 @@ int tostuff ()
    * pack to be full.  Don't be fooled by stairs when hallucinating.
    *
    * NOTE: Don't pick up the scaremonster scroll!!!    MLM
+   *
+   * scaremonster shouldn't be worth going to if we have enough Hp 
+   * to do something else...
    */
 
   for (i = 0, which = NONE, closest = 999; i < slistlen; i++) {
@@ -1001,8 +1025,14 @@ int tostuff ()
          !onrc (SCAREM, slist[i].srow, slist[i].scol))) {
       dist = max (abs (slist[i].srow - atrow), abs (slist[i].scol - atcol));
 
-      /* Make junk look farther away, but not farther than infinity */
-      if (onrc (USELESS, slist[i].srow, slist[i].scol)) dist += 500;
+      /* Ignore Junk */
+      if (onrc (USELESS, slist[i].srow, slist[i].scol) &&
+         (!onrc (SCAREM, slist[i].srow, slist[i].scol))) dist = ROGINFINITY;
+
+      /* make scaremonster infinity when we don't need it */
+      if (onrc (SCAREM, slist[i].srow, slist[i].scol))
+         if (Hp > percent (Hpmax, 80))
+           dist = ROGINFINITY;
 
       /* If this is the closest item, save its distance and index */
       if (dist < closest)

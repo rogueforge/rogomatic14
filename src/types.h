@@ -38,7 +38,7 @@
 # define SAVED       (2)
 # define MAXINV      (26)
 # define NONE        (-1)
-# define MAXSTUFF    (30)
+# define MAXSTUFF    (100)
 # define MAXMONST    (40)
 # define SAVEARROWS  (30)
 # define NAMSIZ      (64)
@@ -46,7 +46,6 @@
 # define MAXMON      (128)
 # define SUCCESS     (1)
 # define FAILURE     (0)
-# define MAXSAMECOM  (1600)
 
 # define USLEEP   (14000)  /* set to 0 for full blast.  not using the "-w"
                               option also skips these delays.
@@ -83,6 +82,7 @@
  * to change the flag names at the end of debug.c.   MLM
  */
 
+# define SCRMINIT (00000000000)
 # define BEEN     (00000000001)
 # define CANGO    (00000000002)
 # define DOOR     (00000000004)

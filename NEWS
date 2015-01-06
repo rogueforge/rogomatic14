@@ -1,21 +1,15 @@
-Thu Dec 18 10:59:13 EST 2014
+Sun Jan  4 14:48:00 EST 2015
 
 
 most recent changes:
 
- - see ChangeLog for details.
+  - see ChangeLog for details.
 
-   - worked around followmap direction invalid bug.  added more 
-     information below on how to work around vt100 scroll related 
-     intermittent bug.  main.c was changed to look for the 
-     GETROGOMATICPID environment variable and if that is found it 
-     will create a file in the current directory which contains 
-     the PID as a part of the file name.  this makes it much 
-     easier for the debugging scripts.  as this has no effect if 
-     the environment variable is not set most people should not 
-     see this file.  Makefile.am, added a bit to set up 
-     $HOME/.terminfo/v directory for user.  bumped morecount 
-     limit up (it was being hit by a run that would finish otherwise).
+    keep the hero from starving while standing on a
+    scare monster scroll, zero scrmap when the screen
+    is cleared, get rid of limits on command counts
+    repeating, a small fix for wands/staffs that become
+    known from use.
 
 
 -----
@@ -148,6 +142,52 @@ install:
 
 -----
 
+genes, long term memory and replicable runs:
+
+  at first there are no gene or long term memory files for
+rogomatic.  the first run will create them and then the 
+next runs will add to or change them.  they are created
+in the /var/games/rogomatic directory and are called:
+GeneLog544, GenePool544, ltm544, and rgmdelta5.4.4
+the first two are the gene related files and the last
+two are the long term memory files.
+
+  to start from scratch (before running rogomatic the
+first time) the following will set up two files:
+GeneLog544 and GenePool544
+
+  # to create 20 genes
+  $ gene -i -m20 -v544
+
+  there will not be ltm544 or rgmdelta5.4.4 files until 
+after you run rogomatic.  you can edit these files to
+be zeroed out (because the first run will put some 
+information in them).  or as a part of the debugging
+scripts in the directory static/fixed.orig i have all
+four files in an initial state.
+
+  once you have those four initial files set up (before
+you run rogomatic) and the seed you can then replicate the
+run by copying the four files back to /var/games/rogomatic
+set the SEED environment variable and then run rogomatic.
+
+  to get the next SEED in sequence you leave the finished
+version of the four files in /var/games/rogomatic and use them 
+plus the next SEED number.
+
+  oh, and of course, if later on you want to replicate a run
+you will need copies of the various binaries (rogomatic, rogue, 
+player, gene, etc.).  this is a good idea in general for 
+testing because as new versions of the compiler come out it
+can change code generation and it is much easier to keep
+track of instead of trying to keep track of all the various
+libraries and compiler versions.  as of yet i have not 
+discovered any strange happenings which come about due to a
+compiler issue.
+
+
+-----
+
 vt100:
 
   - the current rogue/rogomatic code has an intermittent 
@@ -229,7 +269,7 @@ $ infocmp -D
 
 -----
 
-debugging:
+more debugging information:
 
   - the normal rogue/rogomatic screen is set for 24x80
     characters.
@@ -240,24 +280,25 @@ debugging:
     24th line.
 
   - D_MESSAGE, D_PACK are both very helpful, increase
-    screen size to 33x80.
+    screen size to 33x80.  the rest are also helpful
+    if you are dealing with tracking down errors in 
+    other parts of rogomatic or rogue.
 
   - there is a separate archive of the debugging
-    environment i've been using.  it contains scripts 
-    for replicating runs and comparing series of runs 
-    (with and without learning).  see the webpage:
+    environment i've been using.  it contains scripts for 
+    replicating runs and comparing series of runs (with 
+    and without learning).  see the webpage:
 
     www.anthive.com/rog/other/things.html
 
-    it contains a README with details about how to run
-    rogomatic in a loop using various settings.  mostly
-    aimed at allowing me to run things with specific
-    sets of files and environment variables so that runs
-    can be replicated.  some bugs are hard to duplicate
-    and not frequent so when i have an example that 
-    illustrates the problem this is how i can recreate
-    it and then work on understanding a suitable fix or
-    workaround.
+    the scripts contain a README with details about how to 
+    run rogomatic in a loop using various settings.  mostly
+    aimed at allowing me to run things with specific sets 
+    of files and environment variables so that runs can be 
+    replicated.  some bugs are hard to duplicate and not 
+    frequent so when i have an example that illustrates the 
+    problem this is how i can recreate it and then work on 
+    understanding a suitable fix or workaround.
 
 
 -----

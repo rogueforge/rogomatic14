@@ -1,3 +1,52 @@
+Sun Jan  4 14:54:17 EST 2015
+
+
+    [r2.0.2]
+
+  - command.c, command() removed MAXSAMECOM, comcount, lastcom 
+    and the comparisons needed -- the game and debugging are now 
+    to the point where having a check/limit like this is costing 
+    more than it is worth.  morecount remains...
+
+  - io.c, clearscreen() previously only reset the flag STUFF which
+    is not always the only flag used or needed even when a level 
+    changes.  i'm sure this sort of thing could influence many
+    other things like room searching.  now the entire set of flags
+    are cleared (the global constant SCRMINIT is for that).
+
+  - mess.c, parsemsg() added more cases for scare monster scrolls
+    along with a minor change for wands.
+
+  - rooms.c, newlevel() added a few things to make sure something is
+    not left dangling between levels or old commands are still in the
+    queue.
+
+  - strategy.c, tomonster() and tostuff(), to improve scare monster
+    scroll use (so hero doesn't starve when standing on one) but also
+    many changes to avoid using WORTHLESS staffs/wands.  which really
+    don't do all that is needed because of other errors in the code
+    which remove this helpful information during a pack/inventory
+    reset, but at least now the code should prevent repeat forever
+    loops that were happening before (see NEWS for why a different
+    kind of fix would be needed to not erase such useful info).
+
+    also, previously monsters were assumed awake/alert and sometimes 
+    they are not, add a little more code for that.
+
+  - pack.c, inventory() in some instances an item can become KNOWN by
+    using it and that event may not give a specific message from rogue.
+    now item messages for wands/staffs that are flagged as KNOWN get
+    checked to make sure they are all up to date with the correct 
+    information in the database.  other items may eventually need a
+    similar check, but for now only wands/staffs get this double check
+    (i don't want to slow the game down if i don't have to).
+
+  - types.h, MAXSTUFF limit increased, at the end of a game in a room 
+    with a lot of items this limit could be overrun because the scan
+    considers some tombstone characters as items in the game.  removed 
+    MAXSAMECOM.  added SCRMINIT.
+
+
 Thu Dec 18 10:53:21 EST 2014
 
 

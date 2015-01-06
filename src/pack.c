@@ -301,12 +301,13 @@ char *msgstart, *msgend;
   register char *p, *q, *mess = msgstart, *mend = msgend;
   char objname[100];
   char dbname[NAMSIZ];
+  char codename[NAMSIZ];
   int  n, ipos, xknow = 0, newitem = 0, inuse = 0, printed = 0, len = 0;
   int  plushit = UNKNOWN, plusdam = UNKNOWN, charges = UNKNOWN;
   stuff what;
-  char *xbeg, *xend;
+  char *xbeg, *xend, *codenamebeg, *codenameend;
 
-  xbeg = xend = "";
+  xbeg = xend = codenamebeg = codenameend = "";
   dwait (D_PACK, "inv: message %s", mess);
 
   if (debug(D_MESSAGE)) {
@@ -388,7 +389,14 @@ char *msgstart, *msgend;
 
   /* Read any parenthesized strings at the end of the message */
   while (mend[-1]==')') {
+
+    if (mend[-1] == ')')
+      codenameend = mend-2;
+
     while (*--mend != '(') ;		/* on exit mend -> '(' */
+
+    if (*mend == '(')
+      codenamebeg = mend+1;
 
     if (stlmatch (mend,"(being worn)") )
       { currentarmor = ipos; inuse = INUSE; }
@@ -469,8 +477,10 @@ char *msgstart, *msgend;
   if (version >= RV53A && what == ring && charges != UNKNOWN)
     { plushit = charges; charges = UNKNOWN; }
 
-  dwait (D_PACK, "inv %s '%s' ht %d dm %d ch %d kn %d",
-         stuffmess[(int) what], objname, plushit, plusdam, charges, xknow);
+  dwait (D_PACK, "inv %s '%s'",
+         stuffmess[(int) what], objname);
+  dwait (D_PACK, "inv    ht %d dm %d ch %d kn %d",
+         plushit, plusdam, charges, xknow);
 
   /* make sure all unknown potion, Scroll, wand, rings 
      are in dbase */
@@ -510,6 +520,22 @@ char *msgstart, *msgend;
         refresh ();
         printed++;
       }
+    }
+  }
+
+  /* Once in a while a wand/staff becomes known by use.
+     when we find one of these update that database entry */
+  if ((xknow == KNOWN) &&
+    (what == wand)) {
+
+    /* Copy the codename of the object into a string */
+    memset (codename, '\0', NAMSIZ);
+
+    for (p = codename, q = codenamebeg; q <= codenameend;  p++, q++) *p = *q;
+
+    if ((strlen (codename) > 2) &&
+      (strlen (findentry_getrealname (codename, what)) == 0)) {
+      infername (codename, objname, what);
     }
   }
 
@@ -568,7 +594,8 @@ char *msgstart, *msgend;
 
   /* Set the name of the object */
   if (inven[ipos].str != NULL) {
-    strcpy (inven[ipos].str, objname);
+    if (strlen (objname) > 0)
+      strcpy (inven[ipos].str, objname);
   }
   else if (!replaying) {
     dwait (D_ERROR, "inv: null inven[%d].str, invcount %d.",
