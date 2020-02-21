@@ -684,10 +684,10 @@ register char *mess, *mend;
     }
 
   /* Log unknown or troublesome messages */
-  if ((morecount > 125) && (morecount < 150)) {
+  if ((morecount > 150) && (morecount < 200)) {
     dwait(D_WARNING, "More Loop ->%s<-.", mess);
   }
-  else if (morecount >= 150) {
+  else if (morecount >= 200) {
     dwait(D_FATAL, "More Loop Exit ->%s<-.", mess);
   }
   else if (unknown)

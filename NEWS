@@ -1,15 +1,12 @@
-Sun Jan  4 14:48:00 EST 2015
+Fri Mar 23 09:57:39 EDT 2018
 
 
 most recent changes:
 
   - see ChangeLog for details.
 
-    keep the hero from starving while standing on a
-    scare monster scroll, zero scrmap when the screen
-    is cleared, get rid of limits on command counts
-    repeating, a small fix for wands/staffs that become
-    known from use.
+    increase the morecount because it really isn't a fatal
+    error if the hero gets repeatedly frozen.
 
 
 -----
@@ -289,7 +286,7 @@ more debugging information:
     replicating runs and comparing series of runs (with 
     and without learning).  see the webpage:
 
-    www.anthive.com/rog/other/things.html
+    http://www.anthive.com/project/rogue/
 
     the scripts contain a README with details about how to 
     run rogomatic in a loop using various settings.  mostly
@@ -308,7 +305,7 @@ priorities and philosophy:
   - the general priority and philosophy of which bugs i
     will fix is something like:
 
-    1st - segfaults or crashes
+    1st - segfaults other crashes, infinite loops
     2nd - errors i cause trying to fix something else
     3rd - issues i can find some way to work around
     4th - problems found during testing
@@ -353,7 +350,7 @@ priorities and philosophy:
 compatibility:
 
   - i'm currently running the Debian testing distribution and
-    on a 32 bit system.
+    on a 64 bit system.
 
   - many compiler warning flags are being ignored so at 
     some point those may cause problems, but i'm ignoring 
@@ -366,6 +363,3 @@ compatibility:
   - that all said, this code may work on older Debian
     releases or even other distributions, but i haven't 
     got the setups for testing them out.
-
-  - i've finally had one person say they've compiled and are
-    able to run it on Lubuntu 14.0.1 32 Bit system.  Yay!

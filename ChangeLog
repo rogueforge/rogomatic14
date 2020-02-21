@@ -1,3 +1,15 @@
+Fri Mar 23 10:09:51 EDT 2018
+
+
+    [r2.0.3]
+
+  - mess.c, increase morecount.  it's not really a fatal error
+    worthy event to be repeatedly frozen.
+
+  - add to other docs to include -m32 in CFLAGS and change link
+    for website page.
+
+
 Sun Jan  4 14:54:17 EST 2015
 
 

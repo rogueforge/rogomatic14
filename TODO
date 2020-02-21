@@ -1,4 +1,4 @@
-Sun Jan  4 15:11:05 EST 2015
+Fri Mar 23 10:04:01 EDT 2018
 
 
 ===== rogomatic
@@ -12,7 +12,8 @@ building:
     compile and run.  thank you for the report!
 
   - also have a report of rogomatic not working on a 64 bit 
-    system, but details are still unknown.
+    system.  if you change your CFLAGS to include -m32 it 
+    will run.
 
 
 code changes/fixes summary:
@@ -38,9 +39,7 @@ strange happenings and known bugs:
     ends up wasting a lot of time or causing starvation.  some 
     searches find a new square but it looks like the player 
     doesn't notice it (not made a new goal to explore?...  dunno 
-    why).  SEED=3 is a good current example where the search fails 
-    for a long time and then the player is killed shortly before 
-    starving.
+    why).
 
   - when teleported by a trap or by reading a scroll the hero may 
     land on an item in older versions of rogue (before version 
@@ -124,7 +123,7 @@ wishlist items and help me out things:
   - find a better home for this code than my machine.  must 
     be free and useable by me.
 
-  - get 64 bit issue sorted out.
+  - get 64 bit issues sorted out.  needs code review and fixes.
 
   - some of the code has been commented out dealing with signals, 
     i don't think i'll look at it anytime soon, but if you can sort 
@@ -147,6 +146,7 @@ wishlist items and help me out things:
 
 screen not updating correctly:
 
+  (may not happen any longer?)
   the internal representation of the screen is correct so these are 
 what seems to be cosmetic flaws.
 
