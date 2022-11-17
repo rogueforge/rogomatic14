@@ -350,7 +350,9 @@ int i;
     /* the character after any level. They each add one hit point per */
     /* turn of rest regardless of your level!			MLM   */
 
-    class = 50*(Hpmax-Hp-Explev) + 500; }
+    class = 50*(Hpmax-Hp-Explev) + 500; 
+    if (foughtmonster && class < 1100) class = 1100;
+  }
 
   /* A ring of slow digestion */
   else if (stlmatch (inven[i].str, "slow digestion"))
