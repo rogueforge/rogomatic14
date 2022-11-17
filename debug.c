@@ -76,7 +76,7 @@ dwait(int msgtype, char *f, ...)
   /* Debugging loop, accept debugging commands from user */  
   while (1)
   { refresh ();
-    switch (fgetc (stdin))
+    switch (getch())
     { case '?': 
         say ("i=inv, d=debug !=stf, @=mon, #=wls, $=id, ^=flg, &=chr");
         break;
