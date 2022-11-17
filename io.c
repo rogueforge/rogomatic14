@@ -780,7 +780,7 @@ int waitforspace ()
    refresh (); 
 
    if (!noterm) 
-     while ((ch = fgetc (stdin)) != ' ')
+     while ((ch = getch()) != ' ')
        if (ch == '/') dosnapshot ();
 
    at (row, col);
