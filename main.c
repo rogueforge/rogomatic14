@@ -329,7 +329,7 @@ stuff translate[128] =
 invrec inven[MAXINV]; int invcount = 0;
 
 /* Time history */
-timerec timespent[50];
+timerec timespent[100];
 
 /* End of the game messages */
 char *termination = "perditus";
