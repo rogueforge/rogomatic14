@@ -121,6 +121,7 @@ FILE  *trogue=NULL;		/* Pipe to Rogue process */
 char  logfilename[100];		/* Name of log file */
 char  afterid = '\0';           /* Letter of obj after identify */
 char  dropid = '\0';		/* Letter of next object to drop */
+char  wieldid = '\0';		/* Letter of next object to wield */
 char  genelock[100];		/* Gene pool lock file */
 char  genelog[100];		/* Genetic learning log file */
 char  genepool[100];		/* Gene pool */

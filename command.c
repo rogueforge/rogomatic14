@@ -191,26 +191,7 @@ char *cmd;
 		hitstokill -= 1; /* Dont blame weapon if arrow misses */
 		break;
 
-    case 'w':	if (currentweapon != NONE)
-		  forget (currentweapon, INUSE);
-
-		neww = OBJECT (commandarg (cmd, 1));
-		usemsg ("About to wield", neww);
-
-		if (commandarg (cmd, 2) == 'w')
-		{ lastdrop = currentweapon = neww; }
-		else
-		{ lastdrop = currentweapon; currentweapon = neww; }
-
-		remember (currentweapon, INUSE);
-		
-		usingarrow = (inven[currentweapon].type == missile);
-		goodweapon = (weaponclass (currentweapon) >= 100);
-		
-		badarrow = goodarrow = poorarrow = hitstokill = 0;
-		newweapon = 1;
-		setbonuses ();
-		break;
+    case 'w':	break;
 
     case 'p': case 'z':
 		lastwand = OBJECT (commandarg (cmd, 2));

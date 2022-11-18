@@ -318,7 +318,7 @@ register char *mess, *mend;
 
     case 'w':
       if (MATCH("what do you want*")) echoit=0;
-      else if (MATCH("wield what*")) echoit=0;
+      else if (MATCH("wield what*")) { echoit=0; wieldreply(); }
       else if (MATCH("wielding a*")) echoit=0;
       else if (MATCH("wear what*")) echoit=0;
       else if (MATCH("what monster*")) echoit=0;
@@ -570,6 +570,45 @@ int dropreply ()
 
   setrc (STUFF | USELESS, atrow, atcol);
   deleteinv (OBJECT (dropid));
+}
+
+/*
+ * wieldreply: issue reply for wield request
+ */
+
+int wieldreply ()
+{
+  int neww = wieldid;
+  usemsg ("About to wield", OBJECT(neww));
+
+  if (!replaying &&
+      (wieldid < LETTER (0) || wieldid > LETTER (invcount)))
+  { dwait (D_FATAL, "Wieldreply: wieldid %d, invcount %d.",
+           wieldid, invcount); }
+
+  if (!replaying)
+  {
+    waitfor ("--More--");
+    sendnow(" ");
+    waitfor ("(* for list):");
+    sendnow ("%c;", wieldid);          /* Wield it */
+  }
+
+  if (currentweapon != NONE)
+    forget (currentweapon, INUSE);
+
+  lastdrop = currentweapon;
+  currentweapon = neww;
+
+  remember (currentweapon, INUSE);
+
+  usingarrow = (inven[currentweapon].type == missile);
+  goodweapon = (weaponclass (currentweapon) >= 100);
+
+  badarrow = goodarrow = poorarrow = hitstokill = 0;
+  newweapon = 1;
+  setbonuses ();
+  usesynch = 0;
 }
 
 /*

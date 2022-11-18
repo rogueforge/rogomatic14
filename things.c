@@ -57,11 +57,8 @@ int obj;
 {
   if (cursedweapon) return (0);
 
-  if (version < RV53A)
-    command (T_HANDLING, "w%cw%c%c", LETTER (obj), ESC, ctrl('r'));
-  else
-    command (T_HANDLING, "w%cw%c%c", LETTER (obj), ESC, ctrl('p'));
-
+  wieldid = LETTER(obj);
+  command (T_HANDLING, "w");
   return (1);
 }
 
