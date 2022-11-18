@@ -16,6 +16,7 @@ FILE *wopen();			/* Open a file for world access */
 /* global characters and strings */
 extern char afterid;		/* Index of object after identify */
 extern char dropid;		/* Next object to drop */
+extern char wieldid;		/* Next item to wield */
 extern char *genocide;		/* List of monsters to genocide */
 extern char genocided[];	/* List of monsters genocided */
 extern char lastcmd[];		/* Copy of last command sent to Rogue */
@@ -205,3 +206,4 @@ extern int know (stuff, char *);
 extern int pickident (int);
 extern int dropreply ();
 extern char functionchar (char *);
+extern int wieldreply ();
