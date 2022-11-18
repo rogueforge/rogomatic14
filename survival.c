@@ -208,11 +208,14 @@ int unpin ()
 { int result, oldcomp = compression;
   int unpininit (), runvalue (), expunpininit (),
       exprunvalue (), expunpinvalue ();
+  static int unpinned = 0;
 
   if (on (SCAREM)) 
   { dwait (D_BATTLE, "Not unpinning, on scare monster scroll!");
     return (0);
   }
+
+  if (++unpinned > 100) { unpinned = 0; return 0; };
 
   if (on (STAIRS) && !floating)
   { if (!goupstairs (RUNNING)) godownstairs (RUNNING); 
