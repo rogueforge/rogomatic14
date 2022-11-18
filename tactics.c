@@ -41,6 +41,8 @@ int handlearmor ()
    
   obj = havearmor (1, NOPRINT, ANY);		/* Get best armor */
 
+  if (obj == NONE) return (0);
+
   if (Level > (version < RV52A ? 8 : 7) && Level < 19 && 
       wearing ("maintain armor") == NONE &&
       willrust (obj) &&
