@@ -989,7 +989,7 @@ int tostuff ()
   what= slist[which].what; wrow= slist[which].srow; wcol= slist[which].scol;
 
   /* We can always pick up more gold */
-  if (what == gold) return (gotowards (wrow, wcol, 0));
+  if (what == gold && !beingheld) return (gotowards (wrow, wcol, 0));
 
   /* Have space in our pack, go get it */
   if (objcount < maxobj) return (gotowards (wrow, wcol, 0));
