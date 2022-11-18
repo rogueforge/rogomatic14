@@ -514,7 +514,8 @@ int adj;		/* How many attackers are there? */
   /* as archmonster marks it as awake although it is really asleep. */
   if (on (SCAREM) && (turns > 0 || confused) &&
       (m == NONE || mlist[m].q != ASLEEP) &&
-      (targetmonster == 0 || turns < 2) && !streq(monster, "dragon"))
+      (targetmonster == 0 || turns < 2) && !streq(monster, "dragon") &&
+      (Hp < percent (Hpmax, 95)) )
   { command (T_RESTING, "s");
     display ("Resting on scare monster");
     dwait (D_BATTLE, "Battlestations: resting, on scaremonster.");
