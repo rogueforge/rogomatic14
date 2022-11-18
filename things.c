@@ -57,6 +57,7 @@ int obj;
 {
   if (cursedweapon) return (0);
 
+  lastdrop = currentweapon;
   wieldid = LETTER(obj);
   command (T_HANDLING, "w");
   return (1);
