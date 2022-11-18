@@ -500,6 +500,7 @@ int alert;              /* Is he known to be awake? */
 int adj;		/* How many attackers are there? */
 { int obj, turns;
   static int stepback = 0;
+  static int scaremcount = 0;
 
   /* Ascertain whether we have a clear path to this monster */
   if (mdir != NONE && !checkcango (mdir, mdist))
@@ -515,12 +516,16 @@ int adj;		/* How many attackers are there? */
   if (on (SCAREM) && (turns > 0 || confused) &&
       (m == NONE || mlist[m].q != ASLEEP) &&
       (targetmonster == 0 || turns < 2) && !streq(monster, "dragon") &&
-      (Hp < percent (Hpmax, 95)) )
-  { command (T_RESTING, "s");
+      (Hp < percent (Hpmax, 95)) &&
+      (scaremcount < 250))
+  { scaremcount++;
+    command (T_RESTING, "s");
     display ("Resting on scare monster");
     dwait (D_BATTLE, "Battlestations: resting, on scaremonster.");
     return (1);
   }
+
+  scaremcount = 0;  /* Prevent waiting on SCAREM forever */
 
   /* 
    * Take invisible stalkers into account into account,
