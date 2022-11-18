@@ -223,8 +223,8 @@ int *drow, *dcol;
 { register int i=atrow, j=atcol;
 
   while (i < 23 && j < 79)
-  { if (onrc (CANGO, i, j+1)) j++;
-    else if (onrc (CANGO, i+1, j)) i++;
+  { if (onrc (CANGO, i, j+1) && !onrc (DOOR, i, j+1)) j++;
+    else if (onrc (CANGO, i+1, j) && !onrc (DOOR, i+1, j)) i++;
     else { *drow = i; *dcol = j; return (1); }
   }
 
