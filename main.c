@@ -152,7 +152,8 @@ int   cecho = 0;		/* Last kind of message to echo file */
 int   cheat = 0;		/* True ==> cheat, use bugs, etc. */
 int   checkrange = 0;           /* True ==> check range */
 int   chicken = 0;		/* True ==> check run away code */
-int   compression = 1;		/* True ==> move more than one square/turn */
+int   default_compression = 1;	/* True ==> move more than one square/turn */
+int   compression = 0;
 int   confused = 0;		/* True if we are confused */
 int   cosmic = 0;		/* True if we are hallucinating */
 int   currentarmor = NONE;	/* Index of our armor */
@@ -491,6 +492,7 @@ char *argv[];
   while (playing) 
   { refresh ();
 
+    compression = default_compression;
     /* If we have any commands to send, send them */
     while (resend ())
     { if (startingup) showcommand (lastcmd);

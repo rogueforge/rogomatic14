@@ -979,6 +979,11 @@ int tostuff ()
       /* Compute real distance to avoid endless loops, max dist is 7000. */
       dist = deltax * deltax + deltay * deltay;
 
+      if (dist == 0)
+      { compression = 0;
+        continue;
+      }
+
       /* Make junk look farther away, but not farther than infinity */
       if (onrc (USELESS, slist[i].srow, slist[i].scol)) dist += 10000;
 
