@@ -854,7 +854,7 @@ int adj;		/* How many attackers are there? */
 
   if (!confused && !beingheld && ! streq (monster, "dragon") &&
       (mdir < 0 || turns < 5) &&
-      (((adj > 1 || live_for (1)) && die_in (4) && !canrun ())) &&
+      (((adj > 1 || live_for (1)) && die_in (4) && !canrun ())) && !fainting() &&
       unpin ())
   { display ("Unpinning!!!"); return(1); }
 
