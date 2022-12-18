@@ -982,7 +982,7 @@ int tostuff ()
       if (onrc (USELESS, slist[i].srow, slist[i].scol)) dist += 10000;
 
       /* If this is the closest item, save its distance and index */
-      if (dist < closest)
+      if ((dist + 1) < closest)
       { closest = dist; which = i; }
     }
   }
