@@ -232,9 +232,7 @@ int   fightmonster ()
      * see any alert monsters yet.
      */
 
-    if (max (abs (atrow-rr), abs (atcol-cc)) == 1 &&
-        (alertmonster ? mlist[i].q == AWAKE :
-                        mlist[i].q != ASLEEP)) /* DR Utexas 26 Jan 84 */
+    if (max (abs (atrow-rr), abs (atcol-cc)) == 1)
     { mon = mlist[i].chr;		/* Record the monster type */
       monster = monname (mon);		/* Record the monster name */
       danger += maxhitchar(mon);	/* Add to the danger */
@@ -243,6 +241,9 @@ int   fightmonster ()
       if (onrc (CANGO, rr, atcol) && onrc (CANGO, atrow, cc))
       { adjacent++; howmean = isholder (monster) ? 10000 : avghit(i);
             
+        if (mlist[i].q == ASLEEP)
+        { howmean = 0;
+        }
 	/* If he is adjacent and the worst monster yet, save him */
         if (howmean > mbad)
         { wanddir = mdir = direc (rr-atrow, cc-atcol);
