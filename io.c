@@ -45,6 +45,16 @@ static char screen00 = ' ';
 char  queue[SENDQ];             /* To Rogue */
 int   head = 0, tail = 0;
 int   illcmd = 0;               /* Set by terpmes on 'Illegal command' */
+/*
+ * msgend: the column just past the text on the message line.
+ */
+
+static int msgend ()
+{ register int i;
+
+  for (i = 80; i > 0 && screen[0][i-1] == ' '; i--) ;
+  return (i);
+}
 
 /*
  * Getrogue: Sensory interface.
@@ -67,6 +77,10 @@ int   onat;                             /* 0 ==> Wait for waitstr
   char  *s, *m, *q, *d, *call;
   int *doors, ch, getroguetoken();
   static moved = 0;
+  static int lastrow = -1;		/* Row of the last cursor motion */
+  int terped = 0;			/* Message already interpreted */
+  int newmsg = 0;			/* New text on the message line */
+  int pend = 0;				/* Message waits for the map */
 
   newdoors = doorlist;			/* no new doors found yet */
   atrow0 = atrow; atcol0 = atcol;	/* Save our current posistion */
@@ -83,7 +97,7 @@ int   onat;                             /* 0 ==> Wait for waitstr
   /* While we have not reached the end of the Rogue input, read */
   /* characters from Rogue and figure out what they mean.       */
   while ((*s) ||
-         ((!hasted || version != RV36A) && onat && screen[row][col] != '@'))
+         ((!hasted || version != RV36A) && onat && row == 0))
   { /* Stop once the 'Illegal command' marker we wait for is parsed */
     if (illcmd && row > 0 && strcmp (waitstr, ill) == 0)
     { illcmd = 0; break; }
@@ -91,7 +105,8 @@ int   onat;                             /* 0 ==> Wait for waitstr
     ch = getroguetoken ();
 
     /* If message ends in "(* for list): ", call terpmes */
-    if (ch == *q) { if (*++q == 0) terpmes (); }
+    if (ch == *q)
+    { if (*++q == 0 && !terped) { terpmes (); terped = 1; } }
     else q = "(* for list): ";
 
     /* Rogomatic now keys off of the grass under the Tombstone to  */
@@ -120,15 +135,20 @@ int   onat;                             /* 0 ==> Wait for waitstr
 
         /* Clear the --More-- of the end of the message */
         for (i = col - 7; i < col; screen[0][i++] = ' ');
+        col++;		/* Else position is off for {do}/{bs} */
 
-        terpmes ();			/* Interpret the message */
+        if (!terped)			/* Interpret the message */
+        { terpmes (); terped = 1; }
+        newmsg = 0; pend = 0;
 
+        m = "More--";
+        continue;			/* Keep terped for next token */
         /* This code gets rid of the "Studded leather arm" bug */
 	/* But it causes other problems.		MLM   */
         /* sprintf (&screen[0][col - 7], "--More--"); */ 
       }
     }
-    else m = "More--";
+    else if (ch >= ' ') m = "More--";
 
     /* If the message is 'Call it:', cancel the request */
     if (ch == *call)
@@ -149,7 +169,11 @@ int   onat;                             /* 0 ==> Wait for waitstr
         col--;
         break;
 
-      case CE_TOK: 
+      case CE_TOK:
+        if (row == 0 && pend && col < msgend ())
+        { terpmes (); terped = 1; newmsg = 0; pend = 0; }
+        if (row == 0 && col == 0 && screen[0][0] == 'T' && !terped)
+        { terpmes (); terped = 1; }
         if (row && row < 23)
           for (i = col; i < 80; i++)
           { updatepos (' ', row, i);
@@ -164,30 +188,39 @@ int   onat;                             /* 0 ==> Wait for waitstr
         break;
 
       case CL_TOK: 
+        if (!terped && newmsg)
+        { terpmes (); terped = 1; newmsg = 0; pend = 0; }
         clearscreen ();
         break;
 
       case CM_TOK: 
         screen00 = screen[0][0];
+        /*
+         * A message is complete once the cursor leaves the message
+         * line, but Rogue draws the map after writing it, and messages
+         * such as picking something up must be read with the map, and
+         * our position, up to date.  So leave it pending until Rogue
+         * starts to overwrite it.  Only the 'Illegal command' that
+         * ends Rogue's reply is taken as soon as the cursor leaves.
+         */
+        if (!terped && newmsg && lastrow == 0 && row != 0)
+        { if (stlmatch (screen[0], "Illegal command"))
+          { terpmes (); terped = 1; newmsg = 0; pend = 0; }
+          else pend = 1;
+        }
+        lastrow = row;
         break;
 
       case CR_TOK: 
-        if (row == 0) {
-          if (stlmatch (&screen[0][0], "drop what") || stlmatch (&screen[0][0], "Drop what"))
-            terpmes ();
-          else if (stlmatch (&screen[0][0], "wield what") || stlmatch (&screen[0][0], "Wield what"))
-            terpmes ();
-          else if (stlmatch (&screen[0][0], "You can't.  It appears to be cursed."))
-            terpmes ();
-        }
-
-	/* Handle missing '--more--' between inventories  MLM 24-Jun-83 */
-	if (row==0 && screen[0][1]==')' && screen[0][col-1] != '-')
-          terpmes ();
+        /* Move first: terpmes may answer a prompt and read more output */
         col = 0;
+        if (row == 0 && !terped && newmsg)
+        { terpmes (); terped = 1; newmsg = 0; pend = 0; }
         break;
 
       case DO_TOK:
+        if (row == 0 && !terped && newmsg)
+        { terpmes (); terped = 1; newmsg = 0; pend = 0; }
         row++;
         break;
 
@@ -226,6 +259,7 @@ int   onat;                             /* 0 ==> Wait for waitstr
 
       case UP_TOK:
         row--;
+        lastrow = row;
         break;
 
       default: 
@@ -241,14 +275,16 @@ int   onat;                             /* 0 ==> Wait for waitstr
         }
         else if (col == 0)
         { screen00 = screen[0][0]; }
-        else if (col == 1 && ch == 'l' && screen[0][0] == 'I')
-        { screen[0][0] = screen00;
-          if (screen00 != ' ') terpmes ();
-          screen[0][0] = 'I';
-        }
+        if (row == 0 && pend && col < msgend ())
+        { terpmes (); terped = 1; newmsg = 0; pend = 0; }
+
+        /* Only text that changes the message line makes a new message */
+        if (row == 0 && screen[0][col] != ch) newmsg = 1;
         screen[row][col++] = ch;
         break;
     }
+
+    terped = 0;
   }
 
   if (botprinted) terpbot ();
