@@ -580,6 +580,11 @@ register int row, col;
 	unsetrc (HALL | ROOM, row, col);
 	break;
       }
+
+      /* A '%' on a square we already know is a door is a mimic too. */
+      if (onrc (DOOR, row, col))
+	break;
+
       if (!onrc (STAIRS, row, col)) foundnew ();
       if ((!cosmic || onrc (BEEN, row, col)) && onrc (STUFF, row, col))
         deletestuff (row, col);
