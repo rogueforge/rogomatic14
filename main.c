@@ -165,7 +165,7 @@ int   darkturns = 0;		/* Distance to monster being arched */
 int   debugging = D_NORMAL;	/* Debugging options in effect */
 int   didfight = 0;             /* Last command caused fighting */
 int   didreadmap = 0;		/* Last level we read a map on */
-int   doorlist[40];		/* List of doors on this level */
+int   doorlist[120];		/* List of doors on this level (r,c pairs) */
 int   doublehasted = 0; 	/* True if double hasted (Rogue 3.6) */
 int   droppedscare = 0;		/* True if we dropped 'scare' on this level */
 int   emacs = 0;		/* True ==> format output for Emacs */

@@ -498,9 +498,9 @@ register int row, col;
       { foundnew ();
         timestosearch = k_door / 5;
 	teleported = 0; /* Dont give up on this level yet */
-	if (newdoors >= &doorlist[58])
-	  dwait (D_FATAL, "Overflowed doorlist array");
-	*newdoors++ = row;  *newdoors++ = col;
+	/* Forget extra doors rather than run off the end of the list */
+	if (newdoors < &doorlist[118])
+	{ *newdoors++ = row;  *newdoors++ = col; }
       }
       if (onrc (STUFF, row, col)) deletestuff (row, col);
       setrc (SEEN | CANGO | SAFE | DOOR | WALL | EVERCLR, row, col);
