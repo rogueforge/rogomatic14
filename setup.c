@@ -7,6 +7,9 @@
 
 # include <stdio.h>
 # include <signal.h>
+# include <string.h>
+# include <pty.h>
+# include <termios.h>
 # include "install.h"
 
 # define READ    0
@@ -23,7 +26,9 @@ main (argc, argv)
 int   argc;
 char *argv[];
 
-{ int   ptc[2], ctp[2];
+{ int   ptm, pts;			/* Master and slave of Rogue's terminal */
+  struct termios tio;
+  struct winsize ws;
   int   child, score = 0, oldgame = 0;
   int   cheat = 0, noterm = 1, echo = 0, nohalf = 0, replay = 0;
   int   emacs = 0, rf = 0, terse = 0, user = 0, quitat = 2147483647;
@@ -92,21 +97,38 @@ char *argv[];
   if (score)  { dumpscore (argc==1 ? argv[0] : DEFVER); exit (0); }
   if (replay) { replaylog (argc==1 ? argv[0] : ROGUELOG, options); exit (0); }
 
-  if ((pipe (ptc) < 0) || (pipe (ctp) < 0))
-  { fprintf (stderr, "Cannot get pipes!\n");
+  /*
+   * Rogue insists on playing from a terminal, so give it a pseudo
+   * terminal rather than a pair of pipes.  The terminal is raw, so
+   * that the characters pass through unchanged in both directions,
+   * and is not made Rogue's controlling terminal, so that no control
+   * character we send can turn into a signal.
+   */
+
+  memset (&tio, 0, sizeof (tio));
+  cfmakeraw (&tio);
+  tio.c_cflag |= CREAD | CS8;
+  tio.c_cc[VMIN] = 1; tio.c_cc[VTIME] = 0;
+  cfsetispeed (&tio, B38400); cfsetospeed (&tio, B38400);
+  memset (&ws, 0, sizeof (ws));
+  ws.ws_row = 24; ws.ws_col = 80;
+
+  if (openpty (&ptm, &pts, NULL, &tio, &ws) < 0)
+  { fprintf (stderr, "Cannot get a pseudo terminal!\n");
     exit (1);
   }
 
-  trogue = ptc[WRITE];
-  frogue = ctp[READ];
+  frogue = ptm;
+  trogue = dup (ptm);
 
   if ((child = fork ()) == 0)
   { close (0);
-    dup (ptc[READ]);
+    dup (pts);
     close (1);
-    dup (ctp[WRITE]);
-    close (ptc[WRITE]); /* Close parent's (player's) unused end of the pipes */
-    close (ctp[READ]);
+    dup (pts);
+    close (pts);
+    close (ptm);	/* Close parent's (player's) end of the terminal */
+    close (trogue);
 
     putenv ("TERMCAP", ROGUETERM);
     putenv ("TERM", "rg");
@@ -124,8 +146,7 @@ char *argv[];
 
     char ft[3] = "aa", rp[32]; ft[0] += frogue; ft[1] += trogue;
 
-    close (ptc[READ]); /* Close child's (rogue's) unused end of the pipes */
-    close (ctp[WRITE]);
+    close (pts);	/* Close child's (rogue's) end of the terminal */
 
     /* Pass the process ID of the Rogue process as an ASCII string */
     sprintf (rp, "%d", child);

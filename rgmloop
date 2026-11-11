@@ -15,7 +15,7 @@ and kept, but is Rogue's doing and not counted as a problem.
   ./rgmloop --check --games 500 --jobs 8      hunt for memory errors
 
 --check plays the memory-checked builds made by 'make -f Makefile.linux
-check' here and in the rogue source.  They run slower,
+check' here and in ../rogue5.2-linux/src.  They run slower,
 and stop with a report the moment either program reads or writes
 outside an array or uses freed memory; the report is kept with the game.
 
@@ -44,6 +44,9 @@ import termios
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+# Rogue 5.2 built from the linux branch of the reconstruction, cloned
+# next to this directory.
+ROGUE = os.path.join(os.path.dirname(HERE), 'rogue5.2-linux', 'src', 'rogue')
 LOGNAME = re.compile(r'^(.{1,4})\.(\d+)\.(-?\d+)$')
 GAME_ROWS, GAME_COLS = 24, 80
 
@@ -69,7 +72,7 @@ def parse_args():
     p.add_argument('--max-seconds', type=int, default=1800,
                    help='wall clock limit for one game (default 1800)')
     p.add_argument('--rogue', default=None,
-                   help='rogue binary (default ./runs/rogue5.2/src/rogue)')
+                   help='rogue binary (default ../rogue5.2-linux/src/rogue)')
     p.add_argument('--dir', default=os.path.join(HERE, 'runs'),
                    help='where results, kept games and learning files go '
                         '(default ./runs)')
@@ -329,7 +332,7 @@ def setup(cfg):
         sys.exit("rgmloop: rogomatic is not built, run 'make -f Makefile.linux' first")
 
     if cfg.rogue is None:
-        cfg.rogue = os.path.join(HERE, 'runs', 'rogue5.2', 'src', 'rogue')
+        cfg.rogue = ROGUE
     if not os.access(cfg.rogue, os.X_OK):
         sys.exit('rgmloop: no rogue binary at %s, use --rogue' % cfg.rogue)
     cfg.rogue = os.path.abspath(cfg.rogue)

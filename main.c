@@ -378,6 +378,7 @@ char *argv[];
   { frogue = fdopen (argv[1][0] - 'a', "r");
     trogue = fdopen (argv[1][1] - 'a', "w");
     setbuf (trogue, (char *) NULL);
+    setbuf (frogue, (char *) NULL);	/* So select() sees what is unread */
   }
 
   /* The second argument to player is the process id of Rogue */

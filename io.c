@@ -6,9 +6,11 @@
  */
 
 # include <curses.h>
+# include <errno.h>
 # include <ctype.h>
 # include <signal.h>
 # include <sys/ioctl.h>
+# include <sys/select.h>
 
 # include "install.h"
 
@@ -46,6 +48,41 @@ char  queue[SENDQ];             /* To Rogue */
 int   head = 0, tail = 0;
 int   illcmd = 0;               /* Set by terpmes on 'Illegal command' */
 /*
+ * roguewaiting: True if Rogue has read everything we sent and is
+ * asleep waiting for its next key.  The kernel tells us which system
+ * call our child is in: a read (call 0) of its input (descriptor 0).
+ */
+
+static int roguewaiting ()
+{ char name[64], state = '?';
+  long call = -1, fd = -1;
+  FILE *f;
+
+  if (rogpid <= 0) return (0);
+
+  sprintf (name, "/proc/%d/syscall", rogpid);
+  if ((f = fopen (name, "r")) == NULL) return (0);
+  if (fscanf (f, "%ld %lx", &call, (unsigned long *) &fd) != 2) call = -1;
+  fclose (f);
+  if (call != 0 || fd != 0) return (0);
+
+  sprintf (name, "/proc/%d/stat", rogpid);
+  if ((f = fopen (name, "r")) == NULL) return (0);
+  if (fscanf (f, "%*d %*s %c", &state) != 1) state = '?';
+  fclose (f);
+  if (state != 'S') return (0);
+
+  /* Anything Rogue wrote before it went to sleep comes first */
+  { fd_set fds;
+    struct timeval tv;
+
+    FD_ZERO (&fds); FD_SET (fileno (frogue), &fds);
+    tv.tv_sec = 0; tv.tv_usec = 0;
+    return (select (fileno (frogue) + 1, &fds, NULL, NULL, &tv) == 0);
+  }
+}
+
+/*
  * msgend: the column just past the text on the message line.
  */
 
@@ -80,6 +117,8 @@ int   onat;                             /* 0 ==> Wait for waitstr
   static int lastrow = -1;		/* Row of the last cursor motion */
   int terped = 0;			/* Message already interpreted */
   int newmsg = 0;			/* New text on the message line */
+  int resent = 0;			/* Times we asked Rogue again */
+  int quiet = 0;			/* Looks that found Rogue waiting */
   int pend = 0;				/* Message waits for the map */
 
   newdoors = doorlist;			/* no new doors found yet */
@@ -101,6 +140,37 @@ int   onat;                             /* 0 ==> Wait for waitstr
   { /* Stop once the 'Illegal command' marker we wait for is parsed */
     if (illcmd && row > 0 && strcmp (waitstr, ill) == 0)
     { illcmd = 0; break; }
+
+    /*
+     * Rogue throws away its typeahead when we hit a trap or teleport,
+     * and the ';' that makes it answer goes with it.  If Rogue falls
+     * silent while we still wait for that answer, and is itself
+     * waiting for a key, ask again.  Asking when Rogue is merely slow
+     * would get a second answer and put us a reply out of step.
+     */
+    if (!replaying && resent < 1000 && strcmp (waitstr, ill) == 0)
+    { fd_set fds;
+      struct timeval tv;
+      int ready;
+
+      FD_ZERO (&fds); FD_SET (fileno (frogue), &fds);
+      tv.tv_sec = 0; tv.tv_usec = 20000;
+      ready = select (fileno (frogue) + 1, &fds, NULL, NULL, &tv);
+      if (ready < 0 && errno == EINTR) continue;	/* A signal: look again */
+      if (ready == 0)
+      { /*
+         * What we send reaches Rogue by way of a kernel worker, and on
+         * a busy machine that can take longer than our wait, with Rogue
+         * still asleep at its read.  A ';' sent then gets an answer of
+         * its own, and we are a reply out of step from there on.  So
+         * ask again only when Rogue has been waiting for ten looks.
+         */
+        if (!roguewaiting ()) quiet = 0;
+        else if (++quiet >= 10) { quiet = 0; resent++; sendnow (";"); }
+        continue;
+      }
+      quiet = 0;
+    }
 
     ch = getroguetoken ();
 

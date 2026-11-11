@@ -73,7 +73,7 @@ player: $(OBJS)
 	$(LINK) -o player $(OBJS) -lm $(CRLIB)
 
 rogomatic: $(SETUP)
-	$(LINK) -o rogomatic $(SETUP)
+	$(LINK) -o rogomatic $(SETUP) -lutil
 
 gene: gene.o rand.o learn.o stats.o utility.o
 	$(LINK) -o gene gene.o rand.o learn.o stats.o utility.o -lm
