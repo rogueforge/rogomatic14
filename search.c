@@ -127,6 +127,10 @@ register int movetype;
   /* Search up to k times if 2 or more foods and deeper than level 6 */
   searchit = max (0, min (k_srch/20, min (larder - 1, Level - 6)));
 
+  /* The map may have changed since the path was found. */
+  if (!onrc (CANGO, r, c))
+    return (0);
+
   /* Can we move more than one square at a time? Dont count scare monsters! */
   if (compression)
   { while (mvdir[r][c]-FROM==dir &&
