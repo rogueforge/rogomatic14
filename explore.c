@@ -908,7 +908,8 @@ secret ()
       (version >= RV53A || !isexplored (atrow, atcol)))
   { setrc (DEADEND, atrow, atcol);
 
-    if ((SEARCHES (atrow, atcol) - timessearched[atrow][atcol]) > 0)
+    if ((SEARCHES (atrow, atcol) - timessearched[atrow][atcol]) > 0 &&
+        timessearched[atrow][atcol] < 127)
     { int count = timessearched[atrow][atcol]+1;
       saynow ("Searching dead end (%d,%d) for the %d%s time...", 
               atrow, atcol, count, ordinal (count));
