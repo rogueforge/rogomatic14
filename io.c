@@ -44,6 +44,7 @@ static char screen00 = ' ';
 
 char  queue[SENDQ];             /* To Rogue */
 int   head = 0, tail = 0;
+int   illcmd = 0;               /* Set by terpmes on 'Illegal command' */
 
 /*
  * Getrogue: Sensory interface.
@@ -78,11 +79,16 @@ int   onat;                             /* 0 ==> Wait for waitstr
   if (moved)				/* If we moved last time, put any */
   { sleepmonster (); moved = 0; }	/* Old monsters to sleep */
 
+  illcmd = 0;
   /* While we have not reached the end of the Rogue input, read */
   /* characters from Rogue and figure out what they mean.       */
   while ((*s) ||
          ((!hasted || version != RV36A) && onat && screen[row][col] != '@'))
-  { ch = getroguetoken ();
+  { /* Stop once the 'Illegal command' marker we wait for is parsed */
+    if (illcmd && row > 0 && strcmp (waitstr, ill) == 0)
+    { illcmd = 0; break; }
+
+    ch = getroguetoken ();
 
     /* If message ends in "(* for list): ", call terpmes */
     if (ch == *q) { if (*++q == 0) terpmes (); }

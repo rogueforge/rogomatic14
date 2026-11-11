@@ -40,6 +40,7 @@ extern char logchar(), *monname(), *realname(stuff, char *);
 double prob(), mean(), stdev();	/* For stats.c */
 
 /* global integers */
+extern int illcmd;		/* True if Rogue said 'Illegal command' */
 extern int aggravated;		/* True if we aggravated this level */
 extern int agoalr,agoalc;	/* where we killed a monster */
 extern int ammo;		/* Number of missiles in pack */
