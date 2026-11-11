@@ -121,13 +121,18 @@ int   onat;                             /* 0 ==> Wait for waitstr
     if (ch == *m)
     { if (*++m == 0)
       { /* More than 3000 messages since last command ==> start logging */
-	/* When the player is transfixed, it can take a very long time */
-	/* till he finally dies. */
         if (++morecount > 3000 && !logging) 
 	{ toggleecho (); dwait (D_WARNING, "Started logging --More-- loop."); }
 
-        /* More than 3050 messages since last command ==> infinite loop */
-        if (morecount > 3050) dwait (D_FATAL, "Caught in --More-- loop.");
+        /*
+         * Far more messages than any one command produces ==> infinite
+         * loop.  Being held or asleep with monsters attacking gives a
+         * few hundred, and a floating eye can keep us transfixed until
+         * we starve.  That is a few thousand turns, twice as many with
+         * a ring of slow digestion, and two monsters hitting us all
+         * the while give two messages a turn, so the limit is above that.
+         */
+        if (morecount > 30000) dwait (D_FATAL, "Caught in --More-- loop.");
 
 	/* Send a space (and possibly a semicolon) to clear the message */
         if (onat == 2) sendnow (" ;");
@@ -771,10 +776,38 @@ int terminationtype;            /* SAVED, FINSISHED, or DIED */
 waitfor (mess)
 char *mess;
 { register char *m = mess;
+  register int ch, i;
 
   while (*m)
-  { if (getroguetoken () == *m) m++;
+  { ch = getroguetoken ();
+
+    if (ch == EOF) return;		/* Rogue is gone, stop waiting */
+
+    if (ch == *m) m++;
     else m = mess;
+
+    /*
+     * Keep the cursor and our copy of the message line in step with
+     * what Rogue sent, so that getrogue can carry on from here.  Rogue
+     * only sends the characters that changed, so text skipped without
+     * being recorded would be missing from the next message.
+     */
+    switch (ch)
+    { case BS_TOK: col--; break;
+      case CR_TOK: col = 0; break;
+      case LF_TOK: row++; col = 0; break;
+      case DO_TOK: row++; break;
+      case UP_TOK: row--; break;
+      case ND_TOK: col++; break;
+      case TA_TOK: col = 8 * (1 + col / 8); break;
+      case CE_TOK: if (row == 0)
+		     for (i = max (col, 0); i < 80; i++) screen[0][i] = ' ';
+		   break;
+      default:     if (ch >= ' ')
+		   { if (row == 0 && col >= 0 && col < 80) screen[0][col] = ch;
+		     col++;
+		   }
+    }
   }
 }
 

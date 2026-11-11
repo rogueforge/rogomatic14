@@ -185,6 +185,7 @@ register char *mess, *mend;
       else if (MATCH("it appears confused")) ;
       else if (MATCH("ice *")) ;
       else if (MATCH("identify what*")) echoit=0;
+      else if (MATCH("item:*")) echoit=0;
       else if (MATCH("illegal command*")) { echoit=0; illcmd=1; }
       else if (MATCH("i see no way*"))
       { unset (STAIRS); findstairs (atrow, atcol); }
