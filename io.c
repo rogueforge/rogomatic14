@@ -731,6 +731,9 @@ int terminationtype;            /* SAVED, FINSISHED, or DIED */
   else if (stlmatch (reason, "saved"))
     termination = "suspendus";
 
+  /* Rogue may have exited already, dont die writing to it */
+  signal (SIGPIPE, SIG_IGN);
+
   /* Send the requisite handshaking to Rogue */
   if (terminationtype == DIED)
     if (version == RV54A)
