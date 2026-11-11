@@ -1037,16 +1037,16 @@ getrogver ()
  */
 
 charsavail ()
-{ long n;
+{ int n = 0;			/* FIONREAD stores an int */
   int retc;
   
   if (retc = ioctl (READ, FIONREAD, &n))
-  { saynow ("Ioctl returns %d, n=%ld.\n", retc, n);
+  { saynow ("Ioctl returns %d, n=%d.\n", retc, n);
     n=0;
   }
 
   if (n > 0) noterm = 0;
-  return ((int) n);
+  return (n);
 }
 
 /*
