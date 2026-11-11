@@ -96,5 +96,19 @@ datesub.o: datesub.l
 
 $(OBJS) $(OTHERS): types.h globals.h install.h termtokens.h
 
+#
+# 'make -f Makefile.linux check' builds check/player with the address
+# sanitizer.  That player stops with a report on any read or write
+# outside an array and on any use of freed memory.  Play it with
+# 'rgmloop --check'.
+#
+.PHONY: check
+check:
+	mkdir -p check
+	cd check && ln -sf ../*.c ../*.h ../Makefile.linux . && \
+	$(MAKE) -f Makefile.linux player CFLAGS="-O0 -g" \
+	    DEFS="-fsanitize=address -fno-omit-frame-pointer"
+
 clean:
 	rm -f *.o datesub.c $(BINARIES)
+	rm -rf check

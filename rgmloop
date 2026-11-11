@@ -12,6 +12,12 @@ and kept, but is Rogue's doing and not counted as a problem.
   ./rgmloop --games 200 --jobs 8     200 games, 8 at a time, no display
   ./rgmloop --watch --jobs 8         show one game, 7 more in background
   ./rgmloop --seed 9636 --games 1 --watch     replay one seed
+  ./rgmloop --check --games 500 --jobs 8      hunt for memory errors
+
+--check plays the memory-checked builds made by 'make -f Makefile.linux
+check' here and in the rogue source.  They run slower,
+and stop with a report the moment either program reads or writes
+outside an array or uses freed memory; the report is kept with the game.
 
 To watch from another terminal, start it inside tmux:
 
@@ -67,6 +73,8 @@ def parse_args():
     p.add_argument('--dir', default=os.path.join(HERE, 'runs'),
                    help='where results, kept games and learning files go '
                         '(default ./runs)')
+    p.add_argument('--check', action='store_true',
+                   help='play the memory-checked builds (see above)')
     p.add_argument('--keep-max', type=int, default=25,
                    help='most games to keep of any one kind of problem '
                         '(default 25); later ones are only counted')
@@ -83,8 +91,9 @@ class Game:
         self.dir = os.path.join(cfg.dir, 'slot%d' % slot)
         shutil.rmtree(self.dir, ignore_errors=True)
         os.makedirs(self.dir)
-        for name in ('player', 'rogomatic'):
-            os.symlink(os.path.join(HERE, name), os.path.join(self.dir, name))
+        os.symlink(cfg.player, os.path.join(self.dir, 'player'))
+        os.symlink(os.path.join(HERE, 'rogomatic'),
+                   os.path.join(self.dir, 'rogomatic'))
         self.tail = b''
         self.start = self.last_output = time.time()
         self.verdict = None
@@ -95,6 +104,9 @@ class Game:
         # Rogue saves a game it is killed in as $HOME/rogue.save: keep
         # that out of the user's own home directory
         env['HOME'] = self.dir
+        if cfg.check:
+            env['ASAN_OPTIONS'] = ('detect_leaks=0:halt_on_error=1:log_path='
+                                   + os.path.join(self.dir, 'memcheck'))
         env.pop('LINES', None)
         env.pop('COLUMNS', None)
         if env.get('TERM', 'dumb') in ('dumb', ''):
@@ -164,8 +176,12 @@ class Game:
         if log is None and os.path.exists(os.path.join(self.dir, 'roguelog')):
             log = 'roguelog'
 
+        reports = [n for n in os.listdir(self.dir) if n.startswith('memcheck')]
+
         if self.verdict:                       # we killed it: hang or timeout
             verdict = self.verdict
+        elif reports:
+            verdict = 'memory'
         elif os.WIFSIGNALED(status):
             verdict = 'crash-sig%d' % os.WTERMSIG(status)
         elif os.WEXITSTATUS(status) != 0:
@@ -204,6 +220,9 @@ class Game:
             if log:
                 shutil.move(os.path.join(self.dir, log),
                             os.path.join(kept, 'log'))
+            for name in reports:
+                shutil.move(os.path.join(self.dir, name),
+                            os.path.join(kept, name))
             with open(os.path.join(kept, 'screen.raw'), 'wb') as f:
                 f.write(self.tail)
             with open(os.path.join(kept, 'info'), 'w') as f:
@@ -302,15 +321,25 @@ def setup(cfg):
         sys.exit('rgmloop: the player takes only letters, digits and /._- '
                  'in a path: %s' % cfg.rgmdir)
 
-    for name in ('player', 'rogomatic'):
-        if not os.access(os.path.join(HERE, name), os.X_OK):
-            sys.exit("rgmloop: %s is not built, run 'make -f Makefile.linux' first" % name)
+    cfg.player = os.path.join(HERE, 'check' if cfg.check else '', 'player')
+    if not os.access(cfg.player, os.X_OK):
+        sys.exit("rgmloop: %s is not built, run 'make -f Makefile.linux%s' first"
+                 % (cfg.player, ' check' if cfg.check else ''))
+    if not os.access(os.path.join(HERE, 'rogomatic'), os.X_OK):
+        sys.exit("rgmloop: rogomatic is not built, run 'make -f Makefile.linux' first")
 
     if cfg.rogue is None:
         cfg.rogue = os.path.join(HERE, 'runs', 'rogue5.2', 'src', 'rogue')
     if not os.access(cfg.rogue, os.X_OK):
         sys.exit('rgmloop: no rogue binary at %s, use --rogue' % cfg.rogue)
     cfg.rogue = os.path.abspath(cfg.rogue)
+    if cfg.check:
+        checked = os.path.join(os.path.dirname(cfg.rogue), 'check', 'rogue')
+        if os.access(checked, os.X_OK):
+            cfg.rogue = checked
+        else:
+            sys.exit("rgmloop: no %s, run 'make -f Makefile.linux check' "
+                     'in the rogue source first' % checked)
     # rogomatic puts this path into a shell command of 100 characters
     if len(cfg.rogue) > 77 or not re.fullmatch(r'[A-Za-z0-9/._-]+', cfg.rogue):
         sys.exit('rgmloop: rogomatic takes a path to Rogue of at most 77 '
