@@ -600,8 +600,8 @@ int getroguetoken ()
   if ((int) ch == CM_TOK)
   { row = (int) GETROGUECHAR - 32; col = (int) GETROGUECHAR - 32; }
 
-  /* Log the tokens */
-  if (logging)
+  /* Log the tokens (but not end of file, getrogue must see that) */
+  if (logging && ch != EOF)
   { if (!cecho) { fprintf (fecho, "\"\nR: "); cecho = !cecho; }
     if (ISPRT (ch)) fprintf (fecho, "%c", ch);
     else switch (ch)
