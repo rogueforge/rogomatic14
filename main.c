@@ -799,6 +799,26 @@ startlesson ()
   sprintf (genelock, "%s/GeneLock%d", RGMDIR, version);
 
   srand (0);				/* Start random number generator */
+
+  /*
+   * RGMKNOBS="srch,door,rest,arch,exper,run,wake,food" plays with
+   * exactly those knobs and leaves the gene pool alone, so that a
+   * game can be repeated or two settings compared on the same seeds.
+   */
+  { char *getenv (), *k = getenv ("RGMKNOBS");
+
+    if (k != NULL &&
+        sscanf (k, "%d,%d,%d,%d,%d,%d,%d,%d", &knob[0], &knob[1], &knob[2],
+                &knob[3], &knob[4], &knob[5], &knob[6], &knob[7]) == MAXKNOB)
+    { geneid = 0;
+      k_srch = knob[K_SRCH];	k_door = knob[K_DOOR];
+      k_rest = knob[K_REST];	k_arch = knob[K_ARCH];
+      k_exper = knob[K_EXPER];	k_run = knob[K_RUN];
+      k_wake = knob[K_WAKE];	k_food = knob[K_FOOD];
+      return;
+    }
+  }
+
   critical ();				/* Disable interrupts */
 
   /* Serialize access to the gene pool */

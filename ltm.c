@@ -85,8 +85,10 @@ saveltm (score)
 int score;
 { register int m;
   register FILE *ltmfil;
+  char *getenv ();
   
-  if (nextmon < 1 || nosave) return;
+  /* Pinned knobs mean a repeatable game: leave the memory as it was */
+  if (nextmon < 1 || nosave || getenv ("RGMKNOBS") != NULL) return;
 
   dwait (D_CONTROL, "Saveltm called, writing file '%s'", ltmnam);
 

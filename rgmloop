@@ -76,6 +76,11 @@ def parse_args():
     p.add_argument('--dir', default=os.path.join(HERE, 'runs'),
                    help='where results, kept games and learning files go '
                         '(default ./runs)')
+    p.add_argument('--knobs', default=None, metavar='A,B,C,D,E,F,G,H',
+                   help='play every game with these eight knob values '
+                        '(srch,door,rest,arch,exper,run,wake,food) and do '
+                        'no learning: the gene pool and monster memory '
+                        'are read but not changed')
     p.add_argument('--check', action='store_true',
                    help='play the memory-checked builds (see above)')
     p.add_argument('--keep-max', type=int, default=25,
@@ -107,6 +112,8 @@ class Game:
         # Rogue saves a game it is killed in as $HOME/rogue.save: keep
         # that out of the user's own home directory
         env['HOME'] = self.dir
+        if cfg.knobs:
+            env['RGMKNOBS'] = cfg.knobs
         if cfg.check:
             env['ASAN_OPTIONS'] = ('detect_leaks=0:halt_on_error=1:log_path='
                                    + os.path.join(self.dir, 'memcheck'))
