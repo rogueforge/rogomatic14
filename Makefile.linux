@@ -69,8 +69,12 @@ OTHERS=	setup.o findscore.o gene.o histplot.o rgmplot.o
 
 all: $(BINARIES)
 
+#
+# -rdynamic keeps the names of the player's functions in the program,
+# for the stack trace it writes when a game goes wrong.
+#
 player: $(OBJS)
-	$(LINK) -o player $(OBJS) -lm $(CRLIB)
+	$(LINK) -rdynamic -o player $(OBJS) -lm $(CRLIB)
 
 rogomatic: $(SETUP)
 	$(LINK) -o rogomatic $(SETUP) -lutil

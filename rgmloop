@@ -150,8 +150,41 @@ class Game:
             return 'timeout'
         return None
 
+    def diagnose(self):
+        """Record what a silent game is doing, before it is killed.
+
+        The player is asked (SIGUSR1) to write its own state and stack
+        to hang.dbg; for Rogue the kernel says which system call it is
+        in.  'read 0x0' means Rogue is waiting for a key."""
+        lines = []
+        try:
+            kids = open('/proc/%d/task/%d/children'
+                        % (self.pid, self.pid)).read().split()
+        except OSError:
+            kids = []
+        for who, pid in [('player', self.pid)] + [('rogue', int(k)) for k in kids]:
+            try:
+                call = open('/proc/%d/syscall' % pid).read().split()
+                state = open('/proc/%d/stat' % pid).read().split()[2]
+                name = {'0': 'read', '1': 'write', '23': 'select',
+                        '7': 'poll', '61': 'wait4', '35': 'nanosleep',
+                        '230': 'clock_nanosleep'}.get(call[0], 'syscall ' + call[0])
+                lines.append('%s pid %d state %s in %s %s'
+                             % (who, pid, state, name, ' '.join(call[1:3])))
+            except (OSError, IndexError) as e:
+                lines.append('%s pid %d: %s' % (who, pid, e))
+        with open(os.path.join(self.dir, 'procinfo'), 'w') as f:
+            f.write('\n'.join(lines) + '\n')
+        try:
+            os.kill(self.pid, signal.SIGUSR1)
+            time.sleep(0.3)
+        except ProcessLookupError:
+            pass
+
     def kill(self, verdict):
         self.verdict = verdict
+        if verdict in ('hang', 'timeout'):
+            self.diagnose()
         # The game is its own session, so this gets Rogue as well.
         for sig in (signal.SIGTERM, signal.SIGKILL):
             try:
@@ -223,7 +256,9 @@ class Game:
             if log:
                 shutil.move(os.path.join(self.dir, log),
                             os.path.join(kept, 'log'))
-            for name in reports:
+            for name in reports + ['hang.dbg', 'procinfo']:
+                if not os.path.exists(os.path.join(self.dir, name)):
+                    continue
                 shutil.move(os.path.join(self.dir, name),
                             os.path.join(kept, name))
             with open(os.path.join(kept, 'screen.raw'), 'wb') as f:

@@ -341,6 +341,32 @@ jmp_buf  commandtop;
  * Main program
  */
 
+/*
+ * hangdump: on SIGUSR1 write where we are and what we believe to the
+ * file "hang.dbg".  rgmloop sends the signal to a game that has gone
+ * silent, just before killing it.
+ */
+
+# include <execinfo.h>
+
+void hangdump (sig)
+int sig;
+{ void *bt[40];
+  FILE *f = fopen ("hang.dbg", "w");
+  int n;
+
+  if (f == NULL) return;
+  fprintf (f, "last command '%s', turns %d, level %d\n", lastcmd, turns, Level);
+  fprintf (f, "cursor %d,%d  at %d,%d  playing %d\n",
+           row, col, atrow, atcol, playing);
+  fprintf (f, "message line [%.80s]\n", screen[0]);
+  fprintf (f, "status line  [%.80s]\n", screen[23]);
+  fflush (f);
+  n = backtrace (bt, 40);
+  backtrace_symbols_fd (bt, n, fileno (f));
+  fclose (f);
+}
+
 main (argc, argv)
 int   argc;
 char *argv[];
@@ -410,6 +436,8 @@ char *argv[];
 
   /* A turn limit lets unattended runs get out of infinite loops */
   if ((s = getenv ("RGMMAXTURNS")) != NULL) maxturns = atoi (s);
+
+  signal (SIGUSR1, hangdump);
 
   initscr (); crmode (); noecho ();	/* Initialize the Curses package */
   if (startecho) toggleecho ();		/* Start logging? */
