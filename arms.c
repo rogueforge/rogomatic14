@@ -57,7 +57,7 @@ armorclass (i)
 int i;
 { int class;
 
-  if (inven[i].type != armor)
+  if (i < 0 || inven[i].type != armor)
     return (1000);
     
   if (stlmatch (inven[i].str, "leather"))        class = 8;
@@ -139,6 +139,9 @@ int haveweapon (k, print)
 weaponclass (i)
 int i;
 { int class, hitplus = 0, damplus = 0;
+
+  if (i < 0 || i >= MAXINV)
+    return (0);
 
   /* Swords and maces are always valid weapons */   
   if (inven[i].type == hitter)

@@ -921,7 +921,9 @@ int deadr, deadc;
     r = deadr+dr; c = deadc+dc;
 
     /* If there are four blank squares, then it could be a door */
-    for (count=0; count < 4 && seerc (' ',r,c); count++)
+    for (count=0;
+         count < 4 && r >= 0 && r < 24 && c >= 0 && c < 80 && seerc (' ',r,c);
+         count++)
     { r+=dr; c+=dc; }
 
     if (count >= 4) return (1);
@@ -957,7 +959,9 @@ int row, col;
     return (0);
 
   /* If there are four blank squares, then it could be a door */
-  for (r = row-dr, c = col-dc, k=0;  k < 4 && seerc (' ',r,c);  k++)
+  for (r = row-dr, c = col-dc, k=0;
+       k < 4 && r >= 0 && r < 24 && c >= 0 && c < 80 && seerc (' ',r,c);
+       k++)
   { r-=dr; c-=dc; }
 
   if (k >= 4) return (1);

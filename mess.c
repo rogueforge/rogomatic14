@@ -30,7 +30,8 @@ static int gushed = 0;		/* True ==> water on the head msg recently */
 static int echoit;		/* True ==> echo this message to the user */
 
 /* Results from star matcher */
-static char res1[NAMSIZ], res2[NAMSIZ], res3[NAMSIZ], res4[NAMSIZ];
+/* Each must hold a whole message, a '*' can match all of it */
+static char res1[128], res2[128], res3[128], res4[128];
 static char *result[] = { res1, res2, res3, res4 };
 
 /*
@@ -50,7 +51,7 @@ terpmes ()
   register char *m, *mend, *s = screen[0], *t;
 
   /* Set 't' to the tail of the message, skip backward over blank & dot */  
-  for (t=s+79; *t==' ' || *t=='.'; t--) ;	/* Find last non-blank */
+  for (t=s+79; t>=s && (*t==' ' || *t=='.'); t--) ; /* Find last non-blank */
   t++;						/* t -> beyond string */
   
   /* 
@@ -385,13 +386,14 @@ register char *mess, *mend;
 	if (cursedweapon) {forget (currentweapon, CURSED); cursedweapon=0;}
         newarmor = newweapon = 1; }
       else if (MATCH("your armor weakens"))
-      { inven[currentarmor].phit--; 
+      { if (currentarmor != NONE) inven[currentarmor].phit--;
         if (gushed) { gushed=0; nametrap (WATERAP,HERE); } }
       else if (MATCH("your armor is covered by a shimmering * shield"))
       { infer (rscroll, "protect armor"); protected++;
 	remember (currentarmor, PROTECTED); }
       else if (MATCH("your armor glows * for a moment"))
-      { infer (rscroll, "enchant armor"); inven[currentarmor].phit++;
+      { infer (rscroll, "enchant armor");
+        if (currentarmor != NONE) inven[currentarmor].phit++;
         cursedarmor = 0; newarmor = 1; }
       else if (MATCH("your * glows * for a moment"))
       { infer (rscroll, "enchant weapon"); plusweapon (); newweapon = 1; }
@@ -596,11 +598,15 @@ int wieldreply ()
     forget (currentweapon, INUSE);
 
   lastdrop = currentweapon;
-  currentweapon = neww;
+
+  /* Wieldid is a letter, and when replaying a log it was never set */
+  currentweapon = (neww >= LETTER (0) && neww < LETTER (MAXINV)) ?
+                  OBJECT (neww) : NONE;
 
   remember (currentweapon, INUSE);
 
-  usingarrow = (inven[currentweapon].type == missile);
+  usingarrow = (currentweapon != NONE &&
+                inven[currentweapon].type == missile);
   goodweapon = (weaponclass (currentweapon) >= 100);
 
   badarrow = goodarrow = poorarrow = hitstokill = 0;
@@ -814,7 +820,7 @@ didhit ()
   didfight = 1;
 
   /* Record our hit */
-  if (!cosmic) m = lastmonster;
+  if (!cosmic && lastmonster > 0 && lastmonster <= 26) m = lastmonster;
 
   hits++; hitstokill++;
   addprob (&monhist[monindex[m]].wehit, SUCCESS);
@@ -833,7 +839,7 @@ didmiss ()
   didfight = 1;
 
   /* Record our miss */
-  if (!cosmic) m = lastmonster;
+  if (!cosmic && lastmonster > 0 && lastmonster <= 26) m = lastmonster;
 
   misses++;
   addprob (&monhist[monindex[m]].wehit, FAILURE);

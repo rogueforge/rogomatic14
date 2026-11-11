@@ -1063,6 +1063,8 @@ register int trns;	/* Minimum number of arrows to make it worthwhile */
 
   if (! new_arch) return (0);
 
+  if (m < 0) return (0);		/* No monster to shoot at */
+
   /* Useless without arrows */
   if (havemult (missile, "", trns) == NONE) 
   { dwait (D_BATTLE, "archmonster, fewer than %d missiles", trns); 

@@ -20,7 +20,10 @@
 
 char *monname (m)
 char m;
-{ return (monhist[monindex[m-'A'+1]].m_name);
+{ register int i = m-'A'+1;
+
+  if (i < 0 || i > 26) i = 0;		/* Not a monster letter, say "it" */
+  return (monhist[monindex[i]].m_name);
 }
 
 /*

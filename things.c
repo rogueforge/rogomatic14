@@ -524,7 +524,7 @@ int obj;
 wielding (otype)
 stuff otype;
 { 
-  return (inven[currentweapon].type == otype);
+  return (currentweapon != NONE && inven[currentweapon].type == otype);
 }
 
 /* 
