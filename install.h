@@ -113,7 +113,15 @@
  * directory.
  */
 
-# define RGMDIR		"/usr/mlm/lib/rogomatic"
+# define RGMDIRDEF	"/usr/mlm/lib/rogomatic"
+
+/*
+ * The directory can be changed at run time by setting the RGMDIR
+ * environment variable, see rgmdir() in utility.c.
+ */
+
+extern char *rgmdir ();
+# define RGMDIR		(rgmdir ())
 
 /* 
  * This file is created in the current directory if the snapshot command

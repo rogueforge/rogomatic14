@@ -14,6 +14,7 @@
  */
 
 # include <stdio.h>
+# include <string.h>
 # include "install.h"
 # define TEMPFL "/tmp/RscoreXXXXXX"
 # define ISDIGIT(c) ((c) >= '0' && (c) <= '9')
@@ -29,7 +30,7 @@ register char *rogue, *roguename;
 
   fd = mkstemp(tmpfname);
 
-  if (fd > 0)
+  if (fd > 0 && strlen (rogue) < sizeof (cmd) - 24)	/* Else it will not fit */
   {
   /* Run 'rogue -s', and put the scores into a temp file */
   sprintf (cmd, "%s -s >%s", rogue, tmpfname);

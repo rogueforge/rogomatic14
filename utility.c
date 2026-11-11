@@ -29,6 +29,26 @@
 # define FALSE 0
 
 /*
+ * rgmdir: Return the name of the directory holding the gene pool, long
+ * term memory and score files.  The RGMDIR environment variable, if
+ * set, overrides the compiled in default.  The name is copied into
+ * buffers of 100 characters and into a command for the shell, so one
+ * that is long, or has characters the shell might act on, is ignored.
+ */
+
+char *rgmdir ()
+{ char *getenv (), *dir = getenv ("RGMDIR");
+  static char ok[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                     "0123456789/._-";
+
+  if (dir == NULL || *dir == '\0' || strlen (dir) > 70 ||
+      dir[strspn (dir, ok)] != '\0')
+    return (RGMDIRDEF);
+
+  return (dir);
+}
+
+/*
  * baudrate: Determine the baud rate of the terminal
  */
 

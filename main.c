@@ -293,6 +293,7 @@ int  ontarget= 0, targetrow= NONE, targetcol= NONE;
 /* Rog-O-Matics model of his stats */
 int   Level = 0, MaxLevel = 0, Gold = 0, Hp = 12, Hpmax = 12;
 int   Str = 16, Strmax = 16, Ac = 6, Exp = 0, Explev = 1, turns = 0;
+int   maxturns = 0;		/* Give up after this many turns (0 = never) */
 char  Ms[30];	/* The message about his state of hunger */
 
 /* Miscellaneous movement tables */
@@ -406,6 +407,9 @@ char *argv[];
     freopen ("/dev/null", "w", stdout);
   }
 
+  /* A turn limit lets unattended runs get out of infinite loops */
+  if ((s = getenv ("RGMMAXTURNS")) != NULL) maxturns = atoi (s);
+
   initscr (); crmode (); noecho ();	/* Initialize the Curses package */
   if (startecho) toggleecho ();		/* Start logging? */
   clear ();				/* Clear the screen */
@@ -505,6 +509,15 @@ char *argv[];
     }
     
     if (!playing) break;	/* In case we died */
+
+    if (maxturns > 0 && turns > maxturns)
+    { dwait (D_ERROR, "Turn limit of %d reached, gave up.", maxturns);
+
+      /* Rogue may be at a prompt where it would not take a quit */
+      if (rogpid > 0) kill (rogpid, SIGKILL);
+      quitrogue ("gave up (turn limit)", Gold, FINISHED);
+      break;
+    }
 
     /*
      * No more stored commands, so either get a command from the

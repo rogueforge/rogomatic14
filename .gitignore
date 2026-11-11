@@ -1,0 +1,15 @@
+# build output
+*.o
+/player
+/rogomatic
+/gene
+/histplot
+/rgmplot
+/datesub
+/datesub.c
+
+# things left behind by playing
+/runs/
+/roguelog
+/rogue
+*.scr

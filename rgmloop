@@ -1,0 +1,424 @@
+#!/usr/bin/env python3
+"""rgmloop: play many seeded Rog-O-Matic games, unattended.
+
+Each game runs in its own pseudo-terminal with its own seed.  Games
+that end in a normal death are counted and forgotten; games that
+crash, hang, hit the turn limit or end in a fatal error have their
+log and last screen kept under runs/keep/ for study.  A game in which
+a floating eye holds the hero for ever is recorded as "transfixed"
+and kept, but is Rogue's doing and not counted as a problem.
+
+  ./rgmloop --watch                  play forever, show the games
+  ./rgmloop --games 200 --jobs 8     200 games, 8 at a time, no display
+  ./rgmloop --watch --jobs 8         show one game, 7 more in background
+  ./rgmloop --seed 9636 --games 1 --watch     replay one seed
+
+To watch from another terminal, start it inside tmux:
+
+  tmux new -d -s rgm './rgmloop --watch --jobs 8'
+  tmux attach -t rgm        (detach again with ctrl-b d)
+
+A kept game can be replayed with:  ./rogomatic -p runs/keep/<dir>/log
+"""
+
+import argparse
+import csv
+import errno
+import fcntl
+import os
+import pty
+import re
+import select
+import shutil
+import signal
+import struct
+import subprocess
+import sys
+import termios
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+LOGNAME = re.compile(r'^(.{1,4})\.(\d+)\.(-?\d+)$')
+GAME_ROWS, GAME_COLS = 24, 80
+
+
+def parse_args():
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument('--games', type=int, default=0,
+                   help='number of games to play (default: until interrupted)')
+    p.add_argument('--jobs', type=int, default=1,
+                   help='games to run at once (default 1)')
+    p.add_argument('--seed', type=int, default=None,
+                   help='seed of the first game; later games count up from it '
+                        '(default: where the last run in --dir stopped, '
+                        'or taken from the clock the first time)')
+    p.add_argument('--watch', action='store_true',
+                   help='show one of the games on this terminal')
+    p.add_argument('--max-turns', type=int, default=100000,
+                   help='player gives up after this many turns (default 100000)')
+    p.add_argument('--idle', type=int, default=60,
+                   help='seconds without screen output before a game is '
+                        'called hung (default 60)')
+    p.add_argument('--max-seconds', type=int, default=1800,
+                   help='wall clock limit for one game (default 1800)')
+    p.add_argument('--rogue', default=None,
+                   help='rogue binary (default ./runs/rogue5.2/src/rogue)')
+    p.add_argument('--dir', default=os.path.join(HERE, 'runs'),
+                   help='where results, kept games and learning files go '
+                        '(default ./runs)')
+    p.add_argument('--keep-max', type=int, default=25,
+                   help='most games to keep of any one kind of problem '
+                        '(default 25); later ones are only counted')
+    p.add_argument('--keep-all', action='store_true',
+                   help='keep the log of every game, not only the bad ones')
+    return p.parse_args()
+
+
+class Game:
+    """One running game in one slot directory."""
+
+    def __init__(self, slot, seed, cfg):
+        self.slot, self.seed, self.cfg = slot, seed, cfg
+        self.dir = os.path.join(cfg.dir, 'slot%d' % slot)
+        shutil.rmtree(self.dir, ignore_errors=True)
+        os.makedirs(self.dir)
+        for name in ('player', 'rogomatic'):
+            os.symlink(os.path.join(HERE, name), os.path.join(self.dir, name))
+        self.tail = b''
+        self.start = self.last_output = time.time()
+        self.verdict = None
+
+        env = dict(os.environ)
+        env.update(SEED=str(seed), RGMDIR=cfg.rgmdir, TERMINFO=cfg.terminfo,
+                   RGMMAXTURNS=str(cfg.max_turns))
+        # Rogue saves a game it is killed in as $HOME/rogue.save: keep
+        # that out of the user's own home directory
+        env['HOME'] = self.dir
+        env.pop('LINES', None)
+        env.pop('COLUMNS', None)
+        if env.get('TERM', 'dumb') in ('dumb', ''):
+            env['TERM'] = 'xterm'
+
+        self.pid, self.fd = pty.fork()
+        if self.pid == 0:
+            try:
+                # Before the player starts: a change of size while it
+                # runs sends it a signal
+                fcntl.ioctl(0, termios.TIOCSWINSZ,
+                            struct.pack('HHHH', GAME_ROWS, GAME_COLS, 0, 0))
+                os.chdir(self.dir)
+                os.execve('./rogomatic',
+                          ['rogomatic', '-e', '-f', cfg.rogue], env)
+            finally:
+                os._exit(127)
+        os.set_inheritable(self.fd, False)     # not for the other games
+
+    def read(self):
+        """Read pending output.  Returns the bytes, or None at end of file."""
+        try:
+            data = os.read(self.fd, 65536)
+        except OSError as e:
+            if e.errno in (errno.EIO, errno.EBADF):
+                return None
+            raise
+        if not data:
+            return None
+        self.last_output = time.time()
+        self.tail = (self.tail + data)[-20000:]
+        return data
+
+    def overdue(self, now):
+        if now - self.last_output > self.cfg.idle:
+            return 'hang'
+        if now - self.start > self.cfg.max_seconds:
+            return 'timeout'
+        return None
+
+    def kill(self, verdict):
+        self.verdict = verdict
+        # The game is its own session, so this gets Rogue as well.
+        for sig in (signal.SIGTERM, signal.SIGKILL):
+            try:
+                os.killpg(self.pid, sig)
+            except (ProcessLookupError, PermissionError):
+                break
+            time.sleep(0.2)
+
+    def finish(self):
+        """Reap the game, classify it, keep or discard its files."""
+        try:
+            os.close(self.fd)
+        except OSError:
+            pass
+        _, status = os.waitpid(self.pid, 0)
+        secs = time.time() - self.start
+
+        log = killer = None
+        level = score = ''
+        for name in os.listdir(self.dir):
+            m = LOGNAME.match(name)
+            if m:
+                log, killer = name, m.group(1).strip()
+                level, score = m.group(2), m.group(3)
+        if log is None and os.path.exists(os.path.join(self.dir, 'roguelog')):
+            log = 'roguelog'
+
+        if self.verdict:                       # we killed it: hang or timeout
+            verdict = self.verdict
+        elif os.WIFSIGNALED(status):
+            verdict = 'crash-sig%d' % os.WTERMSIG(status)
+        elif os.WEXITSTATUS(status) != 0:
+            verdict = 'exit%d' % os.WEXITSTATUS(status)
+        elif killer is None:
+            verdict = 'nolog'
+        elif killer.startswith('gave'):
+            verdict = 'gaveup'
+        elif killer.startswith('fata'):
+            verdict = 'fatal'
+        elif killer.startswith('tota'):
+            verdict = 'winner'
+        else:
+            verdict = 'died'
+
+        # Not a fault of ours: see transfixed() below
+        if verdict in ('hang', 'fatal') and log and \
+           transfixed(os.path.join(self.dir, log)):
+            verdict = 'transfixed'
+
+        kept = ''
+        keepdir = os.path.join(self.cfg.dir, 'keep')
+        # Deaths the player might have avoided are kept for study too
+        kind = verdict
+        if verdict == 'died' and killer.startswith('star'):
+            kind = 'starved'
+        elif verdict == 'died' and killer.startswith(('quit', 'user')):
+            kind = 'quit'
+        have = sum(1 for n in os.listdir(keepdir) if n.endswith('-' + kind))
+        if self.cfg.keep_all or (kind not in ('died', 'stopped')
+                                 and have < self.cfg.keep_max):
+            kept = os.path.join(self.cfg.dir, 'keep',
+                                'seed%d-%s' % (self.seed, kind))
+            shutil.rmtree(kept, ignore_errors=True)
+            os.makedirs(kept)
+            if log:
+                shutil.move(os.path.join(self.dir, log),
+                            os.path.join(kept, 'log'))
+            with open(os.path.join(kept, 'screen.raw'), 'wb') as f:
+                f.write(self.tail)
+            with open(os.path.join(kept, 'info'), 'w') as f:
+                f.write('seed %d\nverdict %s\nkiller %s\nlevel %s\nscore %s\n'
+                        'seconds %.0f\nrogue %s\nmax_turns %d\n'
+                        % (self.seed, verdict, killer, level, score, secs,
+                           self.cfg.rogue, self.cfg.max_turns))
+        shutil.rmtree(self.dir, ignore_errors=True)
+        trim_logs(self.cfg.rgmdir)
+        return dict(time=time.strftime('%Y-%m-%d %H:%M:%S'), seed=self.seed,
+                    verdict=verdict, killer=killer or '', level=level,
+                    score=score, seconds='%.0f' % secs, kept=kept)
+
+
+def transfixed(path):
+    """Did the game end with the hero held by a floating eye for good?
+    An eye that is awake transfixes him again every turn, so only
+    starving ends it, and with two rings of slow digestion he never
+    starves.  Rogue then plays turns for ever without reading a key:
+    in silence if the eye is alone, which we see as a hang, or with a
+    --More-- for each blow of another monster, which the player gives
+    up on as a loop.  That is how Rogue 5.2 is, so it gets a verdict
+    of its own and is not counted as a problem."""
+    try:
+        with open(path, 'rb') as f:
+            text = f.read()
+    except OSError:
+        return False
+    at = text.rfind(b'transfixed')
+    return at >= 0 and text.find(b'move again', at) < 0
+
+
+def save_seed(cfg, seed):
+    """Note the seed for the next run to start from."""
+    if cfg.seedfile:
+        with open(cfg.seedfile + '.new', 'w') as f:
+            f.write('%d\n' % seed)
+        os.replace(cfg.seedfile + '.new', cfg.seedfile)
+
+
+def trim_logs(rgmdir, limit=20 << 20):
+    """The player appends to its error and gene logs for ever; start
+    them again when they pass 20 MB so a long run cannot fill the disk."""
+    for name in os.listdir(rgmdir):
+        if name.startswith(('error', 'GeneLog', 'rgmdelta')):
+            path = os.path.join(rgmdir, name)
+            try:
+                if os.path.getsize(path) > limit:
+                    open(path, 'w').close()
+            except OSError:
+                pass
+
+
+class Tally:
+    FIELDS = ['time', 'seed', 'verdict', 'killer', 'level', 'score',
+              'seconds', 'kept']
+
+    def __init__(self, path):
+        new = not os.path.exists(path)
+        self.file = open(path, 'a', newline='')
+        self.csv = csv.DictWriter(self.file, self.FIELDS)
+        if new:
+            self.csv.writeheader()
+        self.n = self.bad = self.total = self.best = 0
+        self.deep = 0
+
+    def add(self, r):
+        self.csv.writerow(r)
+        self.file.flush()
+        self.n += 1
+        if r['verdict'] not in ('died', 'winner', 'transfixed'):
+            self.bad += 1
+        if r['score'].lstrip('-').isdigit():
+            self.total += int(r['score'])
+            self.best = max(self.best, int(r['score']))
+        if r['level'].isdigit():
+            self.deep = max(self.deep, int(r['level']))
+
+    def line(self, r):
+        mean = self.total / self.n if self.n else 0
+        return ('game %d  seed %d: %s %s L%s %s gold | mean %.0f  best %d  '
+                'deepest L%d  problems %d'
+                % (self.n, r['seed'], r['verdict'], r['killer'], r['level'] or '?',
+                   r['score'] or '?', mean, self.best, self.deep, self.bad))
+
+
+def setup(cfg):
+    cfg.dir = os.path.abspath(cfg.dir)
+    cfg.rgmdir = os.path.join(cfg.dir, 'rgmdir')
+    cfg.terminfo = os.path.join(cfg.dir, 'terminfo')
+    os.makedirs(cfg.rgmdir, exist_ok=True)
+    os.makedirs(os.path.join(cfg.dir, 'keep'), exist_ok=True)
+    if len(cfg.rgmdir) > 70:
+        sys.exit('rgmloop: %s is too long a path for the player' % cfg.rgmdir)
+    if not re.fullmatch(r'[A-Za-z0-9/._-]+', cfg.rgmdir):
+        sys.exit('rgmloop: the player takes only letters, digits and /._- '
+                 'in a path: %s' % cfg.rgmdir)
+
+    for name in ('player', 'rogomatic'):
+        if not os.access(os.path.join(HERE, name), os.X_OK):
+            sys.exit("rgmloop: %s is not built, run 'make -f Makefile.linux' first" % name)
+
+    if cfg.rogue is None:
+        cfg.rogue = os.path.join(HERE, 'runs', 'rogue5.2', 'src', 'rogue')
+    if not os.access(cfg.rogue, os.X_OK):
+        sys.exit('rgmloop: no rogue binary at %s, use --rogue' % cfg.rogue)
+    cfg.rogue = os.path.abspath(cfg.rogue)
+    # rogomatic puts this path into a shell command of 100 characters
+    if len(cfg.rogue) > 77 or not re.fullmatch(r'[A-Za-z0-9/._-]+', cfg.rogue):
+        sys.exit('rgmloop: rogomatic takes a path to Rogue of at most 77 '
+                 'letters, digits and /._- : %s' % cfg.rogue)
+
+    # Rogue needs the Rog-O-Matic pseudo terminal as a terminfo entry.
+    if not os.path.exists(os.path.join(cfg.terminfo, 'r', 'rg')):
+        subprocess.run(['tic', '-o', cfg.terminfo,
+                        os.path.join(HERE, 'rterm.tic')], check=True)
+
+    # With no --seed, carry on from where the last run in this
+    # directory stopped; the first time, start from the clock.
+    cfg.seedfile = None
+    if cfg.seed is None:
+        cfg.seedfile = os.path.join(cfg.dir, 'next_seed')
+        try:
+            with open(cfg.seedfile) as f:
+                cfg.seed = int(f.read())
+        except (OSError, ValueError):
+            cfg.seed = int(time.time()) % 1000000
+
+
+def main():
+    cfg = parse_args()
+    setup(cfg)
+    tally = Tally(os.path.join(cfg.dir, 'results.csv'))
+    out = sys.stdout.buffer
+    watch = cfg.watch and sys.stdout.isatty()
+    rows = shutil.get_terminal_size().lines if watch else 0
+    status_row = GAME_ROWS + 2 if rows >= GAME_ROWS + 2 else 0
+
+    def status(text):
+        if not watch:
+            print(text, flush=True)
+        elif status_row:
+            out.write(b'\0337\033[%d;1H\033[K%s\0338'
+                      % (status_row, text[:120].encode()))
+            out.flush()
+
+    games = {}                      # slot -> Game
+    shown = None                    # the Game on screen in watch mode
+    next_seed, started = cfg.seed, 0
+    stopping = False
+
+    def stop(*_):
+        nonlocal stopping
+        stopping = True
+    signal.signal(signal.SIGINT, stop)
+    signal.signal(signal.SIGTERM, stop)
+
+    if watch:
+        out.write(b'\033[2J\033[H')
+    status('rgmloop: rogue %s, first seed %d, results in %s'
+           % (cfg.rogue, cfg.seed, cfg.dir))
+
+    try:
+        while True:
+            # Start games in free slots.
+            for slot in range(cfg.jobs):
+                if stopping or slot in games:
+                    continue
+                if cfg.games and started >= cfg.games:
+                    continue
+                games[slot] = Game(slot, next_seed, cfg)
+                next_seed += 1
+                save_seed(cfg, next_seed)
+                started += 1
+            if not games:
+                break
+            if watch and shown not in games.values():
+                shown = games[min(games)]
+                out.write(b'\033[H\033[J')
+
+            ready, _, _ = select.select([g.fd for g in games.values()], [], [], 1.0)
+            now = time.time()
+            for slot, g in list(games.items()):
+                done = False
+                if g.fd in ready:
+                    data = g.read()
+                    if data is None:
+                        done = True
+                    elif g is shown:
+                        out.write(data)
+                        out.flush()
+                if not done:
+                    why = 'stopped' if stopping else g.overdue(now)
+                    if why:
+                        g.kill(why)
+                        done = True
+                if done:
+                    r = g.finish()
+                    del games[slot]
+                    if r['verdict'] != 'stopped':
+                        tally.add(r)
+                        status(tally.line(r))
+    finally:
+        # Games cut short are played again next time
+        save_seed(cfg, min([g.seed for g in games.values()] + [next_seed]))
+        for g in games.values():
+            g.kill('stopped')
+            g.finish()
+        if watch:
+            out.write(b'\033[%d;1H\033[m\n' % (status_row or GAME_ROWS + 1))
+            out.flush()
+
+    print('%d games, %d kept for study in %s'
+          % (tally.n, tally.bad, os.path.join(cfg.dir, 'keep')))
+
+
+if __name__ == '__main__':
+    main()
