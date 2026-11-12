@@ -121,6 +121,12 @@ char *argv[];
   frogue = ptm;
   trogue = dup (ptm);
 
+  /* The player is told these as one character each, 'a' + descriptor */
+  if (frogue > 255 - 'a' || trogue > 255 - 'a' || trogue < 0)
+  { fprintf (stderr, "Too many files open to start the player!\n");
+    exit (1);
+  }
+
   if ((child = fork ()) == 0)
   { close (0);
     dup (pts);

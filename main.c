@@ -401,8 +401,13 @@ char *argv[];
     startreplay (&logfile, logfilename);
   }
   else
-  { frogue = fdopen (argv[1][0] - 'a', "r");
-    trogue = fdopen (argv[1][1] - 'a', "w");
+  { /* A descriptor above 30 makes a character above 127: not negative */
+    frogue = fdopen ((unsigned char) argv[1][0] - 'a', "r");
+    trogue = fdopen ((unsigned char) argv[1][1] - 'a', "w");
+    if (frogue == NULL || trogue == NULL)
+    { fprintf (stderr, "player: cannot open the descriptors for Rogue\n");
+      exit (1);
+    }
     setbuf (trogue, (char *) NULL);
     setbuf (frogue, (char *) NULL);	/* So select() sees what is unread */
   }
