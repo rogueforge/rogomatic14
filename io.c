@@ -204,9 +204,18 @@ int   onat;                             /* 0 ==> Wait for waitstr
          */
         if (morecount > 30000) dwait (D_FATAL, "Caught in --More-- loop.");
 
-	/* Send a space (and possibly a semicolon) to clear the message */
-        if (onat == 2) sendnow (" ;");
-        else           sendnow (" ");
+	/*
+	 * Send a space (and possibly a semicolon) to clear the message.
+	 * But if Rogue asked which hand a ring goes on, when we thought
+	 * one hand was taken, a ';' is no answer and another would go
+	 * round for ever: say left, and take inventory afresh.
+	 */
+        if (stlmatch (screen[0], "L or R") && !replaying)
+        { sendnow (onat == 2 ? " l;" : " l");
+          usesynch = 0;
+        }
+        else if (onat == 2) sendnow (" ;");
+        else                sendnow (" ");
 
         /* Clear the --More-- of the end of the message */
         for (i = col - 7; i < col; screen[0][i++] = ' ');
