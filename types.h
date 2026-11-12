@@ -34,7 +34,7 @@ extern char	*_unctrl[];
 # define SAVED		(2)
 # define MAXINV		(26)
 # define NONE		(-1)
-# define MAXSTUFF	(30)
+# define MAXSTUFF	(150)	/* Was 30: fewer than our own missed arrows */
 # define MAXMONST	(40)
 # define SAVEARROWS	(30)
 # define NAMSIZ		(64)
