@@ -957,6 +957,8 @@ int tostuff ()
 { register int i, closest, dist, w, worst, worstval;
   int   which, wrow, wcol;
   stuff what;
+  static int tolevel = NONE, torow = NONE, tocol = NONE, tobound = 0;
+  int   target = NONE, tdist = 0;
 
   /* If we don't see anything (or dont care), return failure */
   if (slistlen == 0 || Level == 1 && have (amulet) != NONE) return (0);  
@@ -987,11 +989,33 @@ int tostuff ()
       /* Make junk look farther away, but not farther than infinity */
       if (onrc (USELESS, slist[i].srow, slist[i].scol)) dist += 10000;
 
+      /* Remember how far the item we set out for last turn is now */
+      if (Level == tolevel && slist[i].srow == torow &&
+          slist[i].scol == tocol && dist < 10000)
+      { target = i; tdist = dist; }
+
       /* If this is the closest item, save its distance and index */
       if ((dist + 1) < closest)
       { closest = dist; which = i; }
     }
   }
+
+  /*
+   * The distance is measured in a straight line but we walk a path, so
+   * a step towards one item can leave a second one looking closer, and
+   * the step towards that one brings us back: an endless loop.  So we
+   * change our mind only for an item closer than we have yet been to
+   * the one we set out for.  That bound shrinks with every change, so
+   * the changes must end, yet something that moves or appears close
+   * by is still seen, and a target that has gone is simply forgotten.
+   */
+  if (target != NONE)
+  { if (tdist < tobound) tobound = tdist;
+    if (closest >= tobound) which = target;
+    else tobound = closest;
+  }
+  else
+    tobound = closest;
 
   /* Could not find anything worth picking up, return failure */
   if (which < 0) return (0);
@@ -999,11 +1023,14 @@ int tostuff ()
   /* Found something, save its location and type in registers */
   what= slist[which].what; wrow= slist[which].srow; wcol= slist[which].scol;
 
-  /* We can always pick up more gold */
-  if (what == gold && !beingheld) return (gotowards (wrow, wcol, 0));
+  /* We can always pick up more gold; else we need space in our pack */
+  if (what == gold && !beingheld || objcount < maxobj)
+  { if (gotowards (wrow, wcol, 0))
+    { tolevel = Level; torow = wrow; tocol = wcol; return (1); }
 
-  /* Have space in our pack, go get it */
-  if (objcount < maxobj) return (gotowards (wrow, wcol, 0));
+    tolevel = NONE;		/* Cannot get there, choose afresh next time */
+    return (0);
+  }
 
   /* No space in pack and we cannot drop something here, fail */
   if (on (STUFF | DOOR | TRAP | STAIRS)) return (0);
