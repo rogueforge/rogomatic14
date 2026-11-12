@@ -508,7 +508,20 @@ char *name;
 
   if (version < RV53A)		/* Rogue 3.6, Rogue 5.2 */
   { deleteinv (OBJECT (afterid));	/* Assume object gone */
-    sendnow (" %c", nextid);		/* Identify it */
+    /*
+     * The ';' sent with the space that cleared the last --More-- has
+     * been taken as an item letter, and Rogue complains and waits at
+     * another --More--.  Answer that one here, where getrogue cannot
+     * see it and answer it too, and end with the ';' that marks the
+     * end of Rogue's reply.  Then any --More-- that follows, such as
+     * a monster attacking, is answered once and we stay in step.
+     */
+    if (version >= RV52A && !replaying)
+    { waitfor ("--More--");
+      sendnow (" %c;", nextid);		/* Identify it */
+    }
+    else
+      sendnow (" %c", nextid);		/* Identify it */
     send ("I%c", afterid);		/* Generate a message about it */
     knowident = identifying = 1;	/* Set variables */
   }
