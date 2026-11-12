@@ -195,6 +195,9 @@ int   strategize ()
   return (grope (10));
 }
 
+/* How mean an awake floating eye is: above everything, holders too */
+# define EYEFIRST	(20000)
+
 /*
  * fightmonster: looks for adjacent monsters. If found, it calls
  * battlestations to prepare for battle otherwise hacks with the 
@@ -243,6 +246,14 @@ int   fightmonster ()
             
         if (mlist[i].q == ASLEEP)
         { howmean = 0;
+        }
+
+        /*
+         * An eye that is awake transfixes us each time it attacks,
+         * and can keep us that way until we starve.  Kill it first.
+         */
+        else if (version >= RV52A && streq (monster, "floating eye"))
+        { howmean = EYEFIRST;
         }
 	/* If he is adjacent and the worst monster yet, save him */
         if (howmean > mbad)
@@ -505,6 +516,10 @@ int adj;		/* How many attackers are there? */
   /* Ascertain whether we have a clear path to this monster */
   if (mdir != NONE && !checkcango (mdir, mdist))
     mdir = NONE;
+
+  /* An eye next to us that is awake: nothing is better than killing it */
+  if (mbad == EYEFIRST && mdir != NONE)
+    return (0);
 
   /* Number of turns is one less than distance (modified if we are hasted) */
   turns = hasted ? (mdist-1)*2 : (mdist-1);
