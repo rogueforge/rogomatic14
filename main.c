@@ -349,6 +349,63 @@ jmp_buf  commandtop;
 
 # include <execinfo.h>
 
+# include <errno.h>
+# include <sys/ptrace.h>
+# include <sys/user.h>
+# include <sys/wait.h>
+
+/*
+ * roguestack: write where Rogue is to file f.  Rogue is our child, so
+ * we may stop it and read its registers and stack.  We print the
+ * program counter and every word on the stack that points into Rogue's
+ * code, each as an offset into the rogue binary; among them are the
+ * return addresses.  Name them with 'addr2line -f -e rogue <offsets>'.
+ */
+
+static void roguestack (f)
+FILE *f;
+{ char line[512], path[64];
+  unsigned long lo = 0, hi = 0, base = 0, a, b, off, word;
+  struct user_regs_struct regs;
+  FILE *maps;
+  int i, wstat, nshown = 0;
+
+  if (rogpid <= 0) return;
+
+  /* The first mapping of the program is its base, the r-x one its code */
+  sprintf (path, "/proc/%d/maps", rogpid);
+  if ((maps = fopen (path, "r")) == NULL) return;
+  while (fgets (line, sizeof line, maps) != NULL)
+  { char perm[8];
+    if (sscanf (line, "%lx-%lx %7s %lx", &a, &b, perm, &off) != 4) continue;
+    if (strchr (line, '/') == NULL) continue;
+    if (base == 0) base = a - off;
+    if (perm[2] == 'x') { lo = a; hi = b; break; }
+  }
+  fclose (maps);
+  if (hi == 0) return;
+
+  if (ptrace (PTRACE_ATTACH, rogpid, 0, 0) < 0)
+  { fprintf (f, "rogue: cannot attach\n"); return; }
+  waitpid (rogpid, &wstat, __WALL);
+
+  if (ptrace (PTRACE_GETREGS, rogpid, 0, &regs) == 0)
+  { fprintf (f, "rogue pc %#lx%s, code on its stack:", 
+             (unsigned long) regs.rip - base,
+             (regs.rip >= lo && regs.rip < hi) ? "" : " (in a library)");
+    for (i = 0; i < 2048 && nshown < 40; i++)
+    { errno = 0;
+      word = ptrace (PTRACE_PEEKDATA, rogpid, regs.rsp + 8 * i, 0);
+      if (errno) break;
+      if (word >= lo && word < hi)
+      { fprintf (f, " %#lx", word - base); nshown++; }
+    }
+    fprintf (f, "\n");
+  }
+
+  ptrace (PTRACE_DETACH, rogpid, 0, 0);
+}
+
 void hangdump (sig)
 int sig;
 { void *bt[40];
@@ -361,10 +418,37 @@ int sig;
            row, col, atrow, atcol, playing);
   fprintf (f, "message line [%.80s]\n", screen[0]);
   fprintf (f, "status line  [%.80s]\n", screen[23]);
+  roguestack (f);
   fflush (f);
   n = backtrace (bt, 40);
   backtrace_symbols_fd (bt, n, fileno (f));
   fclose (f);
+}
+
+/*
+ * crashdump: on a fault write where we were to the file "crash.dbg",
+ * then die of the same signal so that our parent sees what happened.
+ */
+
+void crashdump (sig)
+int sig;
+{ void *bt[40];
+  FILE *f = fopen ("crash.dbg", "w");
+  int n;
+
+  signal (sig, SIG_DFL);
+  if (f != NULL)
+  { fprintf (f, "signal %d, last command '%s', turns %d, level %d\n",
+             sig, lastcmd, turns, Level);
+    fprintf (f, "cursor %d,%d  at %d,%d\n", row, col, atrow, atcol);
+    fprintf (f, "message line [%.80s]\n", screen[0]);
+    fflush (f);
+    n = backtrace (bt, 40);
+    backtrace_symbols_fd (bt, n, fileno (f));
+    fclose (f);
+  }
+  if (fecho != NULL) fflush (fecho);
+  raise (sig);
 }
 
 main (argc, argv)
@@ -373,6 +457,9 @@ char *argv[];
 { char  ch, *s, *getenv(), *statusline(), msg[350];
   int startingup = 1;
   register int  i;
+
+  signal (SIGSEGV, crashdump);  signal (SIGBUS, crashdump);
+  signal (SIGFPE, crashdump);   signal (SIGABRT, crashdump);
 
   /*
    * Initialize some storage

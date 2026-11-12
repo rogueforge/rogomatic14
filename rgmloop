@@ -187,6 +187,21 @@ class Game:
             time.sleep(0.3)
         except ProcessLookupError:
             pass
+        # The player lists where Rogue was as offsets; name them.
+        try:
+            dbg = os.path.join(self.dir, 'hang.dbg')
+            m = re.search(r'^rogue pc .*$', open(dbg).read(), re.M)
+            offs = re.findall(r'0x[0-9a-f]+', m.group(0)) if m else []
+            if offs:
+                out = subprocess.run(['addr2line', '-f', '-e', self.cfg.rogue]
+                                     + offs, capture_output=True, text=True,
+                                     timeout=10).stdout.split('\n')
+                with open(dbg, 'a') as f:
+                    f.write('rogue was in:\n')
+                    for fn, where in zip(out[0::2], out[1::2]):
+                        f.write('  %s  %s\n' % (fn, where))
+        except (OSError, subprocess.SubprocessError):
+            pass
 
     def kill(self, verdict):
         self.verdict = verdict
@@ -263,7 +278,7 @@ class Game:
             if log:
                 shutil.move(os.path.join(self.dir, log),
                             os.path.join(kept, 'log'))
-            for name in reports + ['hang.dbg', 'procinfo']:
+            for name in reports + ['hang.dbg', 'crash.dbg', 'procinfo']:
                 if not os.path.exists(os.path.join(self.dir, name)):
                     continue
                 shutil.move(os.path.join(self.dir, name),
