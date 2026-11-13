@@ -51,7 +51,7 @@ char *argv[];
         case 'w': noterm = 0;     break; /* Watched mode */
         case 'E': emacs++;        break; /* Emacs mode */
         default:  printf 
-                  ("Usage: rogomatic [-cefhprstuwE] or rogomatic [file]\n");
+                  ("Usage: rogomatic [-cefhnprstuwE] or rogomatic [file]\n");
                   exit (1);
       }
     }
@@ -63,7 +63,7 @@ char *argv[];
   }
 
   if (argc > 1)
-  { printf ("Usage: rogomatic [-cefhprstuwE] or rogomatic <file>\n");
+  { printf ("Usage: rogomatic [-cefhnprstuwE] or rogomatic <file>\n");
     exit (1);
   }
 
