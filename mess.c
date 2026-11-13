@@ -449,7 +449,7 @@ register char *mess, *mend;
   }
 
   /* Log unknown or troublesome messages */
-  if (morecount > 3000)	dwait (D_WARNING, "More loop msg '%s'", mess);
+  if (morecount > 29950) dwait (D_WARNING, "More loop msg '%s'", mess);
   else if (unknown)	dwait (D_WARNING, "Unknown message '%s'", mess);
 
   /* Send it to dwait; if dwait doesnt print it (and echo is on) echo it */

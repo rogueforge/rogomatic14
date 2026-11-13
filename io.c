@@ -190,8 +190,8 @@ int   onat;                             /* 0 ==> Wait for waitstr
     /* If the message has a more, strip it off and call terpmes */
     if (ch == *m)
     { if (*++m == 0)
-      { /* More than 3000 messages since last command ==> start logging */
-        if (++morecount > 3000 && !logging) 
+      { /* The last 50 messages before we give up ==> start logging */
+        if (++morecount > 29950 && !logging) 
 	{ toggleecho (); dwait (D_WARNING, "Started logging --More-- loop."); }
 
         /*
