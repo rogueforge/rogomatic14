@@ -147,6 +147,11 @@ char *argv[];
     _exit (1);
   }
 
+  else if (child < 0)
+  { fprintf (stderr, "Cannot start a process for Rogue!\n");
+    exit (1);
+  }
+
   else
   { /* Encode the open files into a two character string */
 

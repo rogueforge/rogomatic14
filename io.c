@@ -847,13 +847,14 @@ int terminationtype;            /* SAVED, FINSISHED, or DIED */
     if (stlmatch (reason, "fatal error trap"))
     {
       critical ();
-      kill (rogpid, SIGHUP);
+      if (rogpid > 0) kill (rogpid, SIGHUP);
       uncritical ();
     }
   }
 
   /* Wait for Rogue to die */
   wait ((int *) NULL);
+  rogpid = 0;				/* Its number may now be another's */
 }
 
 /*
