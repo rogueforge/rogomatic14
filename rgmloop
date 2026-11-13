@@ -133,7 +133,7 @@ class Game:
                             struct.pack('HHHH', GAME_ROWS, GAME_COLS, 0, 0))
                 os.chdir(self.dir)
                 os.execve('./rogomatic',
-                          ['rogomatic', '-e', '-f', cfg.rogue], env)
+                          ['rogomatic', '-e', '-n', '-f', cfg.rogue], env)
             finally:
                 os._exit(127)
         os.set_inheritable(self.fd, False)     # not for the other games
