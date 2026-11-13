@@ -281,9 +281,12 @@ register char *genepool;
       return (0);
   }
 
-  /* Read the header line */
+  /* Read the header line.  An empty file is no gene pool. */
   b = buf;
-  if (fgets (b, BUFSIZ, gfil) == NULL) return (0);
+  if (fgets (b, BUFSIZ, gfil) == NULL)
+  { fclose (gfil);
+    return (0);
+  }
   sscanf (b, "%ld %d %d %d %d %d",
 	&inittime, &trialno, &lastid, &crosses, &shifts, &mutations);
   SKIPTO ('|', b);
