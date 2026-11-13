@@ -11,7 +11,7 @@
 # include "types.h"
 # include "globals.h"
 
-# define MAXNUMLEV 60
+# define MAXNUMLEV 100
 # define FIRSTLEVSTR "\nR: "
 # define NEWLEVSTR "\nR: {ff}"
 # define POSITAT   "{ff}"
@@ -112,7 +112,7 @@ int *nmlev, maxnum;
   
   fillstruct (f, &lvpos[l]);
   
-  while (++l <= maxnum && findmatch (f, NEWLEVSTR))
+  while (++l < maxnum && findmatch (f, NEWLEVSTR))
   { fseek (f, (long) -strlen (POSITAT), 1);
     lvpos[l].pos = ftell (f);
     fillstruct (f, &lvpos[l]);      
