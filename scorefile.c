@@ -10,6 +10,7 @@
  */
 
 # include <stdio.h>
+# include <string.h>
 # include <sys/types.h>
 # include <sys/stat.h>
 # include "types.h"
@@ -38,7 +39,7 @@ int ntrm;
   FILE *newlog;
 
   sprintf (lokfil, "%s %s", LOCKFILE, vers);
-  sprintf (newfil, "%s/rgmdelta%s", RGMDIR, vers);
+  sprintf (newfil, "%s/rgmdelta%.16s", RGMDIR, vers);
 
   /* Defer interrupts while mucking with the score file */
   critical ();
@@ -84,6 +85,12 @@ char *vers;
   char  ch, scrfil[100], delfil[100], newfil[100], allfil[100], cmd[550];
   FILE *scoref, *deltaf;
   int   intrupscore ();
+
+  /* The version becomes part of file names and of a shell command */
+  if (strlen (vers) > 16 || vers[strspn (vers, "0123456789.")] != '\0')
+  { printf ("That is not a version of Rogue.\n");
+    exit (1);
+  }
 
   sprintf (lokfil, "%s %s", LOCKFILE, vers);
   sprintf (scrfil, "%s/rgmscore%s", RGMDIR, vers);
