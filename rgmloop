@@ -25,6 +25,7 @@ To watch from another terminal, start it inside tmux:
   tmux attach -t rgm        (detach again with ctrl-b d)
 
 A kept game can be replayed with:  ./rogomatic -p runs/keep/<dir>/log
+and typed into Rogue again with:   ./rgmrerun runs/keep/<dir>/log
 """
 
 import argparse

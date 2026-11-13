@@ -1,0 +1,296 @@
+#!/usr/bin/env python3
+"""rgmrerun: type a logged game into Rogue again, without the player.
+
+A game log (runs/keep/<dir>/log, or any log kept with rogomatic -e)
+holds every key the player sent and everything Rogue answered.  This
+starts Rogue alone with the same seed and types the same keys, one
+command at a time, waiting each time until Rogue wants the next.  It
+is for looking into Rogue itself: run a game that went wrong under a
+debugger or a memory-checked build, or against a changed Rogue to see
+whether it still goes the same way.
+
+Rogue does whatever the log types, so it is started with no shell for
+its '!' command and with runs/rerun-home as its home directory, where
+its saved game goes.  Rog-O-Matic saves only as "Syy", under the name
+Rogue offers, and never opens Rogue's options, where that name can be
+changed: a log that does either is typed no further.
+
+  ./rgmrerun runs/keep/seed1234-hang/log          does Rogue still do that?
+  ./rgmrerun --watch LOG                          show the game as it goes
+  ./rgmrerun --rogue ../other/rogue LOG           where does this one differ?
+  ./rgmrerun --upto 500 LOG                       stop there, to attach gdb
+
+What Rogue writes is checked against the log, and the first command
+after which the two differ is reported.  The idea is Peter Schauer's
+"rerun" mode of 2008, done from outside the player.
+"""
+
+import argparse, fcntl, os, pty, re, select, signal, struct, subprocess
+import sys, termios, time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ESC = 27
+# What the player's terminal "rg" sends after ESC, and how the log
+# spells it (termtokens.h, getroguetoken)
+AFTER_ESC = {0x13: '{ce}', ord('<'): '{do}', ord('='): '{nd}',
+             ord('d'): '{se}', ord('D'): '{so}', ord(';'): '{up}'}
+PLAIN = {8: '{bs}', 12: '{ff}', 13: '{cr}', 10: '{nl}', 9: '{ta}'}
+ANSI = {'{ce}': '\033[K', '{do}': '\033[B', '{nd}': '\033[C',
+        '{se}': '\033[m', '{so}': '\033[7m', '{up}': '\033[A',
+        '{bs}': '\b', '{ff}': '\033[H\033[J', '{cr}': '\r', '{nl}': '\n',
+        '{ta}': '\t'}
+
+
+def read_log(path):
+    """Return the commands sent and the text of all Rogue's answers."""
+    with open(path, 'rb') as f:
+        text = f.read().decode('latin1')
+    cmds, answers = [], []
+    for part in text.split('\nC: "')[1:]:
+        cmd, sep, answer = part.partition('"\nR: ')
+        if not sep:                     # the last command has no answer
+            cmd = cmd.rstrip('\n')
+            cmd = cmd[:-1] if cmd.endswith('"') else cmd
+        cmds.append(cmd)
+        answers.append(answer.rstrip('\n'))
+    return cmds, answers
+
+
+class Tokens:
+    """Turn Rogue's output into the spelling of the log."""
+    def __init__(self):
+        self.state, self.row = 0, 0
+
+    def feed(self, data):
+        out = []
+        for c in data:
+            if self.state == 1:                 # after ESC
+                self.state = 0
+                if c == ord('a'):
+                    self.state = 2
+                else:
+                    out.append(AFTER_ESC.get(c, '{ERRESC}'))
+            elif self.state == 2:               # cursor row
+                self.row, self.state = c - 32, 3
+            elif self.state == 3:               # cursor column
+                out.append('{cm(%d,%d)}' % (self.row, c - 32))
+                self.state = 0
+            elif c == ESC:
+                self.state = 1
+            elif 32 <= c <= 126:
+                out.append(chr(c))
+            else:
+                out.append(PLAIN.get(c, '{ERR%o}' % c))
+        return out
+
+
+def show(tokens):
+    """Draw the tokens on the user's own terminal."""
+    s = []
+    for t in tokens:
+        m = re.match(r'\{cm\((\d+),(\d+)\)\}$', t)
+        s.append('\033[%d;%dH' % (int(m.group(1)) + 1, int(m.group(2)) + 1)
+                 if m else ANSI.get(t, t if len(t) == 1 else ''))
+    sys.stdout.write(''.join(s))
+    sys.stdout.flush()
+
+
+def waiting(pid):
+    """Is Rogue asleep in a read of its input?  (See roguewaiting.)"""
+    try:
+        with open('/proc/%d/syscall' % pid) as f:
+            call = f.read().split()
+        with open('/proc/%d/stat' % pid) as f:
+            state = f.read().rsplit(')', 1)[1].split()[0]
+    except (OSError, IndexError):
+        return False
+    return (len(call) > 1 and call[0] == '0' and int(call[1], 16) == 0
+            and state == 'S')
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__,
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument('log')
+    p.add_argument('--rogue', default=os.path.join(HERE, '..',
+                                    'rogue5.2-linux', 'src', 'rogue'))
+    p.add_argument('--seed', type=int, help='default: the one in the log')
+    p.add_argument('--watch', action='store_true', help='show the game')
+    p.add_argument('--upto', type=int, default=0, metavar='N',
+                   help='stop before command N and wait, Rogue left running')
+    p.add_argument('--keep-going', action='store_true',
+                   help='carry on after the answers differ from the log')
+    cfg = p.parse_args()
+
+    cmds, answers = read_log(cfg.log)
+    want = ''.join(answers)
+    m = re.search(r'Hello ([^,]*), welcome to dungeon #(\d+)', want)
+    seed = cfg.seed if cfg.seed is not None else int(m.group(2)) if m else None
+    if seed is None:
+        sys.exit('rgmrerun: no seed in the log, give one with --seed')
+    name = m.group(1)[:70] if m else 'Rog-O-Matic XIV'
+
+    terminfo = os.path.join(HERE, 'runs', 'terminfo')
+    if not os.path.exists(os.path.join(terminfo, 'r', 'rg')):
+        os.makedirs(terminfo, exist_ok=True)
+        subprocess.run(['tic', '-o', terminfo,
+                        os.path.join(HERE, 'rterm.tic')], check=True)
+    home = os.path.join(HERE, 'runs', 'rerun-home')
+    os.makedirs(home, exist_ok=True)
+    env = dict(os.environ)
+    env.update(SEED=str(seed), TERM='rg', TERMINFO=terminfo, LINES='24',
+               COLUMNS='80', SHELL='/bin/false', HOME=home,
+               ROGUEOPTS='name=%s,fruit=apricot,terse,noflush,noask,jump,'
+                         'step,nopassgo,inven=slow,seefloor' % name)
+    rogue = os.path.abspath(cfg.rogue)
+    # The shell and the home directory given above are all that keeps a
+    # log from running commands and from saving where it likes
+    with open(rogue, 'rb') as f:
+        code = f.read()
+    if b'SHELL' not in code or b'HOME' not in code:
+        sys.exit('rgmrerun: %s does not seem to take its shell and home '
+                 'directory from the environment, so a log could do '
+                 'anything with it' % rogue)
+
+    # The terminal as the player sets it up: raw, so that nothing is
+    # echoed or translated, 24 by 80, and not Rogue's controlling
+    # terminal.  Rogue's standard error stays ours, for the reports
+    # of a memory-checked build.
+    fd, slave = pty.openpty()
+    tio = termios.tcgetattr(slave)
+    tio[0] = tio[1] = tio[3] = 0
+    tio[2] = termios.CREAD | termios.CS8
+    tio[6][termios.VMIN], tio[6][termios.VTIME] = 1, 0
+    termios.tcsetattr(slave, termios.TCSANOW, tio)
+    fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack('HHHH', 24, 80, 0, 0))
+    pid = os.fork()
+    if pid == 0:
+        try:
+            os.dup2(slave, 0)
+            os.dup2(slave, 1)
+            os.close(slave)
+            os.close(fd)
+            os.execve(rogue, [rogue], env)
+        finally:
+            os._exit(127)
+    os.close(slave)
+
+    tok, got, done, differ, ended = Tokens(), '', 0, None, False
+    status, skipped, refused = None, False, None
+
+    def settle():
+        """Read what Rogue writes until it wants a key or is gone."""
+        nonlocal got, ended, status
+        quiet, limit = 0, time.time() + 30
+        while quiet < 3 and time.time() < limit:
+            ready, _, _ = select.select([fd], [], [], 0.002)
+            if ready:
+                try:
+                    data = os.read(fd, 65536)
+                except OSError:
+                    data = b''
+                if not data:
+                    ended = True
+                    return
+                new = tok.feed(data)
+                got += ''.join(new)
+                if cfg.watch:
+                    show(new)
+                quiet = 0
+            elif waiting(pid):
+                quiet += 1
+            else:
+                quiet = 0
+                r, st = os.waitpid(pid, os.WNOHANG)
+                if r:
+                    ended, status = 'reaped', st
+                    return
+
+    for n, cmd in enumerate(cmds, 1):
+        if cfg.upto and n >= cfg.upto:
+            break
+        # S is typed by the player only to save ("Syy") and to ask
+        # what an S on the map is ("/S;")
+        saving = re.fullmatch(r'[ ;]*Syy', cmd)
+        if 'S' in cmd and not saving and cmd != '/S;':
+            refused = (n, 'saves the game as Rog-O-Matic never does')
+            break
+        try:
+            os.write(fd, cmd.encode('latin1'))
+        except OSError:
+            ended = True
+        mark = len(got)
+        if not ended:
+            settle()
+        # The wording of Rogue 3.6, 4.22, 5.2 and 5.3, without the blanks
+        said = re.sub(r'\{[^}]*\}| ', '', got[mark:]).lower()
+        if 'savefile:' in said or 'savefile("file")' in said:
+            refused = (n, "opens Rogue's options, where the save file is named")
+            break
+        if ('savefile(' in said or 'filename:' in said) and not saving:
+            refused = (n, 'saves the game as Rog-O-Matic never does')
+            break
+        if cmd[:1] in ('\f', '\x12') and not skipped:
+            # At the start the player redraws the screen and reads up
+            # to the form feed without logging it
+            skipped = True
+            cut = got.find('{ff}', mark)
+            if cut >= 0:
+                got = got[:mark] + got[cut + 4:]
+        done = n
+        k = min(len(got), len(want))
+        if differ is None and got[:k] != want[:k]:
+            at = next(i for i in range(k) if got[i] != want[i])
+            differ = (n, at)
+            if not cfg.keep_going:
+                break
+        if ended:
+            break
+
+    if cfg.watch:
+        sys.stdout.write('\033[25;1H\033[m\n')
+    print('rgmrerun: seed %d, %s' % (seed, rogue))
+    print('  typed %d of %d commands' % (done, len(cmds)))
+    if refused:
+        n, why = refused
+        print('  stopped at command %d %r: the log %s' % (n, cmds[n - 1], why))
+    if differ:
+        n, at = differ
+        print('  Rogue answered differently after command %d %r:'
+              % (n, cmds[n - 1]))
+        # Not as it stands: a log may hold codes that the terminal obeys
+        for who, text in (('log', want), ('now', got)):
+            print('    %s:  ...%s' % (who, re.sub(r'[^ -~]', '?',
+                                              text[max(0, at - 60):at + 60])))
+    else:
+        print('  Rogue answered as in the log (%d characters compared)'
+              % min(len(got), len(want)))
+
+    if cfg.upto and not ended:
+        print('  Rogue is process %d, waiting for command %d %r'
+              % (pid, cfg.upto, cmds[cfg.upto - 1] if cfg.upto <= len(cmds) else ''))
+        try:
+            input('  press return to end it ')
+        except (EOFError, KeyboardInterrupt):
+            pass
+    if ended != 'reaped':
+        # A Rogue still running (a hang, or we stopped) is not waited for
+        r, status = os.waitpid(pid, os.WNOHANG)
+        if r == 0:
+            if not cfg.upto and not differ and not refused:
+                time.sleep(0.5)
+                st = 'reading a key' if waiting(pid) else 'RUNNING (not reading)'
+                print('  at the end of the log Rogue is still alive, %s' % st)
+            os.kill(pid, signal.SIGKILL)
+            os.waitpid(pid, 0)
+            status = None
+    if status is not None:
+        if os.WIFSIGNALED(status):
+            print('  Rogue died of signal %d' % os.WTERMSIG(status))
+        else:
+            print('  Rogue exited with status %d' % os.WEXITSTATUS(status))
+    sys.exit(1 if differ or refused else 0)
+
+
+if __name__ == '__main__':
+    main()
