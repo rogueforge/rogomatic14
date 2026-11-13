@@ -83,7 +83,7 @@ char *vers;
 { 
   char  ch, scrfil[100], delfil[100], newfil[100], allfil[100], cmd[550];
   FILE *scoref, *deltaf;
-  int   oldmask, intrupscore ();
+  int   intrupscore ();
 
   sprintf (lokfil, "%s %s", LOCKFILE, vers);
   sprintf (scrfil, "%s/rgmscore%s", RGMDIR, vers);
@@ -108,9 +108,6 @@ char *vers;
 
     /* Defer interrupts while mucking with the score file */
     critical ();
-
-    /* Make certain any new files are world writeable */    
-    oldmask = umask (0);
 
     /* If we have an old file and a delta file, merge them */
     if (scoref != NULL)
@@ -138,9 +135,6 @@ char *vers;
       unlink (delfil);
       scoref = fopen (scrfil, "r");
     }
- 
-    /* Restore umask */
-    umask (oldmask);
 
     /* Restore interrupt status after score file stable */
     uncritical ();

@@ -87,17 +87,16 @@ char *getname ()
 }
 
 /*
- * wopen: Open a file for world access.
+ * wopen: Open a file for writing.  It used to be made writable by
+ * every user, whatever the umask, so that several people could share
+ * the score file and gene pool.  Whoever wants that can set the umask.
  */
 
 FILE *wopen(fname, mode)
 char *fname, *mode;
-{ int oldmask;
-  FILE *newlog;
+{ FILE *newlog;
 
-  oldmask = umask (0111);
   newlog = fopen (fname, mode);
-  umask (oldmask);
 
   return (newlog);  
 }
