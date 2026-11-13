@@ -12,5 +12,6 @@
 # things left behind by playing
 /runs/
 /roguelog
+/rgm.save
 /rogue
 *.scr

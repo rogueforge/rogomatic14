@@ -129,3 +129,10 @@ extern char *rgmdir ();
  */
 
 # define SNAPSHOT	"snapshot.rgm"
+
+/*
+ * Rogue is told to save a game of ours under this name, in the current
+ * directory, so that it does not go over the user's own saved game.
+ */
+
+# define ROGUESAVE	"rgm.save"

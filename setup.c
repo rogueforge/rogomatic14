@@ -90,9 +90,10 @@ char *argv[];
   sprintf (options, "%d,%d,%d,%d,%d,%d,%d,%d",
            cheat, noterm, echo, nohalf, emacs, terse, user,quitat);
   sprintf (roguename, "Rog-O-Matic %s for %s", RGMVER, getname ());
-  sprintf (ropts, "name=%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+  sprintf (ropts, "name=%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
            roguename, "fruit=apricot", "terse", "noflush", "noask",
-           "jump", "step", "nopassgo", "inven=slow", "seefloor");
+           "jump", "step", "nopassgo", "inven=slow", "seefloor",
+           "file=" ROGUESAVE);
 
   if (score)  { dumpscore (argc==1 ? argv[0] : DEFVER); exit (0); }
   if (replay) { replaylog (argc==1 ? argv[0] : ROGUELOG, options); exit (0); }

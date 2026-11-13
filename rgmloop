@@ -110,8 +110,9 @@ class Game:
         env = dict(os.environ)
         env.update(SEED=str(seed), RGMDIR=cfg.rgmdir, TERMINFO=cfg.terminfo,
                    RGMMAXTURNS=str(cfg.max_turns))
-        # Rogue saves a game it is killed in as $HOME/rogue.save: keep
-        # that out of the user's own home directory
+        # A Rogue that does not take the name rogomatic gives it saves
+        # a game it is killed in as $HOME/rogue.save: keep that out of
+        # the user's own home directory
         env['HOME'] = self.dir
         if cfg.knobs:
             env['RGMKNOBS'] = cfg.knobs

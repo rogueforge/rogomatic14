@@ -141,7 +141,8 @@ def main():
     env.update(SEED=str(seed), TERM='rg', TERMINFO=terminfo, LINES='24',
                COLUMNS='80', SHELL='/bin/false', HOME=home,
                ROGUEOPTS='name=%s,fruit=apricot,terse,noflush,noask,jump,'
-                         'step,nopassgo,inven=slow,seefloor' % name)
+                         'step,nopassgo,inven=slow,seefloor,file=rgm.save'
+                         % name)
     rogue = os.path.abspath(cfg.rogue)
     # The shell and the home directory given above are all that keeps a
     # log from running commands and from saving where it likes
@@ -170,6 +171,7 @@ def main():
             os.dup2(slave, 1)
             os.close(slave)
             os.close(fd)
+            os.chdir(home)              # where rgm.save goes
             os.execve(rogue, [rogue], env)
         finally:
             os._exit(127)
