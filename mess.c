@@ -176,6 +176,7 @@ register char *mess, *mend;
       if (MATCH("hey, this tastes great*")) infer (potion, "restore strength");
       else if (MATCH("huh? what? who?")) ;
       else if (MATCH("heavy!  that's a nasty critter!")) ;
+      else if (MATCH("hello *")) echoit=0;	/* Rogue greets us */
       else unknown++;
       break;
 
@@ -186,6 +187,8 @@ register char *mess, *mend;
       else if (MATCH("ice *")) ;
       else if (MATCH("identify what*")) echoit=0;
       else if (MATCH("item:*")) echoit=0;
+      /* We asked to wield or throw what we already use: look again */
+      else if (MATCH("in use")) usesynch = 0;
       else if (MATCH("illegal command*")) { echoit=0; illcmd=1; }
       else if (MATCH("i see no way*"))
       { unset (STAIRS); findstairs (atrow, atcol); }
@@ -319,6 +322,7 @@ register char *mess, *mend;
     case 'w':
       if (MATCH("what do you want*")) echoit=0;
       else if (MATCH("wield what*")) { echoit=0; wieldreply(); }
+      else if (MATCH("which monster*")) echoit=0;	/* See rampage */
       else if (MATCH("wielding a*")) echoit=0;
       else if (MATCH("wear what*")) echoit=0;
       else if (MATCH("what monster*")) echoit=0;
