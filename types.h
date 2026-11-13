@@ -44,7 +44,7 @@ extern char	*_unctrl[];
 # define FAILURE	(0)
 
 # define ISPRT(c)	((c) >= ' ' && (c) <= '~')
-# define GETROGUECHAR	fgetc(frogue)
+# define GETROGUECHAR	getroguechar()
 # define GETLOGCHAR	fgetc(logfile)
 
 /*

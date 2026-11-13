@@ -653,6 +653,20 @@ pending ()
  * cursor motion sequence).
  */
 
+/*
+ * getroguechar: read one character from Rogue.  A signal that arrives
+ * while we wait, such as the one for a change of window size, makes
+ * the read fail; that is not the end of the game, so read again.
+ */
+
+int getroguechar ()
+{ int ch;
+
+  while ((ch = fgetc (frogue)) == EOF && ferror (frogue) && errno == EINTR)
+    clearerr (frogue);
+  return (ch);
+}
+
 int getroguetoken ()
 { int ch;
   int getlogtoken();
@@ -1014,8 +1028,10 @@ getrogver ()
     { if (fgetc (logfile) == *m) m++; else m = VERMSG;}
   
     if (*m == '\0')			/* Found VERMSG, get version string */
-    { while ((ch = fgetc (logfile)) != ' ') *(vstr++) = ch;
-      *--vstr = '\0';
+    { while ((ch = fgetc (logfile)) != ' ' && ch != EOF)
+        if (vstr < versionstr + 31) *(vstr++) = ch;
+      if (vstr > versionstr) --vstr;
+      *vstr = '\0';
     }
     else				/* Use default version */
     { sprintf (versionstr, DEFVER); }
@@ -1027,8 +1043,11 @@ getrogver ()
   { sendnow ("v;");
     getrogue ("ersion ", 0);
 
-    while ((ch = getroguetoken ()) != ' ') *(vstr++) = ch;
-    *--vstr = '\0';
+    /* Never copy more than fits, whatever Rogue sent */
+    while ((ch = getroguetoken ()) != ' ' && ch != EOF)
+      if (vstr < versionstr + 31) *(vstr++) = ch;
+    if (vstr > versionstr) --vstr;
+    *vstr = '\0';
     getrogue (ill, 2);
   }
 
