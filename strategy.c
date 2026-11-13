@@ -340,6 +340,8 @@ int   tomonster ()
 { register int i, dist, rr, cc, mdir = NONE, mbad = NONE;
   int   closest, which, danger = 0, adj = 0;
   char  monc = ':', monchar = ':', *monster;
+  static int tolevel = NONE, torow = NONE, tocol = NONE;
+  int   target = NONE;
 
   /* If no monsters, fail */
   if (mlistlen==0)
@@ -381,6 +383,10 @@ int   tomonster ()
     { danger += maxhit(i);		/* track total danger */
       adj++;				/* count number of monsters */
 
+      /* Is he the monster we set out for last turn? */
+      if (Level == tolevel && mlist[i].mrow == torow && mlist[i].mcol == tocol)
+        target = i;
+
       /* If he is the closest monster, save his index and distance */
       if (dist < closest)
       { closest = dist; which = i; monc = mlist[i].chr; mbad = avghit(i); }
@@ -397,7 +403,22 @@ int   tomonster ()
   }
 
   /* No monsters worth bothering, return failure */
-  if (which < 0) return (0); 
+  if (which < 0) { tolevel = NONE; return (0); }
+
+  /*
+   * The closest monster changes as we walk.  To shoot at a sleeping
+   * monster we go to a square in line with it, and on the way another
+   * sleeper can become the closest; the square in line with that one
+   * may lie back where we came from: an endless loop.  So we stay with
+   * the monster we set out for while it is there, unless the closest
+   * one is awake and has to be dealt with first.
+   */
+  if (target != NONE && target != which && mlist[which].q == ASLEEP)
+  { which = target; monc = mlist[which].chr; mbad = avghit (which);
+    closest = max (abs (mlist[which].mrow - atrow),
+                   abs (mlist[which].mcol - atcol));
+  }
+  tolevel = Level; torow = mlist[which].mrow; tocol = mlist[which].mcol;
 
   /* Save the monsters location in registers */
   rr = mlist[which].mrow - atrow; cc = mlist[which].mcol - atcol;
