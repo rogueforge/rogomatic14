@@ -880,7 +880,7 @@ char *monster;
 
   /* Add data about the event to long term memory */
   if ((mh = getmonhist (monster, 0)) < 0) return;
-  { addprob (&monhist[monindex[mh]].arrowhit, SUCCESS);
+  { addprob (&monhist[mh].arrowhit, SUCCESS);
     if (mh == mtarget) { mhit++; }
     else { mhit=1; mmiss = 0; mtarget=mh; }
   }
@@ -900,7 +900,7 @@ char *monster;
 
   /* Add data about the event to long term memory */
   if ((mh = getmonhist (monster, 0)) < 0) return;
-  { addprob (&monhist[monindex[mh]].arrowhit, FAILURE);
+  { addprob (&monhist[mh].arrowhit, FAILURE);
     if (mh == mtarget) { mmiss++; }
     else { mmiss=1; mhit=0; mtarget=mh; }
   }
