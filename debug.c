@@ -58,7 +58,7 @@ dwait(int msgtype, char *f, ...)
 
   if (msgtype & D_FATAL)
   { extern jmp_buf commandtop;			/* From play */
-    saynow (msg);
+    saynow ("%s", msg);
     playing = 0;
     quitrogue ("fatal error trap", Gold, SAVED);
     longjmp (commandtop, 1);
@@ -66,7 +66,7 @@ dwait(int msgtype, char *f, ...)
 
   if (! debug (msgtype | D_INFORM))		/* If debugoff */
   { if (msgtype & D_SAY)			  /* Echo? */
-    { saynow (msg); return (1); }		  /* Yes => win */
+    { saynow ("%s", msg); return (1); }		  /* Yes => win */
     return (0);					  /* No => lose */
   }
 
@@ -203,7 +203,7 @@ toggledebug ()
   if (debug(D_SCREEN))    strcat (debugstr, "screen:");
   if (debug(D_MONSTER))   strcat (debugstr, "monster:");
   
-  saynow (debugstr);
+  saynow ("%s", debugstr);
 }
 
 /* 

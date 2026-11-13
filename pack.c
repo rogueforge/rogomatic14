@@ -85,6 +85,8 @@ register FILE *f;
 removeinv (pos)
 int pos;
 { 
+  if (pos < 0 || pos >= MAXINV) return;
+
   if (--(inven[pos].count) == 0)
   { clearpack  (pos);		/* Assure nothing at that spot  DR UT */
     rollpackup (pos);		/* Close up the hole */
@@ -103,6 +105,8 @@ int pos;
 deleteinv (pos)
 int pos;
 { 
+  if (pos < 0 || pos >= MAXINV) return;
+
   if (--(inven[pos].count) == 0 || inven[pos].type == missile)
   { clearpack  (pos);		/* Assure nothing at that spot  DR UT */
     rollpackup (pos);		/* Close up the hole */
@@ -119,7 +123,7 @@ int pos;
 clearpack (pos)
 int pos;
 {
-  if (pos >= MAXINV) return;
+  if (pos < 0 || pos >= MAXINV) return;
   inven[pos].count = 0;
   inven[pos].str[0] = '\0';
   inven[pos].phit = UNKNOWN;

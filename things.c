@@ -277,7 +277,7 @@ dumpstuff ()
 
 display (s)
 char *s;
-{ saynow (s);
+{ saynow ("%s", s);
   msgonscreen=1;
 }
 

@@ -484,7 +484,7 @@ char *argv[];
   { replaying = 1;
     gamename = "Iteratum Rog-O-Maticus";
     termination = "finis";
-    strcpy (logfilename, argv[4]);
+    strncpy (logfilename, argv[4], sizeof (logfilename) - 1);
     startreplay (&logfile, logfilename);
   }
   else
@@ -557,7 +557,7 @@ char *argv[];
   else if (terse)
   { fprintf (realstdout, "%s\n", msg); fflush (realstdout); }
   else
-  { saynow (msg); }
+  { saynow ("%s", msg); }
 
   /* 
    * Now that we have the version figured out, we can properly

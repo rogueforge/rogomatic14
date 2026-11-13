@@ -987,7 +987,7 @@ doorexplore()
     if (attempt > 0)
       display(msg);
     else
-      saynow (msg);
+      saynow ("%s", msg);
     command (T_DOORSRCH, "s");
     return (1);
   }

@@ -110,7 +110,7 @@ command (int tmode, char *f, ...)
   if (wearing ("searching") != NONE)
     bumpsearchcount ();
 
-  send (cmd);
+  send ("%s", cmd);
 }
 
 /* 
@@ -171,6 +171,7 @@ char *cmd;
 		break;
 
     case 'q':	lastobj = OBJECT (commandarg (cmd, 1));
+		if (lastobj < 0 || lastobj >= MAXINV) break;
 		usemsg ("Quaffing", lastobj);
 		strcpy (lastname, inven[lastobj].str);
 		useobj (potion, inven[lastobj].str);
@@ -178,6 +179,7 @@ char *cmd;
 		break;
 
     case 'r':	lastobj = OBJECT (commandarg (cmd, 1));
+		if (lastobj < 0 || lastobj >= MAXINV) break;
 		usemsg ("Reading", lastobj);
 		strcpy (lastname, inven[lastobj].str);
 		useobj (rscroll, inven[lastobj].str);
@@ -192,6 +194,7 @@ char *cmd;
 
     case 'p': case 'z':
 		lastwand = OBJECT (commandarg (cmd, 2));
+		if (lastwand < 0 || lastwand >= MAXINV) break;
 		usemsg ("Pointing", lastwand);
 		strcpy (lastname, inven[lastwand].str);
 		useobj (wand, inven[lastwand].str);
@@ -282,7 +285,7 @@ replaycommand ()
 { char oldcmd[128];
 
   getoldcommand (oldcmd);
-  command (T_OTHER, oldcmd); 
+  command (T_OTHER, "%s", oldcmd); 
   return (1); 
 }
 

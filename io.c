@@ -218,7 +218,7 @@ int   onat;                             /* 0 ==> Wait for waitstr
         else                sendnow (" ");
 
         /* Clear the --More-- of the end of the message */
-        for (i = col - 7; i < col; screen[0][i++] = ' ');
+        for (i = max (col - 7, 0); i < col && i < 80; screen[0][i++] = ' ');
         col++;		/* Else position is off for {do}/{bs} */
 
         if (!terped)			/* Interpret the message */
@@ -258,13 +258,13 @@ int   onat;                             /* 0 ==> Wait for waitstr
         { terpmes (); terped = 1; newmsg = 0; pend = 0; }
         if (row == 0 && col == 0 && screen[0][0] == 'T' && !terped)
         { terpmes (); terped = 1; }
-        if (row && row < 23)
-          for (i = col; i < 80; i++)
+        if (row > 0 && row < 23)
+          for (i = max (col, 0); i < 80; i++)
           { updatepos (' ', row, i);
             screen[row][i] = ' ';
           }
-        else
-          for (i = col; i < 80; i++)
+        else if (row == 0 || row == 23)
+          for (i = max (col, 0); i < 80; i++)
             screen[row][i] = ' ';
 
         if (row) { at (row, col); clrtoeol (); }
@@ -347,6 +347,10 @@ int   onat;                             /* 0 ==> Wait for waitstr
         break;
 
       default: 
+        /* Off the screen, where only a damaged log can put us */
+        if (row < 0 || row > 23 || col < 0 || col > 79)
+        { col++; break; }
+
         if (ch < ' ')
         { saynow ("Unknown character '\\%o'--more--", ch);
           waitforspace (); 
@@ -449,7 +453,7 @@ terpbot ()
   /* Read the bottom line, there are three versions of the status line */
   if (version < RV52A)		/* Rogue 3.6, Rogue 4.7? */
   { sscanf (screen[23],
-            " Level: %d Gold: %d Hp: %d(%d) Str: %s Ac: %d Exp: %d/%d %s",
+            " Level: %d Gold: %d Hp: %d(%d) Str: %29s Ac: %d Exp: %d/%d %29s",
             &Level, &Gold, &Hp, &Hpmax, sstr, &Ac, &Explev, &Exp, Ms);
     sscanf (sstr, "%d/%d", &Str, &Str18);
     Str = Str * 100 + Str18;
@@ -457,14 +461,14 @@ terpbot ()
   }
   else if (version < RV53A)	/* Rogue 5.2 (versions A and B) */
   { sscanf (screen[23],
-         " Level: %d Gold: %d Hp: %d(%d) Str: %d(%d) Ac: %d Exp: %d/%d %s",
+         " Level: %d Gold: %d Hp: %d(%d) Str: %d(%d) Ac: %d Exp: %d/%d %29s",
          &Level, &Gold, &Hp, &Hpmax, &Str, &Strmax, &Ac, &Explev, &Exp, Ms);
 
     Str = Str * 100; Strmax = Strmax * 100;
   }
   else				/* Rogue 5.3 (and beyond???) */
   { sscanf (screen[23],
-         " Level: %d Gold: %d Hp: %d(%d) Str: %d(%d) Arm: %d Exp: %d/%d %s",
+         " Level: %d Gold: %d Hp: %d(%d) Str: %d(%d) Arm: %d Exp: %d/%d %29s",
          &Level, &Gold, &Hp, &Hpmax, &Str, &Strmax, &Ac, &Explev, &Exp, Ms);
 
     Str = Str * 100; Strmax = Strmax * 100; Ac = 10 - Ac;
@@ -632,7 +636,9 @@ resend ()
 
   /* Send all queued characters until the next queued NULL */
   while (queue[head])
-  { sendcnow (*l++ = queue[head]); bump (head, SENDQ); }
+  { if (l < lastcmd + 63) *l++ = queue[head];	/* lastcmd[64] */
+    sendcnow (queue[head]); bump (head, SENDQ);
+  }
   bump (head, SENDQ);
   *l = '\0';
 
@@ -1240,11 +1246,11 @@ int getlogtoken()
 	  case 'm':
 	    ch = CM_TOK;
 	    row = 0;
-	    while ((dig = GETLOGCHAR) != ',')
+	    while ((dig = GETLOGCHAR) != ',' && dig != EOF)
 	    { row = row * 10 + dig - '0';
 	    }
 	    col = 0;
-	    while ((dig = GETLOGCHAR) != ')')
+	    while ((dig = GETLOGCHAR) != ')' && dig != EOF)
 	    { col = col * 10 + dig - '0'; }
 	    GETLOGCHAR;		/* Ignore '}' */
 	    break;
@@ -1292,7 +1298,7 @@ register char *s;
 
   if ((int) ch != EOF)
   { term = ch = GETLOGCHAR;
-    while ((ch = GETLOGCHAR) != term && (int) ch != EOF && charcount++ < 128)
+    while ((ch = GETLOGCHAR) != term && (int) ch != EOF && charcount++ < 127)
     { *(s++) = ch;
     }
   }

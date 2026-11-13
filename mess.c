@@ -453,8 +453,8 @@ register char *mess, *mend;
   else if (unknown)	dwait (D_WARNING, "Unknown message '%s'", mess);
 
   /* Send it to dwait; if dwait doesnt print it (and echo is on) echo it */
-  if (echoit & !dwait (D_MESSAGE, mess))
-    saynow (mess);
+  if (echoit & !dwait (D_MESSAGE, "%s", mess))
+    saynow ("%s", mess);
 }
 
 /* 
