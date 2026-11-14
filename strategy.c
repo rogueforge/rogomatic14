@@ -1184,6 +1184,7 @@ archery ()
 
   for (m=0; m < mlistlen; m++)		/* Find a sleeping monster */
   { monster = monname (mlist[m].chr);
+    mtk = monatt[mlist[m].chr-'A'].mtokill - gplushit;
 
     /* 
      * If he is not awake and either
@@ -1205,7 +1206,7 @@ archery ()
 	 streq (monster, "rattlesnake")	  ||
 	 streq (monster, "centaur")	  ||
 	 streq (monster, "ice monster"))  &&
-        ammo >= (mtk = monatt[mlist[m].chr-'A'].mtokill - gplushit) &&
+        ammo >= mtk &&
         larder > 0 ||
         ((streq (monster, "leprechaun") && !hungry ()) ||
           streq (monster, "nymph")))
